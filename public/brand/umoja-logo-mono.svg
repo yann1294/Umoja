@@ -1,0 +1,10 @@
+<svg width="640" height="180" viewBox="0 0 640 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Umoja monochrome logo</title>
+  <desc id="desc">One-colour Umoja wordmark with a modular connected U symbol.</desc>
+  <g transform="translate(16 14) scale(.6)" fill="#0B1F1A">
+    <path d="M48 56C48 47.1634 55.1634 40 64 40H88C96.8366 40 104 47.1634 104 56V140C104 153.255 114.745 164 128 164C141.255 164 152 153.255 152 140V56C152 47.1634 159.163 40 168 40H192C200.837 40 208 47.1634 208 56V140C208 184.183 172.183 220 128 220C83.8172 220 48 184.183 48 140V56Z"/>
+    <rect x="112" y="196" width="32" height="32" rx="9" transform="rotate(-45 112 196)"/>
+  </g>
+  <text x="185" y="103" fill="#0B1F1A" font-family="Manrope, Avenir Next, Arial, sans-serif" font-size="72" font-weight="750" letter-spacing="-2">umoja</text>
+  <text x="188" y="135" fill="#0B1F1A" font-family="Noto Sans, Arial, sans-serif" font-size="17" font-weight="650" letter-spacing="2.4">AFRICAN EXPERTISE · ONE FORCE</text>
+</svg>
