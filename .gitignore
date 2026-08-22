@@ -10,6 +10,9 @@ dist/
 coverage/
 *.tsbuildinfo
 next-env.d.ts
+playwright-report/
+test-results/
+blob-report/
 
 # Local environment files (examples remain tracked)
 .env

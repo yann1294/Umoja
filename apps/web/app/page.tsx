@@ -16,20 +16,14 @@ export default function HomePage() {
           <p className="eyebrow">Umoja Platform</p>
           <h1 id="hero-title">African expertise. One trusted force.</h1>
           <p className="introduction">
-            A bilingual delivery collective is taking shape—built for trusted teams,
-            meaningful work, and lasting capability.
+            A bilingual delivery collective is taking shape—built for trusted teams, meaningful
+            work, and lasting capability.
           </p>
           <p className="status" role="status">
             <span aria-hidden="true" /> Platform foundation in progress
           </p>
         </div>
-        <Image
-          className="brand-mark"
-          src="/brand/umoja-mark.svg"
-          alt=""
-          width={256}
-          height={256}
-        />
+        <Image className="brand-mark" src="/brand/umoja-mark.svg" alt="" width={256} height={256} />
       </section>
     </main>
   );

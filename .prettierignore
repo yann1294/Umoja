@@ -1,0 +1,12 @@
+.next/
+node_modules/
+out/
+coverage/
+playwright-report/
+test-results/
+pnpm-lock.yaml
+docs/
+work/
+public/brand/
+apps/web/public/brand/
+tests/e2e/__screenshots__/
