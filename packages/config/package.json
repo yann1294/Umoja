@@ -6,5 +6,7 @@
   "exports": {
     "./typescript/base": "./typescript/base.json"
   },
-  "files": ["typescript"]
+  "files": [
+    "typescript"
+  ]
 }

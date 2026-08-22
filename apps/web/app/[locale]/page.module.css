@@ -1,0 +1,68 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: clamp(32rem, 68svh, 48rem);
+  align-items: center;
+  padding-block: var(--u-space-4);
+  overflow: hidden;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  max-width: 52rem;
+}
+
+.eyebrow {
+  margin: 0 0 var(--u-space-2);
+  color: var(--u-color-gold);
+  font-size: var(--u-font-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hero h1 {
+  max-width: 14ch;
+  margin: 0;
+  font-family: var(--u-font-heading);
+  font-size: var(--u-font-display);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: var(--u-leading-display);
+  text-wrap: balance;
+}
+
+.introduction {
+  max-width: 42rem;
+  margin: var(--u-space-3) 0 0;
+  color: var(--u-color-mist);
+  font-size: var(--u-font-body-large);
+  line-height: var(--u-leading-body-large);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-2);
+  margin-top: var(--u-space-4);
+}
+
+.heroMark {
+  position: absolute;
+  right: clamp(-3rem, 2vw, 1rem);
+  bottom: clamp(-3rem, 1vw, 0rem);
+  z-index: -1;
+  width: clamp(12rem, 30vw, 24rem) !important;
+  opacity: 0.12;
+}
+
+@media (max-width: 30rem) {
+  .actions {
+    display: grid;
+  }
+
+  .actions :global(.u-button) {
+    width: 100%;
+  }
+}

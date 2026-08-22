@@ -1,0 +1,68 @@
+{
+  "Metadata": {
+    "title": "Umoja",
+    "description": "African expertise. One trusted force."
+  },
+  "Shell": {
+    "skip": "Skip to main content",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "menuTitle": "Main navigation",
+    "homeLabel": "Umoja home",
+    "languageLabel": "Language",
+    "switchLanguage": "Français",
+    "footerExplore": "Explore",
+    "footerAct": "Get started",
+    "footerStatement": "African expertise. One trusted force.",
+    "footerLanguageNote": "English and French have equal status at Umoja."
+  },
+  "Navigation": {
+    "services": "Services",
+    "work": "Work",
+    "talent": "Talent",
+    "africit": "AfricIT",
+    "about": "About",
+    "startProject": "Start a project",
+    "join": "Join"
+  },
+  "Home": {
+    "eyebrow": "Umoja Platform",
+    "title": "African expertise. One trusted force.",
+    "introduction": "A bilingual delivery collective is taking shape—built for trusted teams, meaningful work, and lasting capability.",
+    "primaryAction": "Start a project",
+    "secondaryAction": "Join the network"
+  },
+  "Pages": {
+    "services": {
+      "title": "Services",
+      "summary": "A clear view of the capabilities Umoja can assemble into accountable delivery teams."
+    },
+    "work": {
+      "title": "Work",
+      "summary": "Verified case studies will appear here only after publication consent and editorial review."
+    },
+    "talent": {
+      "title": "Talent",
+      "summary": "Opt-in public profiles will present professional expertise without exposing private contact or HR data."
+    },
+    "africit": {
+      "title": "AfricIT",
+      "summary": "A home for learning, workshops, research, and practical capability building by Umoja."
+    },
+    "about": {
+      "title": "About Umoja",
+      "summary": "Learn how the collective connects trusted specialists, managed delivery, and shared growth."
+    },
+    "start-a-project": {
+      "title": "Start a project",
+      "summary": "Tell us what you need to build. A structured project-intake experience is coming next."
+    },
+    "join": {
+      "title": "Join Umoja",
+      "summary": "A private, consent-led application path for specialists who want to contribute and grow."
+    },
+    "eyebrow": "Public site foundation",
+    "status": "This page is ready for verified bilingual content.",
+    "backHome": "Back to home"
+  }
+}

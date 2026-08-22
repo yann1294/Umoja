@@ -1,0 +1,68 @@
+{
+  "Metadata": {
+    "title": "Umoja",
+    "description": "L’expertise africaine. Une force unie."
+  },
+  "Shell": {
+    "skip": "Aller au contenu principal",
+    "menuOpen": "Ouvrir le menu",
+    "menuClose": "Fermer le menu",
+    "menuTitle": "Navigation principale",
+    "homeLabel": "Accueil Umoja",
+    "languageLabel": "Langue",
+    "switchLanguage": "English",
+    "footerExplore": "Explorer",
+    "footerAct": "Commencer",
+    "footerStatement": "L’expertise africaine. Une force unie.",
+    "footerLanguageNote": "Le français et l’anglais ont le même statut chez Umoja."
+  },
+  "Navigation": {
+    "services": "Services",
+    "work": "Réalisations",
+    "talent": "Talents",
+    "africit": "AfricIT",
+    "about": "À propos",
+    "startProject": "Démarrer un projet",
+    "join": "Rejoindre Umoja"
+  },
+  "Home": {
+    "eyebrow": "Plateforme Umoja",
+    "title": "L’expertise africaine. Une force unie.",
+    "introduction": "Un collectif bilingue de spécialistes prend forme — conçu pour des équipes de confiance, un travail utile et des capacités durables.",
+    "primaryAction": "Démarrer un projet",
+    "secondaryAction": "Rejoindre le réseau"
+  },
+  "Pages": {
+    "services": {
+      "title": "Services",
+      "summary": "Une présentation claire des compétences qu’Umoja peut réunir au sein d’équipes responsables de la réalisation."
+    },
+    "work": {
+      "title": "Réalisations",
+      "summary": "Les études de cas vérifiées seront publiées ici uniquement après consentement et validation éditoriale."
+    },
+    "talent": {
+      "title": "Talents",
+      "summary": "Les profils publics volontaires présenteront l’expertise professionnelle sans exposer de coordonnées privées ni de données RH."
+    },
+    "africit": {
+      "title": "AfricIT",
+      "summary": "Un espace Umoja consacré à l’apprentissage, aux ateliers, à la recherche et au développement de compétences concrètes."
+    },
+    "about": {
+      "title": "À propos d’Umoja",
+      "summary": "Découvrez comment le collectif relie spécialistes de confiance, réalisation encadrée et croissance partagée."
+    },
+    "start-a-project": {
+      "title": "Démarrer un projet",
+      "summary": "Présentez-nous ce que vous souhaitez construire. Un parcours structuré de dépôt de projet arrive prochainement."
+    },
+    "join": {
+      "title": "Rejoindre Umoja",
+      "summary": "Un parcours de candidature privé, fondé sur le consentement, pour les spécialistes qui souhaitent contribuer et progresser."
+    },
+    "eyebrow": "Fondation du site public",
+    "status": "Cette page est prête à accueillir un contenu bilingue vérifié.",
+    "backHome": "Retour à l’accueil"
+  }
+}
