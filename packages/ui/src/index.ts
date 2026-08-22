@@ -1,6 +1,7 @@
 export * from "./badge";
 export * from "./button";
 export * from "./card";
+export * from "./form-controls";
 export * from "./container";
 export * from "./link-button";
 export * from "./logo";

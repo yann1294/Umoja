@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 import { joinClassNames } from "./utils";
 
@@ -25,19 +25,23 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loadingLabel?: ReactNode;
 }
 
-export function Button({
-  children,
-  className,
-  disabled,
-  loading = false,
-  loadingLabel = "Loading…",
-  size = "medium",
-  type = "button",
-  variant = "primary",
-  ...props
-}: ButtonProps) {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    children,
+    className,
+    disabled,
+    loading = false,
+    loadingLabel = "Loading…",
+    size = "medium",
+    type = "button",
+    variant = "primary",
+    ...props
+  },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       className={joinClassNames("u-button", `u-button--${variant}`, `u-button--${size}`, className)}
       type={type}
       disabled={disabled || loading}
@@ -54,4 +58,4 @@ export function Button({
       )}
     </button>
   );
-}
+});
