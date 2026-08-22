@@ -190,7 +190,12 @@ test("keeps modal navigation keyboard-contained and restores focus", async ({ pa
   }
 
   await expect(page).toHaveURL(/\/en\/about$/);
-  await expect(page.getByRole("heading", { level: 1, name: "About Umoja" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "A delivery collective built to strengthen shared capability.",
+    }),
+  ).toBeVisible();
   await expectNoPageHorizontalOverflow(page);
 });
 

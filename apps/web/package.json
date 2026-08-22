@@ -12,6 +12,7 @@
   "dependencies": {
     "@umoja/i18n": "workspace:*",
     "@umoja/ui": "workspace:*",
+    "@umoja/validation": "workspace:*",
     "next": "16.3.2",
     "next-intl": "4.13.7",
     "react": "19.2.3",

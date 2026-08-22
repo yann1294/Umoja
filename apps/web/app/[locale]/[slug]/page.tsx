@@ -8,22 +8,12 @@ import { routing } from "@/i18n/routing";
 
 import styles from "./page.module.css";
 
-const pageSlugs = [
-  "services",
-  "work",
-  "talent",
-  "africit",
-  "about",
-  "start-a-project",
-  "join",
-] as const;
+const pageSlugs = ["start-a-project", "join"] as const;
 
 type PageSlug = (typeof pageSlugs)[number];
 type PlaceholderPageProps = Readonly<{
   params: Promise<{ locale: string; slug: string }>;
 }>;
-
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return pageSlugs.map((slug) => ({ slug }));
