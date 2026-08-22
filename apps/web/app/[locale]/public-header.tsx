@@ -134,7 +134,7 @@ export function PublicHeader({ items, labels, locale }: PublicHeaderProps) {
       >
         <div className={styles.dialogPanel}>
           <div className={styles.dialogHeader}>
-            <h2 id="mobile-navigation-title">{labels.menuTitle}</h2>
+            <p id="mobile-navigation-title">{labels.menuTitle}</p>
             <button
               ref={closeButtonRef}
               className={styles.closeButton}
