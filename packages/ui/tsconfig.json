@@ -1,4 +1,8 @@
 {
   "extends": "../config/typescript/base.json",
-  "include": ["src/**/*.ts"]
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "esnext"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "vitest.config.mts"]
 }

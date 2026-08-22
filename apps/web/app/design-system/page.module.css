@@ -1,0 +1,341 @@
+.page {
+  min-width: 0;
+  color: var(--u-color-ink);
+  background: var(--u-color-canvas);
+}
+
+.hero {
+  display: grid;
+  gap: var(--u-space-3);
+  align-items: start;
+}
+
+.heroCopy {
+  display: grid;
+  max-width: var(--u-content-reading);
+  gap: var(--u-space-2);
+  margin-top: clamp(var(--u-space-4), 8vw, var(--u-space-8));
+}
+
+.heroCopy h1,
+.sectionHeader h2,
+.fixtureTitle {
+  margin: 0;
+  font-family: var(--u-font-heading);
+  text-wrap: balance;
+}
+
+.heroCopy h1 {
+  max-width: 14ch;
+  font-size: var(--u-font-display);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: var(--u-leading-display);
+}
+
+.heroCopy p,
+.sectionHeader p,
+.u-type-body-large {
+  font-size: var(--u-font-body-large);
+  line-height: var(--u-leading-body-large);
+}
+
+.heroCopy p,
+.sectionHeader p,
+.fixtureTitle + p,
+.metaTokens,
+.stressGrid p,
+.darkGrid p,
+.cardGrid p {
+  margin: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--u-color-gold);
+  font-size: var(--u-font-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.sectionHeader {
+  display: grid;
+  max-width: var(--u-content-reading);
+  gap: var(--u-space-2);
+  margin-bottom: clamp(var(--u-space-4), 6vw, var(--u-space-6));
+}
+
+.sectionHeader h2 {
+  font-size: var(--u-font-h2);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: var(--u-leading-h2);
+}
+
+.swatchGrid,
+.shapeGrid,
+.cardGrid,
+.logoGrid,
+.stressGrid,
+.darkGrid {
+  display: grid;
+  gap: var(--u-space-2);
+}
+
+.swatchGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.swatchCard {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--u-space-2);
+  align-items: start;
+}
+
+.swatch {
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-control);
+  background: var(--swatch-color);
+}
+
+.swatchCard div {
+  display: grid;
+  min-width: 0;
+  gap: var(--u-space-0-5);
+}
+
+.swatchCard strong {
+  text-transform: capitalize;
+}
+
+.swatchCard code,
+.typeRow code,
+.metaTokens code,
+.logoCard code,
+.spacingScale code {
+  color: var(--u-color-slate);
+  font-family: var(--u-font-body);
+  font-size: var(--u-font-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.swatchCard p {
+  margin: 0;
+  color: var(--u-color-slate);
+  font-size: var(--u-font-caption);
+  line-height: 1.4;
+}
+
+.typeStack {
+  display: grid;
+  gap: var(--u-space-3);
+}
+
+.typeRow {
+  display: grid;
+  gap: var(--u-space-1);
+  padding-bottom: var(--u-space-3);
+  border-bottom: 1px solid var(--u-color-mist);
+}
+
+.typeRow p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+:global(.u-type-display),
+:global(.u-type-h1),
+:global(.u-type-h2),
+:global(.u-type-h3) {
+  font-family: var(--u-font-heading);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+:global(.u-type-display) {
+  font-size: var(--u-font-display);
+  line-height: var(--u-leading-display);
+}
+
+:global(.u-type-h1) {
+  font-size: var(--u-font-h1);
+  line-height: var(--u-leading-h1);
+}
+
+:global(.u-type-h2) {
+  font-size: var(--u-font-h2);
+  line-height: var(--u-leading-h2);
+}
+
+:global(.u-type-h3) {
+  font-size: var(--u-font-h3);
+  line-height: var(--u-leading-h3);
+}
+
+:global(.u-type-body-large) {
+  font-size: var(--u-font-body-large);
+  line-height: var(--u-leading-body-large);
+}
+
+:global(.u-type-body) {
+  font-size: var(--u-font-body-size);
+  line-height: var(--u-leading-body);
+}
+
+:global(.u-type-label) {
+  font-size: var(--u-font-label);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+:global(.u-type-caption) {
+  font-size: var(--u-font-caption);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.shapeGrid,
+.cardGrid,
+.darkGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.fixtureTitle {
+  margin-bottom: var(--u-space-2);
+  font-size: var(--u-font-h3);
+  font-weight: 700;
+  line-height: var(--u-leading-h3);
+}
+
+.spacingScale,
+.radiusScale {
+  display: grid;
+  gap: var(--u-space-2);
+}
+
+.spacingScale div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--u-space-2);
+}
+
+.spacingScale span {
+  width: var(--space-size);
+  min-width: 0.25rem;
+  height: var(--u-space-2);
+  flex: none;
+  background: var(--u-color-kijani);
+}
+
+.radiusScale span {
+  display: grid;
+  min-height: 4rem;
+  place-items: center;
+  border: 1px solid var(--u-color-mist);
+  background: var(--u-color-sand);
+}
+
+.radiusControl {
+  border-radius: var(--u-radius-control);
+}
+
+.radiusCard {
+  border-radius: var(--u-radius-card);
+}
+
+.radiusPanel {
+  border-radius: var(--u-radius-panel);
+}
+
+.controlGrid,
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-2);
+  align-items: center;
+}
+
+.controlGrid + .fixtureTitle,
+.metaTokens,
+.badgeRow {
+  margin-top: var(--u-space-4);
+}
+
+.darkGrid .fixtureTitle,
+.darkGrid p {
+  color: var(--u-color-white);
+}
+
+.logoGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.logoCard {
+  display: grid;
+  min-height: 14rem;
+  place-items: center;
+  gap: var(--u-space-2);
+  text-align: center;
+}
+
+.stressGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.stressGrid article {
+  align-content: start;
+}
+
+.stressGrid article > * + * {
+  margin-top: var(--u-space-2);
+}
+
+.unbroken {
+  color: var(--u-color-slate);
+  font-family: var(--u-font-body);
+  font-size: var(--u-font-caption);
+  overflow-wrap: anywhere;
+}
+
+.label {
+  display: block;
+  font-size: var(--u-font-label);
+  font-weight: 700;
+}
+
+.input {
+  width: 100%;
+  min-height: var(--u-control-min-size);
+  padding: 0.75rem var(--u-space-2);
+  border: 2px solid var(--u-color-danger);
+  border-radius: var(--u-radius-control);
+  color: var(--u-color-ink);
+  background: var(--u-color-white);
+  font: inherit;
+}
+
+.validationMessage {
+  color: var(--u-color-danger);
+  font-size: var(--u-font-label);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    grid-template-columns: 1fr auto;
+  }
+
+  .heroCopy {
+    grid-column: 1 / -1;
+  }
+
+  .typeRow {
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: var(--u-space-4);
+  }
+}

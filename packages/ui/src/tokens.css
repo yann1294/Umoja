@@ -1,0 +1,62 @@
+:root {
+  /* Approved brand colours */
+  --u-color-ink: #0b1f1a;
+  --u-color-canopy: #123c2c;
+  --u-color-kijani: #1f8a5b;
+  --u-color-gold: #f4b942;
+  --u-color-terracotta: #c85a3d;
+  --u-color-indigo: #39447a;
+  --u-color-canvas: #fffcf5;
+  --u-color-sand: #f4edde;
+  --u-color-mist: #dde5df;
+  --u-color-slate: #52635d;
+  --u-color-white: #ffffff;
+  --u-color-success: #18794e;
+  --u-color-warning: #a15c00;
+  --u-color-danger: #b42318;
+  --u-color-info: #285ea8;
+
+  /* 4px tight alignment with an 8px primary spacing unit */
+  --u-space-0: 0;
+  --u-space-0-5: 0.25rem;
+  --u-space-1: 0.5rem;
+  --u-space-1-5: 0.75rem;
+  --u-space-2: 1rem;
+  --u-space-3: 1.5rem;
+  --u-space-4: 2rem;
+  --u-space-6: 3rem;
+  --u-space-8: 4rem;
+  --u-space-12: 6rem;
+
+  --u-radius-control: 0.75rem;
+  --u-radius-card: 1.25rem;
+  --u-radius-panel: 1.75rem;
+  --u-radius-round: 999px;
+
+  --u-content-reading: 46rem;
+  --u-content-max: 78rem;
+  --u-gutter: clamp(1rem, 3vw, 3rem);
+
+  --u-font-body: var(--font-noto-sans, "Noto Sans"), Arial, sans-serif;
+  --u-font-heading: var(--font-manrope, Manrope), "Avenir Next", Arial, sans-serif;
+  --u-font-display: clamp(2.75rem, 2.15rem + 3vw, 4.5rem);
+  --u-font-h1: clamp(2.375rem, 1.98rem + 2vw, 3.5rem);
+  --u-font-h2: clamp(1.875rem, 1.65rem + 1.1vw, 2.5rem);
+  --u-font-h3: clamp(1.5rem, 1.41rem + 0.45vw, 1.75rem);
+  --u-font-body-large: clamp(1.125rem, 1.08rem + 0.25vw, 1.25rem);
+  --u-font-body-size: 1rem;
+  --u-font-label: 0.875rem;
+  --u-font-caption: 0.8125rem;
+  --u-leading-display: 1.02;
+  --u-leading-h1: 1.08;
+  --u-leading-h2: 1.15;
+  --u-leading-h3: 1.25;
+  --u-leading-body: 1.65;
+  --u-leading-body-large: 1.6;
+
+  --u-control-min-size: 2.75rem;
+  --u-focus-color: var(--u-color-gold);
+  --u-focus-width: 0.1875rem;
+  --u-focus-offset: 0.1875rem;
+  --u-shadow-lifted: 0 18px 50px rgb(11 31 26 / 10%);
+}

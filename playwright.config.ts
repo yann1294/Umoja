@@ -28,6 +28,9 @@ export default defineConfig({
   })),
   webServer: {
     command: `pnpm build && pnpm --filter @umoja/web start --hostname 127.0.0.1 --port ${port}`,
+    env: {
+      DESIGN_SYSTEM_ENABLED: "true",
+    },
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -38,3 +38,32 @@ export async function expectDeterministicScreenshot(page: Page, name: string): P
     fullPage: true,
   });
 }
+
+export async function expectMinimumTouchTargets(
+  page: Page,
+  selector = ".u-button, input, select, textarea",
+): Promise<void> {
+  const targets = page.locator(selector);
+  const count = await targets.count();
+
+  expect(count, `Expected touch targets matching ${selector}`).toBeGreaterThan(0);
+
+  for (let index = 0; index < count; index += 1) {
+    const target = targets.nth(index);
+    const box = await target.boundingBox();
+    const description = await target.evaluate((element) => ({
+      name: element.getAttribute("aria-label") ?? element.textContent?.trim(),
+      tag: element.tagName.toLowerCase(),
+    }));
+
+    expect(box, `Touch target is not rendered: ${JSON.stringify(description)}`).not.toBeNull();
+    expect(
+      box?.width,
+      `Touch target is narrower than 44px: ${JSON.stringify(description)}`,
+    ).toBeGreaterThanOrEqual(44);
+    expect(
+      box?.height,
+      `Touch target is shorter than 44px: ${JSON.stringify(description)}`,
+    ).toBeGreaterThanOrEqual(44);
+  }
+}
