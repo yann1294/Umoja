@@ -1,0 +1,9 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Umoja connected U mark</title>
+  <desc id="desc">A modular letter U formed by green rounded columns, a golden bridge, and a terracotta centre block.</desc>
+  <rect width="256" height="256" rx="64" fill="#FFFCF5"/>
+  <path d="M48 56C48 47.1634 55.1634 40 64 40H88C96.8366 40 104 47.1634 104 56V140C104 153.255 114.745 164 128 164C141.255 164 152 153.255 152 140V56C152 47.1634 159.163 40 168 40H192C200.837 40 208 47.1634 208 56V140C208 184.183 172.183 220 128 220C83.8172 220 48 184.183 48 140V56Z" fill="#123C2C"/>
+  <path d="M80 40H104V140C104 153.255 114.745 164 128 164C141.255 164 152 153.255 152 140V40H176V140C176 166.51 154.51 188 128 188C101.49 188 80 166.51 80 140V40Z" fill="#1F8A5B"/>
+  <rect x="104" y="164" width="48" height="24" rx="12" fill="#F4B942"/>
+  <rect x="112" y="196" width="32" height="32" rx="9" transform="rotate(-45 112 196)" fill="#C85A3D"/>
+</svg>
