@@ -6,6 +6,7 @@ Product, platform, and brand planning for **Umoja Freelance Platform (UFP)** —
 
 - [Product and platform blueprint](docs/product-blueprint.md)
 - [Brand system](docs/brand-system.md)
+- [Codex kickstart playbook](docs/codex-kickstart-playbook.md)
 - [Primary logo](public/brand/umoja-logo.svg)
 - [Logo mark](public/brand/umoja-mark.svg)
 - [Monochrome logo](public/brand/umoja-logo-mono.svg)
