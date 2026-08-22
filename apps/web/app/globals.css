@@ -1,0 +1,176 @@
+:root {
+  --color-ink: #0b1f1a;
+  --color-canopy: #123c2c;
+  --color-kijani: #1f8a5b;
+  --color-gold: #f4b942;
+  --color-terracotta: #c85a3d;
+  --color-indigo: #39447a;
+  --color-canvas: #fffcf5;
+  --color-sand: #f4edde;
+  --color-mist: #dde5df;
+  --color-slate: #52635d;
+  --color-white: #ffffff;
+  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
+  --shadow-lifted: 0 18px 50px rgb(11 31 26 / 10%);
+  --content-max: 78rem;
+  color-scheme: light;
+  font-family: "Noto Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 20rem;
+  background: var(--color-canvas);
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+img,
+picture,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  max-width: 100%;
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.site-shell {
+  width: min(100%, var(--content-max));
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 3rem);
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: calc(100svh - clamp(2rem, 6vw, 6rem));
+  align-content: space-between;
+  gap: clamp(3rem, 10vw, 8rem);
+  padding: clamp(1.25rem, 5vw, 5rem);
+  overflow: hidden;
+  border-radius: clamp(1.25rem, 3vw, var(--radius-panel));
+  background: var(--color-canopy);
+  color: var(--color-white);
+}
+
+.brand-logo {
+  width: clamp(8.25rem, 25vw, 14rem);
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  background: var(--color-canvas);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 50rem;
+}
+
+.eyebrow {
+  margin: 0 0 1rem;
+  color: var(--color-gold);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-family: Manrope, "Avenir Next", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.375rem, 7vw, 4.5rem);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.introduction {
+  max-width: 40rem;
+  margin: clamp(1.5rem, 4vw, 2rem) 0 0;
+  color: var(--color-mist);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: fit-content;
+  min-height: 2.75rem;
+  margin: 2rem 0 0;
+  padding: 0.625rem 1rem;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.status span {
+  width: 0.625rem;
+  height: 0.625rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-gold);
+}
+
+.brand-mark {
+  position: absolute;
+  right: clamp(-4.5rem, -2vw, -1rem);
+  bottom: clamp(-4.5rem, -2vw, -1rem);
+  z-index: -1;
+  width: clamp(11rem, 32vw, 24rem);
+  opacity: 0.12;
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    grid-template-rows: auto 1fr;
+    align-content: initial;
+  }
+
+  .hero-copy {
+    align-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

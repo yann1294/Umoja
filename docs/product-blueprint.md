@@ -295,9 +295,15 @@ Use opaque IDs, timestamps, actor IDs, status history, and soft archival on all 
 - `learning_resources`, `resource_access`, `learning_evidence`.
 - `research_themes`, `market_opportunities`.
 - `case_studies`: public-safe summaries separate from confidential project data.
+- `content_entries`: stable content identity, type, slug, governance class, and current published revision.
+- `content_revisions`: immutable bilingual draft/published snapshots, workflow state, authorship, approvals, and change summary.
+- `media_assets`: protected source file, publishable derivative, bilingual alt text, ownership, usage references, and consent state.
+- `publication_consents`: subject/client, permitted content and channels, effective dates, evidence, withdrawal, and approving actor.
 - `contribution_records`: policy version, basis, percentage, amount, evidence, approvals.
 - `notifications`: in-product and email delivery state.
 - `audit_events`: actor, action, target, before/after digest, time, request context.
+
+Public pages read only complete published content revisions. Editors work in drafts and previews; publishers approve releases; legal pages and governance claims require governance approval. Publishing creates an immutable revision and triggers targeted cache revalidation so authorized staff can update the public site without editing code or rebuilding the application.
 
 ### Status vocabulary
 
@@ -323,6 +329,15 @@ For example, “completed, contract broken, client not satisfied” is three fac
 - Zod schemas shared by forms and server operations.
 - React Hook Form for multi-step project and talent intake.
 - MDX or structured Appwrite content for manifesto/resources; structured content is preferable for bilingual editing.
+
+### Responsive support contract
+
+- Use fluid layouts that work continuously from 320px through 1920px and remain coherent on wider screens; breakpoints are test points, not the only supported widths.
+- Automated checks cover 320, 360, 390, 768, 1024, 1280, 1440, and 1920px widths, with a 2560px sanity check and relevant phone/tablet portrait-landscape pairs.
+- Public, authentication, workspace, admin, and CMS surfaces must pass without unintended page-level horizontal scrolling, clipped English/French content, unreachable actions, or undersized touch targets.
+- Forms, dialogs, dashboards, tables, module trees, editors, and every loading/empty/error/validation/permission state receive responsive treatment. Data tables either adapt to a small-screen representation or use a clearly labelled and keyboard-accessible controlled scroll region.
+- Verify reflow and usability at 200% browser zoom in a real browser. Device pixel ratio is not a substitute for browser zoom testing.
+- Maintain Playwright screenshot coverage for representative routes in every product surface and require recorded physical-device testing on Android and iOS before launch.
 
 ### Appwrite responsibilities
 
