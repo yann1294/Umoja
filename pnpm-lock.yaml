@@ -115,8 +115,8 @@ importers:
         specifier: ^25.2.0
         version: 25.2.0
       node-appwrite:
-        specifier: ^26.2.0
-        version: 26.2.0
+        specifier: ^28.0.0
+        version: 28.0.0
       zod:
         specifier: 4.4.3
         version: 4.4.3
@@ -2297,6 +2297,9 @@ packages:
 
   node-appwrite@26.2.0:
     resolution: {integrity: sha512-rRToHOuG05F5Q3BGRoJNNIcO69zrYul/V9HOTxfcMSqhdw3TwInAl7pnSnMRW7D0MOQcvaLb8iZIwE1P8TP9Cw==}
+
+  node-appwrite@28.0.0:
+    resolution: {integrity: sha512-3pLMannNwZf1WUJYdZ998B/ckgAkUGI+Wis31GEwy2NJlx0PooghXe6U3ZJvH86oFaLGl+evnjFWcaQJXu+PZg==}
 
   node-exports-info@1.6.2:
     resolution: {integrity: sha512-kXs9Go0cah0qHVV2v389IXQLdLCeE1xfFtjOAF+iobu0OIoG1pje8At2vMHyaPMiPMnG/LWP50twML21eMcAag==}
@@ -5002,6 +5005,11 @@ snapshots:
   node-addon-api@7.1.1: {}
 
   node-appwrite@26.2.0:
+    dependencies:
+      json-bigint: 1.0.0
+      undici: 6.28.0
+
+  node-appwrite@28.0.0:
     dependencies:
       json-bigint: 1.0.0
       undici: 6.28.0
