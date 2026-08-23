@@ -34,10 +34,18 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "appwrite:validate": "node scripts/validate-config.mjs",
+    "appwrite:provision": "node scripts/provision.mjs",
+    "appwrite:drift": "node scripts/check-drift.mjs",
+    "appwrite:health": "node scripts/health.mjs",
+    "appwrite:seed": "node scripts/seed.mjs --development",
+    "appwrite:integration": "node scripts/integration.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "appwrite": "^25.2.0",
