@@ -44,7 +44,7 @@ const forbiddenChecks = [
       tableId: "talent_intakes",
       total: false,
     }),
-  () => anonymousStorage.listFiles({ bucketId: "intake_files", total: false }),
+  () => anonymousStorage.listFiles({ bucketId: config.storage.intakeFiles, total: false }),
 ];
 for (const check of forbiddenChecks) {
   let denied = false;

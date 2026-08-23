@@ -26,7 +26,7 @@ export const appwriteEnvironmentSchema = z.object({
   APPWRITE_TALENT_INTAKES_TABLE_ID: identifier.default("talent_intakes"),
   APPWRITE_AUDIT_LOGS_TABLE_ID: identifier.default("audit_logs"),
   APPWRITE_CMS_MEDIA_BUCKET_ID: identifier.default("cms_media"),
-  APPWRITE_INTAKE_FILES_BUCKET_ID: identifier.default("intake_files"),
+  APPWRITE_INTAKE_FILES_BUCKET_ID: identifier.default("cms_media"),
   APP_URL: z.url().default("http://localhost:3000"),
   NEXT_REVALIDATION_SECRET: optionalSecret,
 });

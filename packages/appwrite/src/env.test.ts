@@ -10,6 +10,7 @@ describe("Appwrite environment", () => {
   it("uses safe non-secret resource defaults", () => {
     const env = parseAppwriteEnvironment(valid);
     expect(env.APPWRITE_DATABASE_ID).toBe("umoja");
+    expect(env.APPWRITE_INTAKE_FILES_BUCKET_ID).toBe("cms_media");
     expect(env.APPWRITE_SERVER_API_KEY).toBeUndefined();
   });
 

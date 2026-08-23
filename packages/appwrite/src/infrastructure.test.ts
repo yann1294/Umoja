@@ -21,6 +21,14 @@ describe("versioned infrastructure", () => {
     expect(config.buckets.every((bucket: { fileSecurity: boolean }) => bucket.fileSecurity)).toBe(
       true,
     );
+    expect(config.storage).toEqual({
+      sharedFreePlanBucket: true,
+      cmsMedia: "cms_media",
+      intakeFiles: "cms_media",
+    });
+    expect(config.buckets).toHaveLength(1);
+    expect(config.buckets[0].$permissions ?? config.buckets[0].permissions).toEqual([]);
+    expect(config.buckets[0].encryption).toBe(true);
     expect(
       config.database.tables.flatMap((table: { columns: Array<{ encrypt?: boolean }> }) =>
         table.columns.filter((column) => column.encrypt),

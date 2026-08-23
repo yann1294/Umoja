@@ -6,6 +6,6 @@ if (failures.length) {
   process.exitCode = 1;
 } else {
   console.log(
-    "Appwrite configuration valid: 5 tables, 2 private-by-default buckets, 1 application team.",
+    "Appwrite configuration valid: 5 tables, 1 shared deny-by-default bucket, 1 application team.",
   );
 }

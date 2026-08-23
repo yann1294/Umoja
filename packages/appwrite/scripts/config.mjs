@@ -39,8 +39,13 @@ export function validateConfig(config = loadConfig()) {
   ])
     if (!tableIds.has(id)) failures.push(`missing table ${id}`);
   const bucketIds = new Set(config.buckets?.map((bucket) => bucket.id));
-  for (const id of ["cms_media", "intake_files"])
-    if (!bucketIds.has(id)) failures.push(`missing bucket ${id}`);
+  if (!bucketIds.has("cms_media")) failures.push("missing bucket cms_media");
+  if (
+    !config.storage?.sharedFreePlanBucket ||
+    config.storage?.cmsMedia !== "cms_media" ||
+    config.storage?.intakeFiles !== "cms_media"
+  )
+    failures.push("free-plan storage aliases must use cms_media");
   const serialized = JSON.stringify(config);
   if (/APPWRITE_(?:.*KEY)|[A-Za-z0-9_-]{80,}/.test(serialized))
     failures.push("configuration appears to contain a secret");
@@ -73,6 +78,8 @@ export function validateConfig(config = loadConfig()) {
     if (!bucket.fileSecurity) failures.push(`${bucket.id} must enable file security`);
     if (bucket.permissions?.some((permission) => permission.includes('"any"')))
       failures.push(`${bucket.id} cannot grant bucket-wide public access`);
+    if (bucket.permissions?.length)
+      failures.push(`${bucket.id} must use file-level permissions only on the shared bucket`);
   }
   return failures;
 }

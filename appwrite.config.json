@@ -254,36 +254,33 @@
       }
     ]
   },
+  "storage": {
+    "sharedFreePlanBucket": true,
+    "cmsMedia": "cms_media",
+    "intakeFiles": "cms_media"
+  },
   "buckets": [
     {
       "id": "cms_media",
       "name": "CMS media",
       "fileSecurity": true,
       "maximumFileSize": 10485760,
-      "allowedFileExtensions": ["png", "jpg", "jpeg", "webp", "svg", "pdf"],
+      "allowedFileExtensions": [
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "svg",
+        "pdf",
+        "doc",
+        "docx",
+        "umojaenc"
+      ],
       "encryption": true,
       "antivirus": true,
-      "permissions": [
-        "read(\"team:umoja-operations/cms-editor\")",
-        "create(\"team:umoja-operations/cms-editor\")",
-        "update(\"team:umoja-operations/cms-editor\")",
-        "delete(\"team:umoja-operations/cms-editor\")",
-        "read(\"team:umoja-operations/admin\")"
-      ]
-    },
-    {
-      "id": "intake_files",
-      "name": "Intake files",
-      "fileSecurity": true,
-      "maximumFileSize": 10485760,
-      "allowedFileExtensions": ["pdf", "doc", "docx", "png", "jpg", "jpeg", "webp"],
-      "encryption": true,
-      "antivirus": true,
-      "permissions": [
-        "read(\"team:umoja-operations/reviewer\")",
-        "read(\"team:umoja-operations/admin\")",
-        "delete(\"team:umoja-operations/admin\")"
-      ]
+      "transformations": true,
+      "permissions": [],
+      "reconcileExisting": true
     }
   ]
 }

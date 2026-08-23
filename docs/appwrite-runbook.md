@@ -227,16 +227,16 @@ boundary already validates shared schemas, normalizes email/phone/URL values, ch
 accepts a rate-limiter implementation, and claims an HMAC blind-index idempotency key before
 persistence.
 
-Before upload, enforce both size and magic-byte signature checks. `intake_files` has file security,
-no anonymous bucket permissions, a 10 MB ceiling, encryption and antivirus settings, and restricted
-extensions. The application wraps validated bytes in a versioned AES-256-GCM binary envelope using
-the independent file-encryption key; Appwrite receives encrypted bytes and minimal encrypted
-reference metadata. Enable native bucket encryption when supported as defense in depth. If the plan
-rejects native bucket encryption, record that limitation and keep application encryption mandatory.
-Never produce a public URL or Appwrite preview for applicant files. An authenticated reviewer/admin
-server endpoint decrypts only after role authorization. Store consent timestamp, policy version,
-locale and workflow state; do not log payloads. Applicant-facing projections exclude assignment and
-internal notes.
+Before upload, enforce both size and magic-byte signature checks. The free plan allows one bucket, so
+both `APPWRITE_CMS_MEDIA_BUCKET_ID` and `APPWRITE_INTAKE_FILES_BUCKET_ID` point to `cms_media`. The
+shared bucket has File Security, no bucket-wide permissions, a 10 MB ceiling, native encryption,
+antivirus and restricted extensions. CMS editor, published-public, reviewer and administrator access
+must be assigned per file. The application wraps validated intake bytes in a versioned AES-256-GCM
+binary envelope using the independent file key; Appwrite receives encrypted bytes and minimal
+encrypted reference metadata. Native bucket encryption is defense in depth. Never produce a public
+URL or Appwrite preview for applicant files. An authenticated reviewer/admin server endpoint decrypts
+only after role authorization. Store consent timestamp, policy version, locale and workflow state;
+do not log payloads. Applicant-facing projections exclude assignment and internal notes.
 
 ## Rotation and bootstrap-key deletion
 

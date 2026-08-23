@@ -173,16 +173,37 @@ for (const table of config.database.tables) {
 }
 
 for (const bucket of config.buckets) {
-  const existingBucket = await createIfMissing(
+  let existingBucket = await createIfMissing(
     () => services.storage.getBucket({ bucketId: bucket.id }),
     () =>
       services.storage.createBucket({
-        ...bucket,
         bucketId: bucket.id,
+        name: bucket.name,
+        permissions: bucket.permissions,
+        fileSecurity: bucket.fileSecurity,
         enabled: true,
-        transformations: bucket.id === "cms_media",
+        maximumFileSize: bucket.maximumFileSize,
+        allowedFileExtensions: bucket.allowedFileExtensions,
+        encryption: bucket.encryption,
+        antivirus: bucket.antivirus,
+        transformations: bucket.transformations,
       }),
   );
+  const mismatches = bucketMismatches(bucket, existingBucket);
+  if (mismatches.length && bucket.reconcileExisting) {
+    existingBucket = await services.storage.updateBucket({
+      bucketId: bucket.id,
+      name: bucket.name,
+      permissions: bucket.permissions,
+      fileSecurity: bucket.fileSecurity,
+      enabled: true,
+      maximumFileSize: bucket.maximumFileSize,
+      allowedFileExtensions: bucket.allowedFileExtensions,
+      encryption: bucket.encryption,
+      antivirus: bucket.antivirus,
+      transformations: bucket.transformations,
+    });
+  }
   assertCompatible(`bucket.${bucket.id}`, bucketMismatches(bucket, existingBucket));
 }
 

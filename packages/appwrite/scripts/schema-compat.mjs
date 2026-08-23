@@ -51,6 +51,8 @@ export function bucketMismatches(expected, actual) {
     mismatches.push("allowedFileExtensions");
   if (Boolean(actual.encryption) !== Boolean(expected.encryption)) mismatches.push("encryption");
   if (Boolean(actual.antivirus) !== Boolean(expected.antivirus)) mismatches.push("antivirus");
+  if (Boolean(actual.transformations) !== Boolean(expected.transformations))
+    mismatches.push("transformations");
   if (!sameValues(actual.$permissions, expected.permissions)) mismatches.push("permissions");
   return mismatches;
 }

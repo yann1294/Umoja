@@ -2,12 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Umoja Appwrite infrastructure",
   "type": "object",
-  "required": ["project", "team", "database", "buckets"],
+  "required": ["project", "team", "database", "storage", "buckets"],
   "properties": {
     "project": { "type": "object", "required": ["name", "platforms"] },
     "team": { "type": "object", "required": ["id", "name", "roles"] },
     "database": { "type": "object", "required": ["id", "name", "tables"] },
-    "buckets": { "type": "array", "minItems": 2 }
+    "storage": {
+      "type": "object",
+      "required": ["sharedFreePlanBucket", "cmsMedia", "intakeFiles"]
+    },
+    "buckets": { "type": "array", "minItems": 1 }
   },
   "additionalProperties": false
 }
