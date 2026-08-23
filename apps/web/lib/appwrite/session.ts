@@ -1,0 +1,50 @@
+import "server-only";
+
+import { Account, Client, TablesDB, Teams } from "node-appwrite";
+import { cookies } from "next/headers";
+import { getServerAppwriteEnvironment } from "./env";
+
+export function appwriteSessionCookieName(projectId: string) {
+  return `a_session_${projectId}`;
+}
+
+export async function createSessionServices() {
+  const env = getServerAppwriteEnvironment();
+  const secret = (await cookies()).get(
+    appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID),
+  )?.value;
+  if (!secret) return null;
+  const client = new Client()
+    .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+    .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
+    .setSession(secret);
+  return {
+    client,
+    account: new Account(client),
+    teams: new Teams(client),
+    tables: new TablesDB(client),
+  };
+}
+
+export async function setAppwriteSessionCookie(secret: string, expiresAt?: string) {
+  const env = getServerAppwriteEnvironment();
+  (await cookies()).set(appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID), secret, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    priority: "high",
+    ...(expiresAt ? { expires: new Date(expiresAt) } : {}),
+  });
+}
+
+export async function clearAppwriteSessionCookie() {
+  const env = getServerAppwriteEnvironment();
+  (await cookies()).set(appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID), "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}

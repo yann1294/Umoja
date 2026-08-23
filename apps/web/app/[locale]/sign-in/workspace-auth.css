@@ -1,0 +1,49 @@
+.auth-page {
+  padding-block: clamp(3rem, 8vw, 7rem);
+  background: var(--u-color-sand);
+}
+.auth-card {
+  max-width: 42rem;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-card);
+  background: var(--u-color-canvas);
+  box-shadow: var(--u-shadow-lifted);
+}
+.auth-card h1 {
+  margin-block: 0.5rem 1rem;
+  font-family: var(--u-font-heading);
+  font-size: var(--u-font-h2);
+  line-height: var(--u-leading-h2);
+}
+.auth-eyebrow {
+  margin: 0;
+  color: var(--u-color-canopy);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.auth-form {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+.auth-form .u-button {
+  justify-self: start;
+}
+.auth-error {
+  padding: 1rem;
+  border-inline-start: 0.25rem solid var(--u-color-danger);
+  background: var(--u-color-mist);
+  font-weight: 600;
+}
+.auth-note {
+  margin: 0;
+  color: var(--u-color-slate);
+}
+@media (max-width: 30rem) {
+  .auth-form .u-button {
+    width: 100%;
+  }
+}
