@@ -31,7 +31,9 @@ describe("application encryption", () => {
   it("fails closed for modified envelopes, tags, and wrong keys", () => {
     const envelope = encryptAppwriteValue("sensitive narrative", "project:one", keyring);
     const parts = envelope.split(".");
-    parts[2] = `${parts[2]?.slice(0, -1)}A`;
+    const modifiedTag = Buffer.from(parts[2]!, "base64url");
+    modifiedTag[0] ^= 1;
+    parts[2] = modifiedTag.toString("base64url");
     expect(() => decryptAppwriteValue(parts.join("."), "project:one", keyring)).toThrow(
       AppwriteEncryptionError,
     );
