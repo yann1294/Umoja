@@ -1,38 +1,46 @@
 import "server-only";
 
-import { unstable_cache, revalidatePath } from "next/cache";
-import type { CmsLocale, CmsPage } from "@umoja/appwrite/cms";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { resolvePublishedPage, type CmsLocale, type CmsPage } from "@umoja/appwrite/cms";
 import { createRuntimeServices } from "@/lib/appwrite/admin";
 import { AppwriteCmsRepository } from "./repository";
 
 export type StaticCmsFallback = Readonly<Record<string, CmsPage>>;
 
+const lastKnownPublished = new Map<string, CmsPage | null>();
+
 export async function getPublishedCmsPage(
   locale: CmsLocale,
   slug: string,
-  fallback: StaticCmsFallback,
+  fallback: StaticCmsFallback = {},
 ) {
+  const key = `${locale}:${slug}`;
   const read = unstable_cache(
-    async () => {
-      try {
-        return await new AppwriteCmsRepository(createRuntimeServices().tables).getPublished(
-          locale,
-          slug,
-        );
-      } catch {
-        return null;
-      }
-    },
+    async () =>
+      new AppwriteCmsRepository(createRuntimeServices().tables).getPublished(locale, slug),
     ["cms-published", locale, slug],
     { revalidate: 300, tags: [`cms:${locale}:${slug}`] },
   );
-  return (await read()) ?? fallback[`${locale}:${slug}`] ?? null;
+
+  return resolvePublishedPage(key, read, lastKnownPublished, fallback[key] ?? null);
 }
 
 export function createCmsEditorRepository(
   tables: ConstructorParameters<typeof AppwriteCmsRepository>[0],
 ) {
-  return new AppwriteCmsRepository(tables, async (page) => {
-    revalidatePath(`/${page.locale}/${page.slug}`);
-  });
+  return new AppwriteCmsRepository(
+    tables,
+    async (page) => {
+      revalidateTag(`cms:${page.locale}:${page.slug}`, "max");
+      revalidatePath(page.slug === "home" ? `/${page.locale}` : `/${page.locale}/${page.slug}`);
+    },
+    createRuntimeServices().tables,
+  );
+}
+
+export function cmsField(page: CmsPage | null, key: string, fallback: string) {
+  const block = page?.blocks.find(
+    (candidate) => candidate.type === "field" && candidate.key === key,
+  );
+  return block?.type === "field" ? block.value : fallback;
 }

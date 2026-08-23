@@ -38,6 +38,39 @@ export function cmsTablePermissions(): string[] {
   ];
 }
 
+export function cmsMediaFilePermissions(published = false): string[] {
+  return [
+    ...(published ? [Permission.read(Role.any())] : []),
+    Permission.read(applicationTeamRole("cms-editor")),
+    Permission.update(applicationTeamRole("cms-editor")),
+    Permission.delete(applicationTeamRole("cms-editor")),
+    Permission.read(applicationTeamRole("admin")),
+    Permission.update(applicationTeamRole("admin")),
+    Permission.delete(applicationTeamRole("admin")),
+  ];
+}
+
+export function isCmsMediaFileBoundary(
+  file: Readonly<{
+    mimeType: string;
+    sizeOriginal: number;
+    $permissions: readonly string[];
+  }>,
+) {
+  const editorRole = `team:${UMOJA_OPERATIONS_TEAM_ID}/cms-editor`;
+  return (
+    ["image/png", "image/jpeg", "image/webp"].includes(file.mimeType) &&
+    file.sizeOriginal > 0 &&
+    file.sizeOriginal <= 10 * 1024 * 1024 &&
+    file.$permissions.some(
+      (permission) => permission.startsWith("read") && permission.includes(editorRole),
+    ) &&
+    file.$permissions.some(
+      (permission) => permission.startsWith("update") && permission.includes(editorRole),
+    )
+  );
+}
+
 export function intakeTablePermissions(): string[] {
   return [
     Permission.read(applicationTeamRole("reviewer")),

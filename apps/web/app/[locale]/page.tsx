@@ -5,6 +5,8 @@ import { hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
+import type { CmsPage } from "@umoja/appwrite/cms";
+import { cmsField, getPublishedCmsPage } from "@/lib/cms/service";
 
 import styles from "./page.module.css";
 
@@ -17,10 +19,11 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "Home" });
+  const cms = await getPublishedCmsPage(locale, "home");
 
   return {
-    title: t("title"),
-    description: t("metadataDescription"),
+    title: cms?.seoTitle ?? cms?.title ?? t("title"),
+    description: cms?.seoDescription ?? t("metadataDescription"),
     alternates: {
       canonical: `/${locale}`,
       languages: { en: "/en", fr: "/fr" },
@@ -32,6 +35,16 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "Home" });
+  const cms = await getPublishedCmsPage(locale, "home", {
+    [`${locale}:home`]: homeFallback(locale, {
+      title: t("title"),
+      introduction: t("introduction"),
+      eyebrow: t("eyebrow"),
+      primaryAction: t("primaryAction"),
+      secondaryAction: t("secondaryAction"),
+      metadataDescription: t("metadataDescription"),
+    }),
+  });
   const operatingSteps = t.raw("operating.steps") as OperatingStep[];
   const capabilities = t.raw("capabilities.items") as Capability[];
   const networkParts = t.raw("network.parts") as NetworkPart[];
@@ -47,15 +60,17 @@ export default async function HomePage({ params }: HomePageProps) {
         <Container>
           <div className={styles.hero}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>{t("eyebrow")}</p>
-              <h1 id="home-title">{t("title")}</h1>
-              <p className={styles.introduction}>{t("introduction")}</p>
+              <p className={styles.eyebrow}>{cmsField(cms, "hero.eyebrow", t("eyebrow"))}</p>
+              <h1 id="home-title">{cmsField(cms, "hero.title", t("title"))}</h1>
+              <p className={styles.introduction}>
+                {cmsField(cms, "hero.introduction", t("introduction"))}
+              </p>
               <div className={styles.actions}>
                 <LinkButton href={`/${locale}/start-a-project`} variant="highlight" size="large">
-                  {t("primaryAction")}
+                  {cmsField(cms, "hero.primaryAction", t("primaryAction"))}
                 </LinkButton>
                 <LinkButton href={`/${locale}/join`} variant="inverse" size="large">
-                  {t("secondaryAction")}
+                  {cmsField(cms, "hero.secondaryAction", t("secondaryAction"))}
                 </LinkButton>
               </div>
             </div>
@@ -321,4 +336,51 @@ function SectionHeading({
       <p>{description}</p>
     </div>
   );
+}
+
+function homeFallback(
+  locale: "en" | "fr",
+  copy: Readonly<{
+    eyebrow: string;
+    title: string;
+    introduction: string;
+    primaryAction: string;
+    secondaryAction: string;
+    metadataDescription: string;
+  }>,
+): CmsPage {
+  return {
+    id: `static-home-${locale}`,
+    stableKey: "homepage:home",
+    translationGroupId: "home",
+    locale,
+    slug: "home",
+    title: copy.title,
+    seoTitle: copy.title,
+    seoDescription: copy.metadataDescription,
+    blocks: [
+      { type: "field", key: "hero.eyebrow", label: "Eyebrow", value: copy.eyebrow },
+      { type: "field", key: "hero.title", label: "Title", value: copy.title },
+      { type: "field", key: "hero.introduction", label: "Introduction", value: copy.introduction },
+      {
+        type: "field",
+        key: "hero.primaryAction",
+        label: "Primary action",
+        value: copy.primaryAction,
+      },
+      {
+        type: "field",
+        key: "hero.secondaryAction",
+        label: "Secondary action",
+        value: copy.secondaryAction,
+      },
+    ],
+    state: "published",
+    authorId: "static-fallback",
+    updatedById: "static-fallback",
+    currentRevisionId: `static-home-${locale}`,
+    publishedAt: "2026-01-01T00:00:00.000Z",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  };
 }

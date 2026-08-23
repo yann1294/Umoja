@@ -10,7 +10,7 @@ import type { WorkspaceNavigationItem } from "./workspace-shell";
 
 type Props = Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin";
+  current: "workspace" | "admin" | "content";
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
   sessionState: "active" | "stale";
@@ -31,13 +31,17 @@ export function AuthenticatedShell({
   const drawerTriggerRef = useRef<HTMLButtonElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const pageLabel =
-    current === "admin"
+    current === "content"
       ? french
-        ? "Opérations"
-        : "Operations"
-      : french
-        ? "Vue d’ensemble"
-        : "Overview";
+        ? "Contenu public"
+        : "Public content"
+      : current === "admin"
+        ? french
+          ? "Opérations"
+          : "Operations"
+        : french
+          ? "Vue d’ensemble"
+          : "Overview";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -79,6 +83,9 @@ export function AuthenticatedShell({
 
   return (
     <div className="workspace-surface">
+      <a className="workspace-skip-link" href="#workspace-main">
+        {french ? "Aller au contenu" : "Skip to content"}
+      </a>
       <aside className="workspace-sidebar">
         <a
           className="workspace-brand"
@@ -134,7 +141,9 @@ export function AuthenticatedShell({
           </div>
         </header>
 
-        <div className="workspace-content">{children}</div>
+        <main className="workspace-content" id="workspace-main">
+          {children}
+        </main>
       </div>
 
       <dialog
@@ -193,7 +202,7 @@ function WorkspaceNavigation({
   navigation,
   onNavigate,
 }: Readonly<{
-  current: "workspace" | "admin";
+  current: "workspace" | "admin" | "content";
   idPrefix: string;
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
@@ -226,7 +235,10 @@ function WorkspaceNavigation({
             </h2>
             <ul>
               {items.map((item) => {
-                const active = current === item.href.slice(1);
+                const active =
+                  current === "content"
+                    ? item.href === "/admin/content"
+                    : current === item.href.slice(1);
                 return (
                   <li key={item.href}>
                     <a

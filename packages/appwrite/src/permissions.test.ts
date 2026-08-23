@@ -12,8 +12,10 @@ import {
 import {
   applicantRecordPermissions,
   cmsTablePermissions,
+  cmsMediaFilePermissions,
   hasUmojaRole,
   intakeTablePermissions,
+  isCmsMediaFileBoundary,
   UMOJA_ROLES,
 } from "./permissions";
 
@@ -78,9 +80,41 @@ describe("Umoja authorization", () => {
       );
     }
     expect(rolesHaveCapability(["admin"], "admin.operations")).toBe(true);
+    expect(rolesHaveCapability(["admin"], "cms.publish")).toBe(true);
+    expect(rolesHaveCapability(["cms-editor"], "cms.publish")).toBe(false);
     expect(rolesHaveCapability(["cms-editor"], "intake.review")).toBe(false);
     expect(rolesHaveCapability(["reviewer"], "cms.manage")).toBe(false);
     expect(rolesHaveCapability(["project-manager"], "projects.manage")).toBe(true);
+  });
+
+  it("keeps draft media private and grants public read only to explicitly published files", () => {
+    expect(cmsMediaFilePermissions(false).some((permission) => permission.includes('"any"'))).toBe(
+      false,
+    );
+    const published = cmsMediaFilePermissions(true);
+    expect(
+      published.some((permission) => permission.startsWith("read") && permission.includes('"any"')),
+    ).toBe(true);
+    expect(
+      published.some(
+        (permission) => !permission.startsWith("read") && permission.includes('"any"'),
+      ),
+    ).toBe(false);
+    expect(published.some((permission) => permission.includes("reviewer"))).toBe(false);
+    expect(
+      isCmsMediaFileBoundary({
+        mimeType: "image/png",
+        sizeOriginal: 1200,
+        $permissions: cmsMediaFilePermissions(false),
+      }),
+    ).toBe(true);
+    expect(
+      isCmsMediaFileBoundary({
+        mimeType: "application/octet-stream",
+        sizeOriginal: 1200,
+        $permissions: intakeTablePermissions(),
+      }),
+    ).toBe(false);
   });
 
   it("treats an applicant as a record owner without creating Team access", () => {

@@ -23,9 +23,10 @@ export function WorkspaceOverview({
       ? {
           title: french ? "Contenu bilingue" : "Bilingual content",
           description: french
-            ? "La rédaction et la révision seront disponibles après la prochaine étape CMS."
-            : "Drafting and review will be available after the upcoming CMS stage.",
-          status: french ? "Prochaine étape : CMS" : "Next stage: CMS",
+            ? "Rédigez, révisez et prévisualisez le contenu public en anglais et en français."
+            : "Draft, review, and preview public content in English and French.",
+          status: french ? "Ouvrir le contenu" : "Open content",
+          href: `/${locale}/admin/content`,
         }
       : null,
     canUseWorkspaceCapability(user, "intake.review")
@@ -164,9 +165,10 @@ export function AdminOverview({
     {
       title: french ? "Opérations de contenu" : "Content operations",
       description: french
-        ? "La rédaction, la révision et la publication arriveront avec l’espace CMS."
-        : "Drafting, review, and publishing will arrive with the CMS workspace.",
-      status: french ? "Après l’étape CMS" : "Available after CMS stage",
+        ? "Gérez les brouillons bilingues, les révisions et la publication autorisée."
+        : "Manage bilingual drafts, revisions, and authorized publishing.",
+      status: french ? "Ouvrir le contenu" : "Open content",
+      href: `/${locale}/admin/content`,
     },
     {
       title: french ? "Révision des demandes" : "Intake review",
@@ -209,10 +211,25 @@ export function AdminOverview({
         </div>
         <div className="workspace-grid workspace-grid-admin">
           {cards.map((card) => (
-            <article className="workspace-panel" key={card.title}>
-              <h3>{card.title}</h3>
+            <article
+              className="workspace-panel"
+              data-actionable={Boolean(card.href)}
+              key={card.title}
+            >
+              <h3>
+                {card.href ? (
+                  <a className="workspace-panel-link" href={card.href}>
+                    {card.title}
+                  </a>
+                ) : (
+                  card.title
+                )}
+              </h3>
               <p>{card.description}</p>
-              <span className="workspace-panel-status">{card.status}</span>
+              <span className="workspace-panel-status">
+                {card.status}
+                {card.href ? " →" : ""}
+              </span>
             </article>
           ))}
         </div>

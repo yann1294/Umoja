@@ -7,6 +7,22 @@
   background: var(--u-color-sand);
 }
 
+.workspace-skip-link {
+  position: fixed;
+  z-index: 100;
+  inset-block-start: var(--u-space-1);
+  inset-inline-start: var(--u-space-1);
+  padding: var(--u-space-1) var(--u-space-2);
+  border-radius: var(--u-radius-control);
+  color: var(--u-color-ink);
+  background: var(--u-color-gold);
+  transform: translateY(-200%);
+}
+
+.workspace-skip-link:focus {
+  transform: translateY(0);
+}
+
 .workspace-sidebar {
   position: sticky;
   top: 0;

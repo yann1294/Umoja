@@ -3,6 +3,7 @@ import { hasUmojaRole, type UmojaRole, UMOJA_ROLES } from "./permissions";
 export const UMOJA_CAPABILITIES = [
   "workspace.access",
   "cms.manage",
+  "cms.publish",
   "intake.review",
   "projects.manage",
   "admin.operations",
@@ -39,7 +40,14 @@ export type ApplicantRecordPrincipal = Readonly<{
 }>;
 
 const ROLE_CAPABILITIES: Readonly<Record<UmojaRole, readonly UmojaCapability[]>> = {
-  admin: ["workspace.access", "cms.manage", "intake.review", "projects.manage", "admin.operations"],
+  admin: [
+    "workspace.access",
+    "cms.manage",
+    "cms.publish",
+    "intake.review",
+    "projects.manage",
+    "admin.operations",
+  ],
   "cms-editor": ["workspace.access", "cms.manage"],
   reviewer: ["workspace.access", "intake.review"],
   core: ["workspace.access"],

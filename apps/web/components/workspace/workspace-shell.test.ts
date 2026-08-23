@@ -22,6 +22,11 @@ describe("getWorkspaceNavigation", () => {
     expect(getWorkspaceNavigation(user(["admin"]), "en").map(({ href }) => href)).toEqual([
       "/workspace",
       "/admin",
+      "/admin/content",
+    ]);
+    expect(getWorkspaceNavigation(user(["cms-editor"]), "en").map(({ href }) => href)).toEqual([
+      "/workspace",
+      "/admin/content",
     ]);
   });
 
@@ -29,6 +34,7 @@ describe("getWorkspaceNavigation", () => {
     expect(getWorkspaceNavigation(user(["admin"]), "fr").map(({ label }) => label)).toEqual([
       "Vue d’ensemble",
       "Opérations",
+      "Contenu public",
     ]);
   });
 });

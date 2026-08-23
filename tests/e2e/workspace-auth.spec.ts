@@ -119,7 +119,7 @@ test("role-aware workspace and admin fixtures are responsive", async ({ page }, 
     ).toBeVisible();
   }
   if (admin)
-    await expect(page.getByRole("link", { name: /Operations|Opérations/ }).first()).toHaveAttribute(
+    await expect(page.locator('a[aria-current="page"][href$="/admin"]').first()).toHaveAttribute(
       "aria-current",
       "page",
     );

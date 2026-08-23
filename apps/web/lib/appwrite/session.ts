@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Account, Client, TablesDB, Teams } from "node-appwrite";
+import { Account, Client, Storage, TablesDB, Teams } from "node-appwrite";
 import { cookies } from "next/headers";
 import { sessionCookiePolicy } from "@umoja/appwrite/auth-policy";
 import { getServerAppwriteEnvironment } from "./env";
@@ -28,6 +28,7 @@ export async function createSessionServices() {
     account: new Account(client),
     teams: new Teams(client),
     tables: new TablesDB(client),
+    storage: new Storage(client),
   };
 }
 
