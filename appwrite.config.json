@@ -52,7 +52,12 @@
           { "key": "updatedAt", "type": "datetime", "required": true }
         ],
         "indexes": [
-          { "key": "published_locale_slug", "type": "key", "columns": ["state", "locale", "slug"] },
+          {
+            "key": "published_locale_slug",
+            "type": "key",
+            "columns": ["state", "locale", "slug"],
+            "lengths": [9, 2, 180]
+          },
           {
             "key": "translation_locale",
             "type": "unique",

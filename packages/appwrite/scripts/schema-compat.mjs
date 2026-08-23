@@ -25,6 +25,8 @@ export function indexMismatches(expected, actual) {
     mismatches.push("columns");
   if (expected.orders && JSON.stringify(actual.orders ?? []) !== JSON.stringify(expected.orders))
     mismatches.push("orders");
+  if (expected.lengths && JSON.stringify(actual.lengths ?? []) !== JSON.stringify(expected.lengths))
+    mismatches.push("lengths");
   return mismatches;
 }
 

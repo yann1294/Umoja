@@ -167,6 +167,7 @@ for (const table of config.database.tables) {
       ],
       columns: index.columns,
       orders: index.orders?.map((order) => OrderBy[order === "DESC" ? "Desc" : "Asc"]),
+      lengths: index.lengths,
     });
   }
 }

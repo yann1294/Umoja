@@ -38,4 +38,12 @@ describe("resumable Appwrite schema compatibility", () => {
       ),
     ).toContain("encrypt");
   });
+
+  it("defines an explicit safe prefix for the composite CMS slug index", () => {
+    const table = config.database.tables.find((item: { id: string }) => item.id === "cms_pages");
+    const index = table.indexes.find(
+      (item: { key: string }) => item.key === "published_locale_slug",
+    );
+    expect(index.lengths).toEqual([9, 2, 180]);
+  });
 });
