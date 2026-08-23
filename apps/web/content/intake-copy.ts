@@ -4,6 +4,8 @@ const english = {
   common: {
     mock: "Mock submission — your information is not persisted in this release.",
     required: "Required",
+    requiredNote: "Fields marked * are required.",
+    optional: "Optional — this choice does not affect your application.",
     next: "Continue",
     back: "Back",
     review: "Review",
@@ -27,6 +29,16 @@ const english = {
     reference: "Temporary reference",
     step: "Step {current} of {total}",
     progress: "Form progress",
+    completed: "Completed",
+    current: "Current step",
+    upcoming: "Upcoming",
+    revisit: "Return to {step}",
+    errorSummaryTitle: "Check the highlighted information",
+    errorSummaryBody: "Correct the following before continuing:",
+    edit: "Edit",
+    addPortfolio: "Add another portfolio item",
+    removePortfolio: "Remove this item",
+    portfolioItem: "Portfolio item {number}",
     choose: "Choose an option",
     chooseMany: "Choose at least one",
     yes: "Yes",
@@ -47,15 +59,23 @@ const english = {
   },
   project: {
     eyebrow: "Project intake",
-    title: "Start with the need, not a sales script.",
+    title: "Tell us about your project.",
     intro:
       "Share enough context for a responsible first review. This temporary journey does not store submissions.",
     steps: ["Contact", "Organization", "Project need", "Timing and files", "Review"],
     contactTitle: "How can the team follow up?",
+    contactDescription: "Provide a named contact and private email. A phone number is optional.",
     organizationTitle: "Tell us about the organization.",
+    organizationDescription:
+      "Add the organization details that will help us understand where this work sits.",
     needTitle: "What needs to change or be built?",
+    needDescription:
+      "Describe the need in plain language, then select every service area that may be relevant.",
     timingTitle: "What constraints should shape the first review?",
+    timingDescription:
+      "Share an indicative budget, timing, and only the supporting file metadata you are comfortable sending.",
     reviewTitle: "Review the project context.",
+    reviewDescription: "Check each section before opening the mock-submission confirmation.",
     name: "Preferred contact name",
     email: "Private email",
     phone: "Phone number (optional)",
@@ -95,19 +115,33 @@ const english = {
       "Up to three files, 10 MB each. Only filename, type, and size are sent to this mock; file contents are not uploaded.",
     consent:
       "I consent to Umoja using this project information to assess and respond to this request.",
+    contactGroup: "Private contact",
+    organizationGroup: "Organization details",
   },
   talent: {
     eyebrow: "Talent application",
-    title: "Bring your practice, evidence, and availability.",
+    title: "Apply to contribute with Umoja.",
     intro:
       "This private application journey is separate from optional public-profile visibility and does not store submissions yet.",
     steps: ["Profile", "Practice", "Portfolio", "Availability", "Consent", "Review"],
     profileTitle: "Your private application profile.",
+    profileDescription:
+      "Start with the professional name you use, then provide private contact and location details.",
     practiceTitle: "Where do you contribute strongest?",
+    practiceDescription:
+      "Choose the areas that best represent your current practice and your experience band.",
     portfolioTitle: "Add portfolio context without restricted material.",
+    portfolioDescription:
+      "Add up to three examples. A title is required; a public link is optional.",
     availabilityTitle: "Describe your current availability.",
+    availabilityDescription:
+      "Tell us about capacity, preferred working mode, and the languages you can use professionally.",
     consentTitle: "Choose each consent separately.",
+    consentDescription:
+      "Public-profile visibility is optional. Application and data-processing consent are required.",
     reviewTitle: "Review the private application.",
+    reviewDescription:
+      "Review what is public, what stays private, and each consent choice before submitting.",
     name: "Preferred or public professional name",
     email: "Private email",
     phone: "Private phone number (optional)",
@@ -158,6 +192,12 @@ const english = {
     applicationConsent:
       "I consent to submit this private application for Umoja’s contributor review.",
     dataConsent: "I consent to the processing of the application information described here.",
+    publicGroup: "Professional and location information",
+    privateGroup: "Private contact information",
+    practiceGroup: "Practice and experience",
+    portfolioGroup: "Portfolio evidence",
+    availabilityGroup: "Availability and languages",
+    consentGroup: "Consent choices",
   },
   contact: {
     eyebrow: "Contact Umoja",
@@ -166,7 +206,9 @@ const english = {
       "Use this short journey when project or talent intake is not the right fit. Messages are not stored in this mock release.",
     steps: ["Message", "Review"],
     messageTitle: "What would you like to discuss?",
+    messageDescription: "Share your contact details and enough context for a useful response.",
     reviewTitle: "Review your message.",
+    reviewDescription: "Check your message before opening the mock-submission confirmation.",
     name: "Preferred name",
     email: "Email",
     organization: "Organization (optional)",
@@ -190,6 +232,8 @@ const french: IntakeCopy = {
   common: {
     mock: "Envoi simulé — vos informations ne sont pas conservées dans cette version.",
     required: "Obligatoire",
+    requiredNote: "Les champs marqués * sont obligatoires.",
+    optional: "Facultatif — ce choix n’affecte pas votre candidature.",
     next: "Continuer",
     back: "Retour",
     review: "Vérifier",
@@ -213,6 +257,16 @@ const french: IntakeCopy = {
     reference: "Référence temporaire",
     step: "Étape {current} sur {total}",
     progress: "Progression du formulaire",
+    completed: "Terminée",
+    current: "Étape en cours",
+    upcoming: "À venir",
+    revisit: "Revenir à {step}",
+    errorSummaryTitle: "Vérifiez les informations signalées",
+    errorSummaryBody: "Corrigez les éléments suivants avant de continuer :",
+    edit: "Modifier",
+    addPortfolio: "Ajouter un autre élément de portfolio",
+    removePortfolio: "Supprimer cet élément",
+    portfolioItem: "Élément de portfolio {number}",
     choose: "Choisir une option",
     chooseMany: "Choisissez au moins une option",
     yes: "Oui",
@@ -235,15 +289,24 @@ const french: IntakeCopy = {
   },
   project: {
     eyebrow: "Dépôt de projet",
-    title: "Commencer par le besoin, pas par un argumentaire commercial.",
+    title: "Parlez-nous de votre projet.",
     intro:
       "Partagez assez de contexte pour une première analyse responsable. Ce parcours temporaire ne conserve aucune demande.",
     steps: ["Contact", "Organisation", "Besoin", "Calendrier et fichiers", "Vérification"],
     contactTitle: "Comment l’équipe peut-elle vous répondre ?",
+    contactDescription:
+      "Indiquez une personne de contact et un e-mail privé. Le numéro de téléphone est facultatif.",
     organizationTitle: "Présentez-nous l’organisation.",
+    organizationDescription:
+      "Ajoutez les informations qui nous aideront à comprendre le contexte de cette organisation.",
     needTitle: "Que faut-il transformer ou construire ?",
+    needDescription:
+      "Décrivez le besoin simplement, puis choisissez tous les domaines de service potentiellement pertinents.",
     timingTitle: "Quelles contraintes doivent guider la première analyse ?",
+    timingDescription:
+      "Indiquez un budget, un calendrier et uniquement les métadonnées de fichiers que vous acceptez d’envoyer.",
     reviewTitle: "Vérifiez le contexte du projet.",
+    reviewDescription: "Vérifiez chaque section avant d’ouvrir la confirmation de l’envoi simulé.",
     name: "Nom de contact préféré",
     email: "E-mail privé",
     phone: "Numéro de téléphone (facultatif)",
@@ -283,19 +346,33 @@ const french: IntakeCopy = {
       "Jusqu’à trois fichiers de 10 Mo. Seuls le nom, le type et la taille sont envoyés à cette simulation ; leur contenu n’est pas téléversé.",
     consent:
       "J’accepte qu’Umoja utilise ces informations pour analyser ce projet et répondre à cette demande.",
+    contactGroup: "Contact privé",
+    organizationGroup: "Informations sur l’organisation",
   },
   talent: {
     eyebrow: "Candidature talent",
-    title: "Apportez votre pratique, vos preuves et vos disponibilités.",
+    title: "Candidatez pour contribuer avec Umoja.",
     intro:
       "Ce parcours privé est distinct de la visibilité publique facultative et ne conserve pas encore les candidatures.",
     steps: ["Profil", "Pratique", "Portfolio", "Disponibilité", "Consentements", "Vérification"],
     profileTitle: "Votre profil privé de candidature.",
+    profileDescription:
+      "Commencez par votre nom professionnel, puis indiquez vos coordonnées privées et votre localisation.",
     practiceTitle: "Dans quels domaines contribuez-vous le mieux ?",
+    practiceDescription:
+      "Choisissez les domaines qui représentent le mieux votre pratique actuelle et votre niveau d’expérience.",
     portfolioTitle: "Ajoutez du contexte sans contenu confidentiel.",
+    portfolioDescription:
+      "Ajoutez jusqu’à trois exemples. Le titre est obligatoire ; le lien public est facultatif.",
     availabilityTitle: "Décrivez votre disponibilité actuelle.",
+    availabilityDescription:
+      "Indiquez votre capacité, votre mode de travail préféré et vos langues professionnelles.",
     consentTitle: "Choisissez chaque consentement séparément.",
+    consentDescription:
+      "La visibilité du profil public est facultative. Les consentements de candidature et de traitement sont obligatoires.",
     reviewTitle: "Vérifiez la candidature privée.",
+    reviewDescription:
+      "Vérifiez ce qui peut être public, ce qui reste privé et chaque consentement avant l’envoi.",
     name: "Nom professionnel préféré ou public",
     email: "E-mail privé",
     phone: "Téléphone privé (facultatif)",
@@ -351,6 +428,12 @@ const french: IntakeCopy = {
     applicationConsent:
       "J’accepte d’envoyer cette candidature privée pour l’examen des contributeurs Umoja.",
     dataConsent: "J’accepte le traitement des informations de candidature décrites ici.",
+    publicGroup: "Informations professionnelles et localisation",
+    privateGroup: "Coordonnées privées",
+    practiceGroup: "Pratique et expérience",
+    portfolioGroup: "Éléments de portfolio",
+    availabilityGroup: "Disponibilité et langues",
+    consentGroup: "Choix de consentement",
   },
   contact: {
     eyebrow: "Contacter Umoja",
@@ -359,7 +442,10 @@ const french: IntakeCopy = {
       "Utilisez ce court parcours lorsque le dépôt de projet ou la candidature ne conviennent pas. Les messages ne sont pas conservés dans cette version simulée.",
     steps: ["Message", "Vérification"],
     messageTitle: "De quoi souhaitez-vous discuter ?",
+    messageDescription:
+      "Partagez vos coordonnées et suffisamment de contexte pour permettre une réponse utile.",
     reviewTitle: "Vérifiez votre message.",
+    reviewDescription: "Vérifiez votre message avant d’ouvrir la confirmation de l’envoi simulé.",
     name: "Nom préféré",
     email: "E-mail",
     organization: "Organisation (facultative)",

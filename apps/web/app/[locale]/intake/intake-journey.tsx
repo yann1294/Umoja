@@ -23,6 +23,7 @@ import {
 } from "@umoja/validation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
+  useFieldArray,
   useForm,
   type FieldErrors,
   type FieldPath,
@@ -36,6 +37,13 @@ import type { IntakeCopy } from "@/content/intake-copy";
 import styles from "./intake.module.css";
 
 type Status = "idle" | "loading" | "success" | "duplicate" | "network" | "validation";
+
+type ValidationIssue = Readonly<{ id: string; label: string; message: string }>;
+type ReviewSection = Readonly<{
+  title: string;
+  step: number;
+  rows: readonly (readonly [string, string])[];
+}>;
 
 const subscribeToHydration = () => () => undefined;
 
@@ -63,7 +71,12 @@ export function IntakeJourney({ copy, kind }: Readonly<{ copy: IntakeCopy; kind:
               <h1 id="intake-title">{section.title}</h1>
               <p className={styles.heroDescription}>{section.intro}</p>
             </div>
-            <p className={styles.mockNotice}>{copy.common.mock}</p>
+            <div className={styles.mockNotice} role="status">
+              <span className={styles.noticeIcon} aria-hidden="true">
+                i
+              </span>
+              <p>{copy.common.mock}</p>
+            </div>
           </div>
         </Container>
       </section>
@@ -80,23 +93,69 @@ export function IntakeJourney({ copy, kind }: Readonly<{ copy: IntakeCopy; kind:
 
 function Progress({
   current,
+  furthest,
   labels,
   copy,
-}: Readonly<{ current: number; labels: readonly string[]; copy: IntakeCopy["common"] }>) {
+  onSelect,
+}: Readonly<{
+  current: number;
+  furthest: number;
+  labels: readonly string[];
+  copy: IntakeCopy["common"];
+  onSelect: (step: number) => void;
+}>) {
+  const stepText = copy.step
+    .replace("{current}", String(current + 1))
+    .replace("{total}", String(labels.length));
   return (
     <nav className={styles.progress} aria-label={copy.progress}>
-      <p>
-        {copy.step
-          .replace("{current}", String(current + 1))
-          .replace("{total}", String(labels.length))}
-      </p>
+      <div className={styles.mobileProgress}>
+        <p>{stepText}</p>
+        <strong>{labels[current]}</strong>
+        <progress
+          value={current + 1}
+          max={labels.length}
+          aria-label={`${stepText}: ${labels[current]}`}
+        />
+      </div>
+      <p className={styles.desktopStepCount}>{stepText}</p>
       <ol>
-        {labels.map((label, index) => (
-          <li key={label} aria-current={index === current ? "step" : undefined}>
-            <span className={styles.stepNumber}>{index + 1}</span>
-            <span>{label}</span>
-          </li>
-        ))}
+        {labels.map((label, index) => {
+          const complete = index < current && index < furthest;
+          const available = complete;
+          const state =
+            index === current ? copy.current : complete ? copy.completed : copy.upcoming;
+          return (
+            <li key={label} aria-current={index === current ? "step" : undefined}>
+              {available ? (
+                <button
+                  type="button"
+                  className={styles.progressStep}
+                  onClick={() => onSelect(index)}
+                  aria-label={`${copy.revisit.replace("{step}", label)}. ${state}`}
+                >
+                  <span className={styles.stepNumber} aria-hidden="true">
+                    {complete ? "✓" : index + 1}
+                  </span>
+                  <span className={styles.stepText}>
+                    <span>{label}</span>
+                    <small>{state}</small>
+                  </span>
+                </button>
+              ) : (
+                <div className={styles.progressStep}>
+                  <span className={styles.stepNumber} aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <span className={styles.stepText}>
+                    <span>{label}</span>
+                    <small>{state}</small>
+                  </span>
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );
@@ -106,45 +165,76 @@ function JourneyLayout({
   children,
   copy,
   current,
+  description,
+  furthest,
   labels,
   onBack,
   onNext,
   review,
   onReview,
+  onStepSelect,
+  title,
 }: Readonly<{
   children: ReactNode;
   copy: IntakeCopy["common"];
   current: number;
+  description: string;
+  furthest: number;
   labels: readonly string[];
   onBack: () => void;
   onNext: () => void;
   review: boolean;
   onReview: () => void;
+  onStepSelect: (step: number) => void;
+  title: string;
 }>) {
   const formRef = useRef<HTMLFormElement>(null);
+  const hasMounted = useRef(false);
   const ready = useSyncExternalStore(
     subscribeToHydration,
     () => true,
     () => false,
   );
   useEffect(() => {
-    const heading = formRef.current?.querySelector<HTMLHeadingElement>("h2");
-    heading?.setAttribute("tabindex", "-1");
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    const heading = formRef.current?.querySelector<HTMLHeadingElement>("#journey-step-title");
     heading?.focus();
   }, [current]);
   return (
     <section className={styles.journeySection}>
-      <Container>
+      <div className={styles.journeyContainer}>
         <div className={styles.journeyGrid}>
-          <Progress current={current} labels={labels} copy={copy} />
+          <Progress
+            current={current}
+            furthest={furthest}
+            labels={labels}
+            copy={copy}
+            onSelect={onStepSelect}
+          />
           <form
             ref={formRef}
             className={styles.formCard}
             data-interactive-ready={ready}
             noValidate
             onSubmit={(event) => event.preventDefault()}
+            aria-labelledby="journey-step-title"
           >
             <fieldset className={styles.formBody} disabled={!ready}>
+              <header className={styles.stepHeader}>
+                <p className={styles.formStepCount}>
+                  {copy.step
+                    .replace("{current}", String(current + 1))
+                    .replace("{total}", String(labels.length))}
+                </p>
+                <h2 id="journey-step-title" className={styles.stepHeading} tabIndex={-1}>
+                  {title}
+                </h2>
+                <p className={styles.stepDescription}>{description}</p>
+                {!review ? <p className={styles.requiredNote}>{copy.requiredNote}</p> : null}
+              </header>
               {children}
             </fieldset>
             <div className={styles.actions}>
@@ -161,7 +251,7 @@ function JourneyLayout({
             </div>
           </form>
         </div>
-      </Container>
+      </div>
     </section>
   );
 }
@@ -224,16 +314,71 @@ function SelectOptions({
   );
 }
 
-function ReviewGrid({ rows }: Readonly<{ rows: readonly (readonly [string, string])[] }>) {
+function ErrorSummary({
+  copy,
+  issues,
+}: Readonly<{ copy: IntakeCopy["common"]; issues: ValidationIssue[] }>) {
+  if (!issues.length) return null;
   return (
-    <dl className={styles.reviewGrid}>
-      {rows.map(([label, value]) => (
-        <div className={styles.reviewItem} key={label}>
-          <dt>{label}</dt>
-          <dd>{value || "—"}</dd>
-        </div>
+    <div className={styles.errorSummary} role="alert" aria-live="assertive">
+      <strong>{copy.errorSummaryTitle}</strong>
+      <p>{copy.errorSummaryBody}</p>
+      <ul>
+        {issues.map((issue) => (
+          <li key={issue.id}>
+            <a href={`#${issue.id}`}>
+              {issue.label}: {issue.message}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FieldSection({ children, title }: Readonly<{ children: ReactNode; title: string }>) {
+  return (
+    <section
+      className={styles.fieldSection}
+      aria-labelledby={`group-${title.replace(/\W+/g, "-").toLowerCase()}`}
+    >
+      <h3 id={`group-${title.replace(/\W+/g, "-").toLowerCase()}`}>{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function ReviewSections({
+  copy,
+  onEdit,
+  sections,
+}: Readonly<{
+  copy: IntakeCopy["common"];
+  onEdit: (step: number) => void;
+  sections: readonly ReviewSection[];
+}>) {
+  return (
+    <div className={styles.reviewSections}>
+      {sections.map((section) => (
+        <section className={styles.reviewSection} key={`${section.step}-${section.title}`}>
+          <header>
+            <h3>{section.title}</h3>
+            <Button variant="ghost" size="small" onClick={() => onEdit(section.step)}>
+              {copy.edit}
+              <span className="u-visually-hidden">: {section.title}</span>
+            </Button>
+          </header>
+          <dl className={styles.reviewGrid}>
+            {section.rows.map(([label, value]) => (
+              <div className={styles.reviewItem} key={label}>
+                <dt>{label}</dt>
+                <dd>{value || "—"}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       ))}
-    </dl>
+    </div>
   );
 }
 
@@ -402,15 +547,39 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
     mode: "onChange",
   });
   const [step, setStep] = useState(0);
+  const [furthest, setFurthest] = useState(0);
+  const [issues, setIssues] = useState<ValidationIssue[]>([]);
   const submission = useJourneySubmit("project", form);
   const e = form.formState.errors;
   const fields: FieldPath<ProjectIntake>[][] = [
-    ["contact.preferredName", "contact.email"],
+    ["contact.preferredName", "contact.email", "contact.phone"],
     ["organization.name", "organization.country", "organization.website"],
     ["need.title", "need.description", "need.serviceAreas"],
     ["budgetBand", "timing.desiredStart", "timing.targetDate", "attachments", "projectConsent"],
   ];
+  const fieldMeta: Record<string, { id: string; label: string }> = {
+    "contact.preferredName": { id: "project-name", label: c.name },
+    "contact.email": { id: "project-email", label: c.email },
+    "contact.phone": { id: "project-phone", label: c.phone },
+    "organization.name": { id: "organization-name", label: c.organization },
+    "organization.country": { id: "organization-country", label: c.country },
+    "organization.website": { id: "organization-website", label: c.website },
+    "need.title": { id: "project-title", label: c.projectTitle },
+    "need.description": { id: "project-description", label: c.description },
+    "need.serviceAreas": { id: "need.serviceAreas-0", label: c.services },
+    budgetBand: { id: "project-budget", label: c.budget },
+    "timing.desiredStart": { id: "project-timing", label: c.desiredStart },
+    "timing.targetDate": { id: "project-date", label: c.targetDate },
+    attachments: { id: "project-files", label: c.files },
+    projectConsent: { id: "project-consent", label: c.consent },
+  };
+  const goToStep = (nextStep: number) => {
+    setIssues([]);
+    submission.setStatus("idle");
+    setStep(nextStep);
+  };
   const next = async () => {
+    setIssues([]);
     form.clearErrors(fields[step]);
     const value = form.getValues();
     const stepValues = [
@@ -426,13 +595,25 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
     ] as const;
     const result = projectStepSchemas[step].safeParse(stepValues[step]);
     if (result.success) {
-      setStep(step + 1);
+      const nextStep = step + 1;
+      setFurthest((value) => Math.max(value, nextStep));
+      goToStep(nextStep);
       return;
     }
     const invalidFields = result.error.issues.map((issue) => issue.path.join("."));
     for (const issue of result.error.issues) {
       form.setError(issue.path.join(".") as FieldPath<ProjectIntake>, { message: issue.message });
     }
+    setIssues(
+      result.error.issues.map((issue) => {
+        const path = issue.path.join(".");
+        const meta = fieldMeta[path] ?? { id: path, label: path };
+        return {
+          ...meta,
+          message: errorText({ message: issue.message }, copy.common) ?? issue.message,
+        };
+      }),
+    );
     const firstInvalid = fields[step].find((field) => invalidFields.includes(field));
     if (firstInvalid) form.setFocus(firstInvalid);
   };
@@ -444,20 +625,34 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
       <JourneyLayout
         copy={copy.common}
         current={step}
+        description={
+          [
+            c.contactDescription,
+            c.organizationDescription,
+            c.needDescription,
+            c.timingDescription,
+            c.reviewDescription,
+          ][step]
+        }
+        furthest={furthest}
         labels={c.steps}
-        onBack={() => setStep(Math.max(0, step - 1))}
+        onBack={() => goToStep(Math.max(0, step - 1))}
         onNext={next}
         review={step === 4}
         onReview={() => submission.setDialog(true)}
+        onStepSelect={goToStep}
+        title={
+          [c.contactTitle, c.organizationTitle, c.needTitle, c.timingTitle, c.reviewTitle][step]
+        }
       >
         <StateMessage
           copy={copy.common}
           status={submission.status}
           onReturn={() => submission.setStatus("idle")}
         />
+        <ErrorSummary copy={copy.common} issues={issues} />
         {step === 0 && (
-          <>
-            <h2 className={styles.stepHeading}>{c.contactTitle}</h2>
+          <FieldSection title={c.contactGroup}>
             <div className={styles.fieldGrid}>
               <TextField
                 id="project-name"
@@ -470,6 +665,7 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
               <TextField
                 id="project-email"
                 type="email"
+                inputMode="email"
                 label={c.email}
                 required
                 autoComplete="email"
@@ -479,17 +675,17 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
               <TextField
                 id="project-phone"
                 type="tel"
+                inputMode="tel"
                 label={c.phone}
                 autoComplete="tel"
                 error={errorText(e.contact?.phone, copy.common)}
                 {...form.register("contact.phone")}
               />
             </div>
-          </>
+          </FieldSection>
         )}
         {step === 1 && (
-          <>
-            <h2 className={styles.stepHeading}>{c.organizationTitle}</h2>
+          <FieldSection title={c.organizationGroup}>
             <div className={styles.fieldGrid}>
               <TextField
                 id="organization-name"
@@ -510,17 +706,17 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
               <TextField
                 id="organization-website"
                 type="url"
+                inputMode="url"
                 label={c.website}
                 placeholder="https://"
                 error={errorText(e.organization?.website, copy.common)}
                 {...form.register("organization.website")}
               />
             </div>
-          </>
+          </FieldSection>
         )}
         {step === 2 && (
           <>
-            <h2 className={styles.stepHeading}>{c.needTitle}</h2>
             <div className={styles.fieldGrid}>
               <div className={styles.wide}>
                 <TextField
@@ -536,6 +732,7 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
                   id="project-description"
                   label={c.description}
                   hint={c.descriptionHint}
+                  rows={7}
                   required
                   error={errorText(e.need?.description, copy.common)}
                   {...form.register("need.description")}
@@ -555,7 +752,6 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
         )}
         {step === 3 && (
           <>
-            <h2 className={styles.stepHeading}>{c.timingTitle}</h2>
             <div className={styles.fieldGrid}>
               <SelectField
                 id="project-budget"
@@ -619,23 +815,50 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
           </>
         )}
         {step === 4 && (
-          <>
-            <h2 className={styles.stepHeading}>{c.reviewTitle}</h2>
-            <ReviewGrid
-              rows={[
-                [c.name, values.contact.preferredName],
-                [c.email, values.contact.email],
-                [c.organization, values.organization.name],
-                [c.country, values.organization.country],
-                [c.projectTitle, values.need.title],
-                [c.description, values.need.description],
-                [c.services, values.need.serviceAreas.join(", ")],
-                [c.budget, values.budgetBand],
-                [c.desiredStart, values.timing.desiredStart],
-                [c.files, values.attachments.map((file) => file.name).join(", ")],
-              ]}
-            />
-          </>
+          <ReviewSections
+            copy={copy.common}
+            onEdit={goToStep}
+            sections={[
+              {
+                title: c.contactGroup,
+                step: 0,
+                rows: [
+                  [c.name, values.contact.preferredName],
+                  [c.email, values.contact.email],
+                  [c.phone, values.contact.phone],
+                ],
+              },
+              {
+                title: c.organizationGroup,
+                step: 1,
+                rows: [
+                  [c.organization, values.organization.name],
+                  [c.country, values.organization.country],
+                  [c.website, values.organization.website],
+                ],
+              },
+              {
+                title: c.needTitle,
+                step: 2,
+                rows: [
+                  [c.projectTitle, values.need.title],
+                  [c.description, values.need.description],
+                  [c.services, values.need.serviceAreas.join(", ")],
+                ],
+              },
+              {
+                title: c.timingTitle,
+                step: 3,
+                rows: [
+                  [c.budget, values.budgetBand],
+                  [c.desiredStart, values.timing.desiredStart],
+                  [c.targetDate, values.timing.targetDate],
+                  [c.files, values.attachments.map((file) => file.name).join(", ")],
+                  [c.consent, values.projectConsent ? copy.common.yes : copy.common.no],
+                ],
+              },
+            ]}
+          />
         )}
       </JourneyLayout>
       {submission.dialog ? (
@@ -670,13 +893,19 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
     },
     mode: "onChange",
   });
+  const portfolio = useFieldArray({ control: form.control, name: "portfolioItems" });
   const [step, setStep] = useState(0);
+  const [furthest, setFurthest] = useState(0);
+  const [issues, setIssues] = useState<ValidationIssue[]>([]);
   const submission = useJourneySubmit("talent", form);
   const e = form.formState.errors;
   const fields: FieldPath<TalentIntake>[][] = [
-    ["preferredName", "privateContact.email", "country", "timezone"],
+    ["preferredName", "privateContact.email", "privateContact.phone", "country", "timezone"],
     ["skillAreas", "experienceBand"],
-    ["portfolioItems"],
+    portfolio.fields.flatMap((_, index) => [
+      `portfolioItems.${index}.title` as FieldPath<TalentIntake>,
+      `portfolioItems.${index}.url` as FieldPath<TalentIntake>,
+    ]),
     [
       "availability.weeklyCapacity",
       "availability.nextAvailableDate",
@@ -685,8 +914,57 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
     ],
     ["applicationConsent", "dataProcessingConsent", "publicProfileConsent"],
   ];
+  const metaForField = (field: FieldPath<TalentIntake>) => {
+    const portfolioMatch = String(field).match(/^portfolioItems\.(\d+)\.(title|url)$/);
+    if (portfolioMatch) {
+      const index = Number(portfolioMatch[1]);
+      const isTitle = portfolioMatch[2] === "title";
+      return {
+        id: `portfolio-${index}-${isTitle ? "title" : "url"}`,
+        label: `${copy.common.portfolioItem.replace("{number}", String(index + 1))}: ${isTitle ? c.portfolioTitleLabel : c.portfolioUrl}`,
+      };
+    }
+    const meta: Record<string, { id: string; label: string }> = {
+      preferredName: { id: "talent-name", label: c.name },
+      "privateContact.email": { id: "talent-email", label: c.email },
+      "privateContact.phone": { id: "talent-phone", label: c.phone },
+      country: { id: "talent-country", label: c.country },
+      timezone: { id: "talent-timezone", label: c.timezone },
+      skillAreas: { id: "skillAreas-0", label: c.skills },
+      experienceBand: { id: "talent-experience", label: c.experience },
+      "availability.weeklyCapacity": { id: "talent-weekly", label: c.weekly },
+      "availability.nextAvailableDate": { id: "talent-date", label: c.availableDate },
+      "availability.workMode": { id: "talent-mode", label: c.workMode },
+      languages: { id: "languages-0", label: c.languages },
+      publicProfileConsent: { id: "public-consent", label: c.publicConsent },
+      applicationConsent: { id: "application-consent", label: c.applicationConsent },
+      dataProcessingConsent: { id: "data-consent", label: c.dataConsent },
+    };
+    return meta[String(field)] ?? { id: String(field), label: String(field) };
+  };
+  const goToStep = (nextStep: number) => {
+    setIssues([]);
+    submission.setStatus("idle");
+    setStep(nextStep);
+  };
   const next = async () => {
-    if (await form.trigger(fields[step], { shouldFocus: true })) setStep(step + 1);
+    setIssues([]);
+    if (await form.trigger(fields[step], { shouldFocus: false })) {
+      const nextStep = step + 1;
+      setFurthest((value) => Math.max(value, nextStep));
+      goToStep(nextStep);
+      return;
+    }
+    const invalid = fields[step]
+      .map((field) => ({ field, error: form.getFieldState(field).error }))
+      .filter((item) => item.error);
+    setIssues(
+      invalid.map(({ field, error }) => ({
+        ...metaForField(field),
+        message: errorText(error, copy.common) ?? copy.common.errors.required,
+      })),
+    );
+    if (invalid[0]) form.setFocus(invalid[0].field);
   };
   const values = useWatch({ control: form.control }) as TalentIntake;
   if (submission.status === "success")
@@ -696,68 +974,97 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
       <JourneyLayout
         copy={copy.common}
         current={step}
+        description={
+          [
+            c.profileDescription,
+            c.practiceDescription,
+            c.portfolioDescription,
+            c.availabilityDescription,
+            c.consentDescription,
+            c.reviewDescription,
+          ][step]
+        }
+        furthest={furthest}
         labels={c.steps}
-        onBack={() => setStep(Math.max(0, step - 1))}
+        onBack={() => goToStep(Math.max(0, step - 1))}
         onNext={next}
         review={step === 5}
         onReview={() => submission.setDialog(true)}
+        onStepSelect={goToStep}
+        title={
+          [
+            c.profileTitle,
+            c.practiceTitle,
+            c.portfolioTitle,
+            c.availabilityTitle,
+            c.consentTitle,
+            c.reviewTitle,
+          ][step]
+        }
       >
         <StateMessage
           copy={copy.common}
           status={submission.status}
           onReturn={() => submission.setStatus("idle")}
         />
+        <ErrorSummary copy={copy.common} issues={issues} />
         {step === 0 && (
           <>
-            <h2 className={styles.stepHeading}>{c.profileTitle}</h2>
-            <div className={styles.fieldGrid}>
-              <TextField
-                id="talent-name"
-                label={c.name}
-                required
-                autoComplete="name"
-                error={errorText(e.preferredName, copy.common)}
-                {...form.register("preferredName")}
-              />
-              <TextField
-                id="talent-email"
-                label={c.email}
-                type="email"
-                required
-                autoComplete="email"
-                error={errorText(e.privateContact?.email, copy.common)}
-                {...form.register("privateContact.email")}
-              />
-              <TextField
-                id="talent-phone"
-                label={c.phone}
-                type="tel"
-                autoComplete="tel"
-                error={errorText(e.privateContact?.phone, copy.common)}
-                {...form.register("privateContact.phone")}
-              />
-              <TextField
-                id="talent-country"
-                label={c.country}
-                required
-                autoComplete="country-name"
-                error={errorText(e.country, copy.common)}
-                {...form.register("country")}
-              />
-              <TextField
-                id="talent-timezone"
-                label={c.timezone}
-                required
-                placeholder="Africa/Dakar"
-                error={errorText(e.timezone, copy.common)}
-                {...form.register("timezone")}
-              />
-            </div>
+            <FieldSection title={c.publicGroup}>
+              <div className={styles.fieldGrid}>
+                <TextField
+                  id="talent-name"
+                  label={c.name}
+                  required
+                  autoComplete="name"
+                  error={errorText(e.preferredName, copy.common)}
+                  {...form.register("preferredName")}
+                />
+                <TextField
+                  id="talent-country"
+                  label={c.country}
+                  required
+                  autoComplete="country-name"
+                  error={errorText(e.country, copy.common)}
+                  {...form.register("country")}
+                />
+                <TextField
+                  id="talent-timezone"
+                  label={c.timezone}
+                  required
+                  placeholder="Africa/Dakar"
+                  error={errorText(e.timezone, copy.common)}
+                  {...form.register("timezone")}
+                />
+              </div>
+            </FieldSection>
+            <FieldSection title={c.privateGroup}>
+              <div className={styles.fieldGrid}>
+                <TextField
+                  id="talent-email"
+                  label={c.email}
+                  type="email"
+                  inputMode="email"
+                  required
+                  autoComplete="email"
+                  error={errorText(e.privateContact?.email, copy.common)}
+                  {...form.register("privateContact.email")}
+                />
+                <TextField
+                  id="talent-phone"
+                  label={c.phone}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  error={errorText(e.privateContact?.phone, copy.common)}
+                  {...form.register("privateContact.phone")}
+                />
+              </div>
+            </FieldSection>
           </>
         )}
         {step === 1 && (
           <>
-            <h2 className={styles.stepHeading}>{c.practiceTitle}</h2>
             <Options
               legend={c.skills}
               name="skillAreas"
@@ -778,30 +1085,56 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
         )}
         {step === 2 && (
           <>
-            <h2 className={styles.stepHeading}>{c.portfolioTitle}</h2>
             <p>{c.portfolioHint}</p>
-            <div className={styles.fieldGrid}>
-              <TextField
-                id="portfolio-title"
-                label={c.portfolioTitleLabel}
-                required
-                error={errorText(e.portfolioItems?.[0]?.title, copy.common)}
-                {...form.register("portfolioItems.0.title")}
-              />
-              <TextField
-                id="portfolio-url"
-                label={c.portfolioUrl}
-                type="url"
-                placeholder="https://"
-                error={errorText(e.portfolioItems?.[0]?.url, copy.common)}
-                {...form.register("portfolioItems.0.url")}
-              />
+            <div className={styles.portfolioList}>
+              {portfolio.fields.map((item, index) => (
+                <div className={styles.portfolioItem} key={item.id}>
+                  <div className={styles.portfolioHeader}>
+                    <h3>{copy.common.portfolioItem.replace("{number}", String(index + 1))}</h3>
+                    {portfolio.fields.length > 1 ? (
+                      <Button
+                        variant="ghost"
+                        size="small"
+                        onClick={() => {
+                          portfolio.remove(index);
+                          setIssues([]);
+                        }}
+                      >
+                        {copy.common.removePortfolio}
+                        <span className="u-visually-hidden"> {index + 1}</span>
+                      </Button>
+                    ) : null}
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <TextField
+                      id={`portfolio-${index}-title`}
+                      label={c.portfolioTitleLabel}
+                      required
+                      error={errorText(e.portfolioItems?.[index]?.title, copy.common)}
+                      {...form.register(`portfolioItems.${index}.title`)}
+                    />
+                    <TextField
+                      id={`portfolio-${index}-url`}
+                      label={c.portfolioUrl}
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://"
+                      error={errorText(e.portfolioItems?.[index]?.url, copy.common)}
+                      {...form.register(`portfolioItems.${index}.url`)}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
+            {portfolio.fields.length < 3 ? (
+              <Button variant="secondary" onClick={() => portfolio.append({ title: "", url: "" })}>
+                {copy.common.addPortfolio}
+              </Button>
+            ) : null}
           </>
         )}
         {step === 3 && (
           <>
-            <h2 className={styles.stepHeading}>{c.availabilityTitle}</h2>
             <div className={styles.fieldGrid}>
               <SelectField
                 id="talent-weekly"
@@ -842,47 +1175,100 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
         )}
         {step === 4 && (
           <>
-            <h2 className={styles.stepHeading}>{c.consentTitle}</h2>
-            <CheckboxField
-              id="public-consent"
-              label={c.publicConsent}
-              hint={copy.common.required.replace(copy.common.required, copy.common.no)}
-              {...form.register("publicProfileConsent")}
-            />
-            <CheckboxField
-              id="application-consent"
-              label={c.applicationConsent}
-              required
-              error={errorText(e.applicationConsent, copy.common)}
-              {...form.register("applicationConsent")}
-            />
-            <CheckboxField
-              id="data-consent"
-              label={c.dataConsent}
-              required
-              error={errorText(e.dataProcessingConsent, copy.common)}
-              {...form.register("dataProcessingConsent")}
-            />
+            <div className={styles.optionalConsent}>
+              <CheckboxField
+                id="public-consent"
+                label={c.publicConsent}
+                hint={copy.common.optional}
+                {...form.register("publicProfileConsent")}
+              />
+            </div>
+            <div className={styles.requiredConsents}>
+              <CheckboxField
+                id="application-consent"
+                label={c.applicationConsent}
+                required
+                error={errorText(e.applicationConsent, copy.common)}
+                {...form.register("applicationConsent")}
+              />
+              <CheckboxField
+                id="data-consent"
+                label={c.dataConsent}
+                required
+                error={errorText(e.dataProcessingConsent, copy.common)}
+                {...form.register("dataProcessingConsent")}
+              />
+            </div>
           </>
         )}
         {step === 5 && (
-          <>
-            <h2 className={styles.stepHeading}>{c.reviewTitle}</h2>
-            <ReviewGrid
-              rows={[
-                [c.name, values.preferredName],
-                [c.email, values.privateContact.email],
-                [c.country, values.country],
-                [c.timezone, values.timezone],
-                [c.skills, values.skillAreas.join(", ")],
-                [c.experience, values.experienceBand],
-                [c.portfolioTitleLabel, values.portfolioItems.map((item) => item.title).join(", ")],
-                [c.weekly, values.availability.weeklyCapacity],
-                [c.languages, values.languages.join(", ")],
-                [c.publicConsent, values.publicProfileConsent ? copy.common.yes : copy.common.no],
-              ]}
-            />
-          </>
+          <ReviewSections
+            copy={copy.common}
+            onEdit={goToStep}
+            sections={[
+              {
+                title: c.publicGroup,
+                step: 0,
+                rows: [
+                  [c.name, values.preferredName],
+                  [c.country, values.country],
+                  [c.timezone, values.timezone],
+                ],
+              },
+              {
+                title: c.privateGroup,
+                step: 0,
+                rows: [
+                  [c.email, values.privateContact.email],
+                  [c.phone, values.privateContact.phone],
+                ],
+              },
+              {
+                title: c.practiceGroup,
+                step: 1,
+                rows: [
+                  [c.skills, values.skillAreas.join(", ")],
+                  [c.experience, values.experienceBand],
+                ],
+              },
+              {
+                title: c.portfolioGroup,
+                step: 2,
+                rows: values.portfolioItems.flatMap((item, index) => [
+                  [
+                    `${copy.common.portfolioItem.replace("{number}", String(index + 1))}: ${c.portfolioTitleLabel}`,
+                    item.title,
+                  ] as const,
+                  [
+                    `${copy.common.portfolioItem.replace("{number}", String(index + 1))}: ${c.portfolioUrl}`,
+                    item.url,
+                  ] as const,
+                ]),
+              },
+              {
+                title: c.availabilityGroup,
+                step: 3,
+                rows: [
+                  [c.weekly, values.availability.weeklyCapacity],
+                  [c.availableDate, values.availability.nextAvailableDate],
+                  [c.workMode, values.availability.workMode],
+                  [c.languages, values.languages.join(", ")],
+                ],
+              },
+              {
+                title: c.consentGroup,
+                step: 4,
+                rows: [
+                  [c.publicConsent, values.publicProfileConsent ? copy.common.yes : copy.common.no],
+                  [
+                    c.applicationConsent,
+                    values.applicationConsent ? copy.common.yes : copy.common.no,
+                  ],
+                  [c.dataConsent, values.dataProcessingConsent ? copy.common.yes : copy.common.no],
+                ],
+              },
+            ]}
+          />
         )}
       </JourneyLayout>
       {submission.dialog ? (
@@ -912,15 +1298,46 @@ function ContactJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
     mode: "onChange",
   });
   const [step, setStep] = useState(0);
+  const [furthest, setFurthest] = useState(0);
+  const [issues, setIssues] = useState<ValidationIssue[]>([]);
   const submission = useJourneySubmit("contact", form);
   const e: FieldErrors<ContactIntake> = form.formState.errors;
+  const contactFields: FieldPath<ContactIntake>[] = [
+    "preferredName",
+    "email",
+    "subject",
+    "message",
+    "contactConsent",
+  ];
+  const goToStep = (nextStep: number) => {
+    setIssues([]);
+    submission.setStatus("idle");
+    setStep(nextStep);
+  };
   const next = async () => {
-    if (
-      await form.trigger(["preferredName", "email", "subject", "message", "contactConsent"], {
-        shouldFocus: true,
-      })
-    )
-      setStep(1);
+    setIssues([]);
+    if (await form.trigger(contactFields, { shouldFocus: false })) {
+      setFurthest(1);
+      goToStep(1);
+      return;
+    }
+    const meta: Record<string, { id: string; label: string }> = {
+      preferredName: { id: "contact-name", label: c.name },
+      email: { id: "contact-email", label: c.email },
+      subject: { id: "contact-subject", label: c.subject },
+      message: { id: "contact-message", label: c.message },
+      contactConsent: { id: "contact-consent", label: c.consent },
+    };
+    const invalid = contactFields
+      .map((field) => ({ field, error: form.getFieldState(field).error }))
+      .filter((item) => item.error);
+    setIssues(
+      invalid.map(({ field, error }) => ({
+        ...meta[field],
+        message: errorText(error, copy.common) ?? copy.common.errors.required,
+      })),
+    );
+    if (invalid[0]) form.setFocus(invalid[0].field);
   };
   const values = useWatch({ control: form.control }) as ContactIntake;
   if (submission.status === "success")
@@ -930,20 +1347,24 @@ function ContactJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
       <JourneyLayout
         copy={copy.common}
         current={step}
+        description={step === 0 ? c.messageDescription : c.reviewDescription}
+        furthest={furthest}
         labels={c.steps}
-        onBack={() => setStep(0)}
+        onBack={() => goToStep(0)}
         onNext={next}
         review={step === 1}
         onReview={() => submission.setDialog(true)}
+        onStepSelect={goToStep}
+        title={step === 0 ? c.messageTitle : c.reviewTitle}
       >
         <StateMessage
           copy={copy.common}
           status={submission.status}
           onReturn={() => submission.setStatus("idle")}
         />
+        <ErrorSummary copy={copy.common} issues={issues} />
         {step === 0 ? (
           <>
-            <h2 className={styles.stepHeading}>{c.messageTitle}</h2>
             <div className={styles.fieldGrid}>
               <TextField
                 id="contact-name"
@@ -957,6 +1378,7 @@ function ContactJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
                 id="contact-email"
                 label={c.email}
                 type="email"
+                inputMode="email"
                 required
                 autoComplete="email"
                 error={errorText(e.email, copy.common)}
@@ -980,6 +1402,7 @@ function ContactJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
                 <TextAreaField
                   id="contact-message"
                   label={c.message}
+                  rows={7}
                   required
                   error={errorText(e.message, copy.common)}
                   {...form.register("message")}
@@ -997,18 +1420,23 @@ function ContactJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
             </div>
           </>
         ) : (
-          <>
-            <h2 className={styles.stepHeading}>{c.reviewTitle}</h2>
-            <ReviewGrid
-              rows={[
-                [c.name, values.preferredName],
-                [c.email, values.email],
-                [c.organization, values.organization],
-                [c.subject, values.subject],
-                [c.message, values.message],
-              ]}
-            />
-          </>
+          <ReviewSections
+            copy={copy.common}
+            onEdit={goToStep}
+            sections={[
+              {
+                title: c.messageTitle,
+                step: 0,
+                rows: [
+                  [c.name, values.preferredName],
+                  [c.email, values.email],
+                  [c.organization, values.organization],
+                  [c.subject, values.subject],
+                  [c.message, values.message],
+                ],
+              },
+            ]}
+          />
         )}
       </JourneyLayout>
       {submission.dialog ? (
