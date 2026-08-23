@@ -21,14 +21,46 @@ describe("versioned infrastructure", () => {
     expect(config.buckets.every((bucket: { fileSecurity: boolean }) => bucket.fileSecurity)).toBe(
       true,
     );
+    expect(
+      config.database.tables.flatMap((table: { columns: Array<{ encrypt?: boolean }> }) =>
+        table.columns.filter((column) => column.encrypt),
+      ),
+    ).toEqual([]);
+    for (const tableId of ["project_intakes", "talent_intakes"]) {
+      const table = config.database.tables.find((item: { id: string }) => item.id === tableId);
+      const keys = table.columns.map((column: { key: string }) => column.key);
+      expect(keys).toEqual(
+        expect.arrayContaining([
+          "emailLookup",
+          "encryptionKeyVersion",
+          "encryptedPayload",
+          "encryptedInternalNotes",
+        ]),
+      );
+      expect(keys).not.toEqual(
+        expect.arrayContaining(["contactEmail", "contactPhone", "internalNotes"]),
+      );
+      expect(
+        table.indexes.some((index: { columns: string[] }) =>
+          index.columns.includes("encryptedPayload"),
+        ),
+      ).toBe(false);
+    }
   });
 
   it("keeps server SDKs out of the browser boundary", () => {
     const browser = fs.readFileSync(path.join(root, "packages/appwrite/src/browser.ts"), "utf8");
     const admin = fs.readFileSync(path.join(root, "apps/web/lib/appwrite/admin.ts"), "utf8");
+    const encryption = fs.readFileSync(
+      path.join(root, "apps/web/lib/appwrite/encryption.ts"),
+      "utf8",
+    );
     expect(browser).not.toContain("node-appwrite");
     expect(browser).not.toMatch(/APPWRITE_(?:SSR|SERVER|BOOTSTRAP)_API_KEY/);
+    expect(browser).not.toContain("encryption");
     expect(admin).toMatch(/^import "server-only";/);
+    expect(encryption).toMatch(/^import "server-only";/);
+    expect(encryption).not.toMatch(/console\.(?:log|error|warn)/);
   });
 
   it("does not expose a public signup handler", () => {
