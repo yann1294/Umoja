@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error Operational ESM helper intentionally has no TypeScript declaration file.
-import { columnMismatches } from "../scripts/schema-compat.mjs";
+import { columnMismatches, indexMismatches } from "../scripts/schema-compat.mjs";
 
 const root = path.resolve(process.cwd(), "../..");
 const config = JSON.parse(fs.readFileSync(path.join(root, "appwrite.config.json"), "utf8"));
@@ -45,5 +45,14 @@ describe("resumable Appwrite schema compatibility", () => {
       (item: { key: string }) => item.key === "published_locale_slug",
     );
     expect(index.lengths).toEqual([9, 2, 180]);
+  });
+
+  it("normalizes Appwrite lowercase index order read-back", () => {
+    expect(
+      indexMismatches(
+        { type: "key", columns: ["status", "createdAt"], orders: ["ASC", "DESC"] },
+        { type: "key", columns: ["status", "createdAt"], orders: ["asc", "desc"] },
+      ),
+    ).toEqual([]);
   });
 });

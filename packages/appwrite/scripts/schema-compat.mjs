@@ -23,8 +23,10 @@ export function indexMismatches(expected, actual) {
   if (actual.type !== expected.type) mismatches.push("type");
   if (!sameValues(actual.attributes ?? actual.columns, expected.columns))
     mismatches.push("columns");
-  if (expected.orders && JSON.stringify(actual.orders ?? []) !== JSON.stringify(expected.orders))
-    mismatches.push("orders");
+  if (expected.orders) {
+    const actualOrders = (actual.orders ?? []).map((order) => order.toUpperCase());
+    if (JSON.stringify(actualOrders) !== JSON.stringify(expected.orders)) mismatches.push("orders");
+  }
   if (expected.lengths && JSON.stringify(actual.lengths ?? []) !== JSON.stringify(expected.lengths))
     mismatches.push("lengths");
   return mismatches;
