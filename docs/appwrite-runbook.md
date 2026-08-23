@@ -22,6 +22,12 @@ read-back verification is not sufficient.
 - Public intake remains connected to the clearly labelled mock adapter. The later persistence work
   must call `prepareIntakeSubmission`, then upload validated files and create rows through a runtime
   server boundary. Applicants do not receive Appwrite accounts.
+- `apps/web/lib/appwrite/encryption.ts` is a server-only AES-256-GCM boundary. The intake repository
+  encrypts validated applicant payloads before Appwrite receives a row. HMAC blind indexes support
+  exact email and duplicate lookup without storing plaintext email.
+- Private intake file bytes are validated, then encrypted with a separate file key before upload.
+  Authorized server code performs download and decryption; applicant files never use public URLs or
+  Appwrite previews.
 - `appwrite.config.json` is the versioned source of truth for the application team, database,
   tables, indexes, permissions, and buckets. Provisioning is additive and refuses any project whose
   verified name is not `umoja-development`.
@@ -38,6 +44,19 @@ Set the two public values and three separately scoped secrets. The database/tabl
 stable development defaults. `APP_URL` must be the exact application origin. Set
 `NEXT_REVALIDATION_SECRET` before enabling external publish webhooks.
 
+Application encryption additionally requires these server-only values before intake persistence or
+private-file upload is enabled:
+
+- `APPWRITE_DATA_ENCRYPTION_KEY_V1`
+- `APPWRITE_FILE_ENCRYPTION_KEY_V1`
+- `APPWRITE_LOOKUP_HMAC_KEY_V1`
+- `APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION=v1`
+
+Each key must decode to exactly 32 independently generated random bytes. Generate each separately
+with a cryptographically secure tool such as `openssl rand -base64 32`; never reuse a value across
+purposes. Source, tests, preview deployments and setup scripts must not contain fallback keys. Tests
+inject dedicated non-production key material.
+
 Only these names may be available to browser code:
 
 - `NEXT_PUBLIC_APPWRITE_ENDPOINT`
@@ -46,6 +65,10 @@ Only these names may be available to browser code:
 Never expose or log the SSR, runtime, bootstrap, session, or revalidation secrets. Environment
 validation returns a generic configuration error, and operational health output contains only
 booleans.
+
+Encryption and HMAC keys also never enter browser code, logs, errors, CI artifacts or Appwrite rows.
+Keep an encrypted, access-audited backup outside the deployment. Losing a key permanently makes its
+version's ciphertext and private files unrecoverable.
 
 ## Local setup
 
@@ -104,6 +127,47 @@ columns or indexes are not destructively rewritten; drift must be reviewed and m
 The bilingual seed command is explicitly development-only and creates two draft rows. It never
 publishes or overwrites them.
 
+## Free-plan application encryption
+
+`umoja-development` cannot create Appwrite-native encrypted database columns on its current Cloud
+plan. The schema therefore disables native column encryption and uses audited server-side
+authenticated encryption. This is not permission to store applicant data in plaintext.
+
+Field classification:
+
+- **Public CMS content:** published titles, SEO text, structured blocks, slugs and locale remain
+  plaintext so the public server repository can query and render them.
+- **Private CMS drafts:** use the same plaintext content model, but confidentiality comes from
+  deny-by-default permissions, authenticated preview authorization and explicit state filtering.
+- **Operational metadata:** submission ID, state, locale, reviewer assignment, timestamps, consent
+  timestamps/policy version, encryption-key version, counts and approved category fields remain
+  plaintext for workflow queries. This metadata remains visible to principals allowed to read rows.
+- **Sensitive project intake:** contact identity/email/phone, organization details, project title and
+  narrative, budget, timing, attachment metadata/references and internal notes are encrypted.
+- **Sensitive talent intake:** preferred identity, private contact, country/timezone, portfolio,
+  availability, languages, attachment metadata/references and internal notes are encrypted. Skill
+  and experience categories and optional public-profile consent remain operational fields; consent
+  does not publish a profile by itself.
+- **Audit data:** contains actor/action/target identifiers and non-reversible before/after digests.
+  Never copy applicant payloads or plaintext personal data into audit metadata.
+- **Files:** published CMS media may be plaintext with intentional publish-time read permission.
+  Draft media remains permission-restricted. Intake file bytes are application-encrypted.
+
+Database envelopes use `v1.<base64url-iv>.<base64url-auth-tag>.<base64url-ciphertext>`. Every value
+uses a random 96-bit IV, AES-256-GCM authentication, its key version and contextual authenticated
+data containing its purpose and submission identity. Encryption is non-deterministic. A generic
+safe error is returned when an envelope, tag, context or key is wrong.
+
+Normalized exact-match values use a separate HMAC-SHA-256 key and the format
+`v1.<base64url-digest>`. Context separates project email, talent email and idempotency lookups. Never
+replace this with an ordinary SHA hash, index ciphertext, or reuse a data/file key. `emailLookup` and
+`idempotencyKeyHash` are the applicant lookup tokens.
+
+The intake tables store `encryptedPayload` and separately encrypted internal notes with room for
+envelope overhead. Validated schemas are applied before encryption and after authorized decryption,
+so ciphertext is not an unvalidated product model. Decryption must follow server-side session and
+`umoja-operations` role authorization; possession of a runtime key is not application authorization.
+
 ## Schema changes
 
 1. Edit `appwrite.config.json` and update its tests.
@@ -160,13 +224,19 @@ compare it in constant time. Static essential public content remains the outage 
 
 The existing public forms still use the mock adapter until the persistence prompt. The secure
 boundary already validates shared schemas, normalizes email/phone/URL values, checks honeypots,
-accepts a rate-limiter implementation, and claims a hashed idempotency key before persistence.
+accepts a rate-limiter implementation, and claims an HMAC blind-index idempotency key before
+persistence.
 
 Before upload, enforce both size and magic-byte signature checks. `intake_files` has file security,
 no anonymous bucket permissions, a 10 MB ceiling, encryption and antivirus settings, and restricted
-extensions. Never produce a public URL for applicant files. Store attachment IDs, consent timestamp,
-policy version, locale, and workflow state; do not log payloads. Applicant-facing projections must
-exclude assignment and internal notes.
+extensions. The application wraps validated bytes in a versioned AES-256-GCM binary envelope using
+the independent file-encryption key; Appwrite receives encrypted bytes and minimal encrypted
+reference metadata. Enable native bucket encryption when supported as defense in depth. If the plan
+rejects native bucket encryption, record that limitation and keep application encryption mandatory.
+Never produce a public URL or Appwrite preview for applicant files. An authenticated reviewer/admin
+server endpoint decrypts only after role authorization. Store consent timestamp, policy version,
+locale and workflow state; do not log payloads. Applicant-facing projections exclude assignment and
+internal notes.
 
 ## Rotation and bootstrap-key deletion
 
@@ -175,6 +245,21 @@ scopes, deploy it, verify health/integration checks, then revoke the old key. Do
 After development provisioning and drift verification, delete `umoja-bootstrap` in the Console and
 remove `APPWRITE_BOOTSTRAP_API_KEY` locally and from deployment secrets. Recreate a short-lived
 bootstrap key only for an approved schema operation.
+
+Rotate application data keys independently from Appwrite API keys:
+
+1. Generate and securely back up three new independent 32-byte keys, for example version `v2`.
+2. Add the version to the server keyring while retaining every older decryption key.
+3. Set `APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION=v2` for new envelopes and blind indexes.
+4. Re-encrypt rows and private files in an audited, resumable migration. Recompute blind indexes
+   while both lookup versions are accepted.
+5. Verify counts, authenticated decryption, permissions and backups before retiring old keys.
+
+For suspected exposure, disable affected write paths, rotate immediately, preserve evidence,
+identify rows/files by visible key version, re-encrypt from a trusted environment, replace lookup
+indexes and review access/audit logs. Never delete an old key until every envelope using it has been
+migrated and independently verified. If a key is lost without backup, report the affected data as
+unrecoverable rather than bypassing authentication.
 
 ## Staging and production
 
@@ -186,6 +271,13 @@ credentials, verify read-back and permission tests, then use an approved product
 Back up/export tables and storage before destructive migrations and before launch. Record the
 Appwrite region, project identifier, schema revision, export time, retention, encryption, and a
 restore test. Do not store exports containing applicant data in public CI artifacts.
+
+Development, staging and production use unrelated encryption/HMAC keys and separate encrypted
+backups. A future reviewed migration may move envelopes to Appwrite native encrypted columns or a
+managed KMS/envelope-encryption service. It must decrypt in an authorized trusted process, write the
+managed format, verify every row/file, then retire application keys. Encryption never replaces
+least-privilege permissions, data minimization, retention/deletion, consent governance, monitoring or
+incident response.
 
 ## Troubleshooting
 
@@ -219,6 +311,7 @@ restore test. Do not store exports containing applicant data in public CI artifa
 - [ ] Rotate SSR and runtime keys immediately before launch.
 - [ ] Remove/revoke the bootstrap key from every environment.
 - [ ] Audit production table, row, bucket, file, team-role, and API-key permissions.
+- [ ] Verify encrypted backups and a restore/decryption exercise for every active key version.
 - [ ] Verify no public signup route and no anonymous intake/CMS-draft/file access.
 - [ ] Confirm backups and perform a restore exercise.
 - [ ] Complete 200% browser-zoom review.
