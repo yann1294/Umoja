@@ -16,11 +16,18 @@
     "test": "pnpm test:unit",
     "test:unit": "pnpm -r --if-present test:unit",
     "test:e2e": "playwright test",
+    "appwrite:validate": "pnpm --filter @umoja/appwrite appwrite:validate",
+    "appwrite:provision": "pnpm --filter @umoja/appwrite appwrite:provision",
+    "appwrite:drift": "pnpm --filter @umoja/appwrite appwrite:drift",
+    "appwrite:health": "pnpm --filter @umoja/appwrite appwrite:health",
+    "appwrite:seed": "pnpm --filter @umoja/appwrite appwrite:seed",
+    "appwrite:integration": "pnpm --filter @umoja/appwrite appwrite:integration",
     "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:e2e && pnpm build"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0",
+    "axe-core": "^4.13.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.2",
     "prettier": "^3.9.6",

@@ -8,11 +8,15 @@ import {
   buttonSizes,
   buttonVariants,
   Card,
+  CheckboxField,
   Container,
   LinkButton,
   Logo,
   logoVariants,
   Section,
+  SelectField,
+  TextAreaField,
+  TextField,
   VisuallyHidden,
 } from "../src";
 
@@ -61,6 +65,30 @@ describe("interactive primitives", () => {
     );
 
     expect(screen.getByRole("button", { name: "Open navigation" })).toBeVisible();
+  });
+
+  it("connects form labels, hints, errors, and invalid state", () => {
+    render(
+      <>
+        <TextField id="email" label="Private email" hint="Never public" error="Use a valid email" />
+        <TextAreaField id="need" label="Project need" />
+        <SelectField id="country" label="Country">
+          <option>Senegal</option>
+        </SelectField>
+        <CheckboxField id="consent" label="I consent" />
+      </>,
+    );
+
+    expect(screen.getByRole("textbox", { name: "Private email" })).toHaveAccessibleDescription(
+      "Never public Use a valid email",
+    );
+    expect(screen.getByRole("textbox", { name: "Private email" })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(screen.getByRole("textbox", { name: "Project need" })).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Country" })).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: "I consent" })).toBeVisible();
   });
 });
 

@@ -10,12 +10,21 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
+    "@appwrite.io/react": "^0.1.0",
+    "@hookform/resolvers": "5.9.1",
+    "@tanstack/react-query": "^5.102.0",
+    "@umoja/appwrite": "workspace:*",
     "@umoja/i18n": "workspace:*",
     "@umoja/ui": "workspace:*",
+    "@umoja/validation": "workspace:*",
+    "appwrite": "^25.2.0",
     "next": "16.3.2",
     "next-intl": "4.13.7",
+    "node-appwrite": "^26.2.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-hook-form": "7.86.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",

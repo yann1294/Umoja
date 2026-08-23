@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 
 import { PublicHeader, type PublicNavigationItem } from "./public-header";
+import { PublicShellBoundary } from "./public-shell-boundary";
 import styles from "./public-shell.module.css";
 
 type PublicShellProps = Readonly<{
@@ -41,40 +42,38 @@ export async function PublicShell({ children, locale }: PublicShellProps) {
     switchLanguage: shell("switchLanguage"),
   };
 
-  return (
-    <>
-      <a className={styles.skipLink} href="#main-content">
-        {shell("skip")}
-      </a>
-      <PublicHeader items={items} labels={headerLabels} locale={locale} />
-      <main id="main-content" tabIndex={-1} className={styles.main}>
-        {children}
-      </main>
-      <footer className={styles.footer}>
-        <Container>
-          <div className={styles.footerGrid}>
-            <div className={styles.footerBrand}>
-              <Link href="/" aria-label={shell("homeLabel")}>
-                <Logo variant="mono" size="medium" decorative />
-                <VisuallyHidden>{shell("homeLabel")}</VisuallyHidden>
-              </Link>
-              <p>{shell("footerStatement")}</p>
-              <p className={styles.footerNote}>{shell("footerLanguageNote")}</p>
-            </div>
-            <FooterNavigation
-              title={shell("footerExplore")}
-              items={items.slice(0, 5)}
-              label={shell("menuTitle")}
-            />
-            <FooterNavigation
-              title={shell("footerAct")}
-              items={items.slice(5)}
-              label={shell("footerAct")}
-            />
+  const header = <PublicHeader items={items} labels={headerLabels} locale={locale} />;
+  const footer = (
+    <footer className={styles.footer}>
+      <Container>
+        <div className={styles.footerGrid}>
+          <div className={styles.footerBrand}>
+            <Link href="/" aria-label={shell("homeLabel")}>
+              <Logo variant="mono" size="medium" decorative />
+              <VisuallyHidden>{shell("homeLabel")}</VisuallyHidden>
+            </Link>
+            <p>{shell("footerStatement")}</p>
+            <p className={styles.footerNote}>{shell("footerLanguageNote")}</p>
           </div>
-        </Container>
-      </footer>
-    </>
+          <FooterNavigation
+            title={shell("footerExplore")}
+            items={items.slice(0, 5)}
+            label={shell("menuTitle")}
+          />
+          <FooterNavigation
+            title={shell("footerAct")}
+            items={items.slice(5)}
+            label={shell("footerAct")}
+          />
+        </div>
+      </Container>
+    </footer>
+  );
+
+  return (
+    <PublicShellBoundary header={header} footer={footer} skipLabel={shell("skip")}>
+      {children}
+    </PublicShellBoundary>
   );
 }
 
