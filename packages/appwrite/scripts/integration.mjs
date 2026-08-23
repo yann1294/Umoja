@@ -26,35 +26,61 @@ const anonymousClient = new Client()
 const anonymousTables = new TablesDB(anonymousClient);
 const anonymousStorage = new Storage(anonymousClient);
 const forbiddenChecks = [
-  () =>
-    anonymousTables.listRows({
-      databaseId: config.database.id,
-      tableId: "cms_pages",
-      total: false,
-    }),
-  () =>
-    anonymousTables.listRows({
-      databaseId: config.database.id,
-      tableId: "project_intakes",
-      total: false,
-    }),
-  () =>
-    anonymousTables.listRows({
-      databaseId: config.database.id,
-      tableId: "talent_intakes",
-      total: false,
-    }),
-  () => anonymousStorage.listFiles({ bucketId: config.storage.intakeFiles, total: false }),
+  {
+    run: () =>
+      anonymousTables.listRows({
+        databaseId: config.database.id,
+        tableId: "cms_pages",
+        total: false,
+      }),
+    visible: (result) => result.rows.length,
+  },
+  {
+    run: () =>
+      anonymousTables.listRows({
+        databaseId: config.database.id,
+        tableId: "project_intakes",
+        total: false,
+      }),
+    visible: (result) => result.rows.length,
+  },
+  {
+    run: () =>
+      anonymousTables.listRows({
+        databaseId: config.database.id,
+        tableId: "talent_intakes",
+        total: false,
+      }),
+    visible: (result) => result.rows.length,
+  },
+  {
+    run: () => anonymousStorage.listFiles({ bucketId: config.storage.intakeFiles, total: false }),
+    visible: (result) => result.files.length,
+  },
 ];
 for (const check of forbiddenChecks) {
-  let denied = false;
   try {
-    await check();
+    const result = await check.run();
+    if (check.visible(result) !== 0)
+      throw new Error("Anonymous access exposed a protected Appwrite resource.");
   } catch (error) {
-    denied = error?.code === 401 || error?.code === 403;
+    if (error?.code === 401 || error?.code === 403) continue;
+    throw error;
   }
-  if (!denied) throw new Error("Anonymous access was not denied as required.");
+}
+for (const rowId of ["seed-home-en", "seed-home-fr"]) {
+  try {
+    await anonymousTables.getRow({
+      databaseId: config.database.id,
+      tableId: "cms_pages",
+      rowId,
+    });
+    throw new Error("Anonymous access exposed a protected CMS draft.");
+  } catch (error) {
+    if (error?.code === 401 || error?.code === 403 || error?.code === 404) continue;
+    throw error;
+  }
 }
 console.log(
-  "Integration checks passed: runtime reachable and anonymous CMS draft/intake/file access denied.",
+  "Integration checks passed: public CMS is published-only and anonymous draft/intake/file visibility is zero.",
 );
