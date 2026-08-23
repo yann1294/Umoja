@@ -1,6 +1,13 @@
 import { OrderBy, TablesDBIndexType } from "node-appwrite";
 import { createServices, isMissing } from "./appwrite-client.mjs";
 import { loadConfig, validateConfig } from "./config.mjs";
+import {
+  assertCompatible,
+  bucketMismatches,
+  columnMismatches,
+  indexMismatches,
+  tableMismatches,
+} from "./schema-compat.mjs";
 
 const config = loadConfig();
 const failures = validateConfig(config);
@@ -49,7 +56,7 @@ await services.project.updateMFAFactorsPolicy({
   custom: false,
 });
 
-await createIfMissing(
+const team = await createIfMissing(
   () => services.teams.get({ teamId: config.team.id }),
   () =>
     services.teams.create({
@@ -58,7 +65,8 @@ await createIfMissing(
       roles: config.team.roles,
     }),
 );
-await createIfMissing(
+assertCompatible(`team.${config.team.id}`, [...(team.name === config.team.name ? [] : ["name"])]);
+const database = await createIfMissing(
   () => services.tables.get({ databaseId: config.database.id }),
   () =>
     services.tables.create({
@@ -67,6 +75,10 @@ await createIfMissing(
       enabled: true,
     }),
 );
+assertCompatible(`database.${config.database.id}`, [
+  ...(database.name === config.database.name ? [] : ["name"]),
+  ...(database.enabled ? [] : ["enabled"]),
+]);
 
 async function createColumn(tableId, column) {
   const common = {
@@ -92,7 +104,7 @@ async function createColumn(tableId, column) {
 }
 
 for (const table of config.database.tables) {
-  await createIfMissing(
+  const existingTable = await createIfMissing(
     () => services.tables.getTable({ databaseId: config.database.id, tableId: table.id }),
     () =>
       services.tables.createTable({
@@ -104,14 +116,18 @@ for (const table of config.database.tables) {
         enabled: true,
       }),
   );
+  assertCompatible(`table.${table.id}`, tableMismatches(table, existingTable));
   let existing = await services.tables.listColumns({
     databaseId: config.database.id,
     tableId: table.id,
     total: false,
   });
-  for (const column of table.columns)
-    if (!existing.columns.some((item) => item.key === column.key))
-      await createColumn(table.id, column);
+  for (const column of table.columns) {
+    const current = existing.columns.find((item) => item.key === column.key);
+    if (current)
+      assertCompatible(`table.${table.id}.column.${column.key}`, columnMismatches(column, current));
+    else await createColumn(table.id, column);
+  }
   for (let attempt = 0; attempt < 60; attempt += 1) {
     existing = await services.tables.listColumns({
       databaseId: config.database.id,
@@ -126,13 +142,22 @@ for (const table of config.database.tables) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     if (attempt === 59) throw new Error(`Columns for ${table.id} did not become available.`);
   }
+  for (const column of table.columns) {
+    const current = existing.columns.find((item) => item.key === column.key);
+    if (!current) throw new Error(`Missing Appwrite column ${table.id}.${column.key}.`);
+    assertCompatible(`table.${table.id}.column.${column.key}`, columnMismatches(column, current));
+  }
   const indexes = await services.tables.listIndexes({
     databaseId: config.database.id,
     tableId: table.id,
     total: false,
   });
   for (const index of table.indexes) {
-    if (indexes.indexes.some((item) => item.key === index.key)) continue;
+    const current = indexes.indexes.find((item) => item.key === index.key);
+    if (current) {
+      assertCompatible(`table.${table.id}.index.${index.key}`, indexMismatches(index, current));
+      continue;
+    }
     await services.tables.createIndex({
       databaseId: config.database.id,
       tableId: table.id,
@@ -147,7 +172,7 @@ for (const table of config.database.tables) {
 }
 
 for (const bucket of config.buckets) {
-  await createIfMissing(
+  const existingBucket = await createIfMissing(
     () => services.storage.getBucket({ bucketId: bucket.id }),
     () =>
       services.storage.createBucket({
@@ -157,6 +182,7 @@ for (const bucket of config.buckets) {
         transformations: bucket.id === "cms_media",
       }),
   );
+  assertCompatible(`bucket.${bucket.id}`, bucketMismatches(bucket, existingBucket));
 }
 
 const verifiedTables = await Promise.all(
@@ -168,6 +194,10 @@ const verifiedBuckets = await Promise.all(
   config.buckets.map((bucket) => services.storage.getBucket({ bucketId: bucket.id })),
 );
 await services.teams.get({ teamId: config.team.id });
+for (const [index, table] of config.database.tables.entries())
+  assertCompatible(`table.${table.id}`, tableMismatches(table, verifiedTables[index]));
+for (const [index, bucket] of config.buckets.entries())
+  assertCompatible(`bucket.${bucket.id}`, bucketMismatches(bucket, verifiedBuckets[index]));
 console.log(
   `Verified development resources: ${verifiedTables.length} tables, ${verifiedBuckets.length} buckets, team ${config.team.id}.`,
 );

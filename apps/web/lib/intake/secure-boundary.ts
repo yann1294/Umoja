@@ -65,6 +65,7 @@ export async function prepareIntakeSubmission<K extends IntakeKind>(
     remoteKey: string;
     rateLimiter: IntakeRateLimiter;
     idempotencyStore: IntakeIdempotencyStore;
+    createLookup: (normalizedValue: string, context: string) => string;
     policyVersion: string;
   }>,
 ) {
@@ -77,9 +78,10 @@ export async function prepareIntakeSubmission<K extends IntakeKind>(
   const parsed = IntakeSchemas[options.kind].safeParse(options.input);
   if (!parsed.success) return { status: "validation_error" as const, issues: parsed.error.issues };
   const payload = normalize(options.kind, parsed.data as PayloadByKind[K]);
-  const keyHash = createHash("sha256")
-    .update(`${options.kind}:${emailFor(options.kind, payload)}`)
-    .digest("hex");
+  const keyHash = options.createLookup(
+    emailFor(options.kind, payload),
+    `intake:${options.kind}:idempotency`,
+  );
   const claim = await options.idempotencyStore.claim(
     keyHash,
     new Date(Date.now() + 24 * 60 * 60 * 1000),

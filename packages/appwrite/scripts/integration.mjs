@@ -1,4 +1,4 @@
-import { Client, Storage, TablesDB } from "node-appwrite";
+import { Client, Query, Storage, TablesDB } from "node-appwrite";
 import { createServices } from "./appwrite-client.mjs";
 import { loadConfig, loadLocalEnvironment, requireValues } from "./config.mjs";
 
@@ -11,6 +11,14 @@ requireValues([
 const config = loadConfig();
 const runtime = createServices("APPWRITE_SERVER_API_KEY");
 await runtime.tables.get({ databaseId: config.database.id });
+const published = await runtime.tables.listRows({
+  databaseId: config.database.id,
+  tableId: "cms_pages",
+  queries: [Query.equal("state", ["published"])],
+  total: false,
+});
+if (published.rows.some((row) => row.state !== "published"))
+  throw new Error("Public CMS query returned a non-published row.");
 
 const anonymousClient = new Client()
   .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT)

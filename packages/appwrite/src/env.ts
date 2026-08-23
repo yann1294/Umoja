@@ -11,6 +11,14 @@ export const appwriteEnvironmentSchema = z.object({
   APPWRITE_SSR_API_KEY: optionalSecret,
   APPWRITE_SERVER_API_KEY: optionalSecret,
   APPWRITE_BOOTSTRAP_API_KEY: optionalSecret,
+  APPWRITE_DATA_ENCRYPTION_KEY_V1: optionalSecret,
+  APPWRITE_FILE_ENCRYPTION_KEY_V1: optionalSecret,
+  APPWRITE_LOOKUP_HMAC_KEY_V1: optionalSecret,
+  APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION: z
+    .string()
+    .trim()
+    .regex(/^v[1-9][0-9]*$/)
+    .optional(),
   APPWRITE_DATABASE_ID: identifier.default("umoja"),
   APPWRITE_CMS_PAGES_TABLE_ID: identifier.default("cms_pages"),
   APPWRITE_CMS_REVISIONS_TABLE_ID: identifier.default("cms_revisions"),

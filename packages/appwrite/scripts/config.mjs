@@ -50,6 +50,24 @@ export function validateConfig(config = loadConfig()) {
     if (!table.rowSecurity) failures.push(`${table.id} must enable row security`);
     if (!table.columns?.length || !table.indexes?.length)
       failures.push(`${table.id} needs columns and indexes`);
+    for (const column of table.columns ?? [])
+      if (column.encrypt)
+        failures.push(`${table.id}.${column.key} cannot require paid column encryption`);
+  }
+  for (const id of ["project_intakes", "talent_intakes"]) {
+    const table = config.database.tables?.find((item) => item.id === id);
+    const keys = new Set(table?.columns?.map((column) => column.key));
+    for (const key of [
+      "emailLookup",
+      "encryptionKeyVersion",
+      "encryptedPayload",
+      "encryptedInternalNotes",
+    ])
+      if (!keys.has(key)) failures.push(`${id} must define ${key}`);
+    for (const forbidden of ["contactEmail", "contactPhone", "contactName", "internalNotes"])
+      if (keys.has(forbidden)) failures.push(`${id} cannot store plaintext ${forbidden}`);
+    if (table?.indexes?.some((index) => index.columns?.includes("encryptedPayload")))
+      failures.push(`${id} cannot index encryptedPayload`);
   }
   for (const bucket of config.buckets ?? []) {
     if (!bucket.fileSecurity) failures.push(`${bucket.id} must enable file security`);

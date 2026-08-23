@@ -45,8 +45,7 @@
             "key": "previewTokenHash",
             "type": "string",
             "size": 128,
-            "required": false,
-            "encrypt": true
+            "required": false
           },
           { "key": "publishedAt", "type": "datetime", "required": false },
           { "key": "createdAt", "type": "datetime", "required": true },
@@ -115,37 +114,17 @@
         ],
         "columns": [
           { "key": "submissionId", "type": "string", "size": 64, "required": true },
-          { "key": "contactName", "type": "string", "size": 256, "required": true },
+          { "key": "emailLookup", "type": "string", "size": 64, "required": true },
+          { "key": "encryptionKeyVersion", "type": "string", "size": 16, "required": true },
+          { "key": "encryptedPayload", "type": "string", "size": 65535, "required": true },
           {
-            "key": "contactEmail",
+            "key": "encryptedInternalNotes",
             "type": "string",
-            "size": 320,
-            "required": true,
-            "encrypt": true
+            "size": 65535,
+            "required": false
           },
-          {
-            "key": "contactPhone",
-            "type": "string",
-            "size": 64,
-            "required": false,
-            "encrypt": true
-          },
-          { "key": "organizationName", "type": "string", "size": 256, "required": true },
-          { "key": "organizationType", "type": "string", "size": 128, "required": true },
-          { "key": "country", "type": "string", "size": 128, "required": true },
-          { "key": "website", "type": "string", "size": 2048, "required": false },
-          { "key": "projectTitle", "type": "string", "size": 256, "required": true },
-          { "key": "needSummary", "type": "string", "size": 10000, "required": true },
           { "key": "serviceAreas", "type": "string", "size": 128, "required": true, "array": true },
-          { "key": "budgetBand", "type": "string", "size": 64, "required": true },
-          { "key": "desiredTiming", "type": "string", "size": 128, "required": true },
-          {
-            "key": "attachmentIds",
-            "type": "string",
-            "size": 64,
-            "required": false,
-            "array": true
-          },
+          { "key": "attachmentCount", "type": "integer", "required": true, "min": 0 },
           { "key": "consentAt", "type": "datetime", "required": true },
           { "key": "policyVersion", "type": "string", "size": 32, "required": true },
           { "key": "locale", "type": "enum", "elements": ["en", "fr"], "required": true },
@@ -156,19 +135,13 @@
             "required": true
           },
           { "key": "assignedReviewerId", "type": "string", "size": 64, "required": false },
-          {
-            "key": "internalNotes",
-            "type": "string",
-            "size": 10000,
-            "required": false,
-            "encrypt": true
-          },
           { "key": "idempotencyKeyHash", "type": "string", "size": 128, "required": true },
           { "key": "createdAt", "type": "datetime", "required": true },
           { "key": "updatedAt", "type": "datetime", "required": true }
         ],
         "indexes": [
           { "key": "submission_id", "type": "unique", "columns": ["submissionId"] },
+          { "key": "email_lookup", "type": "key", "columns": ["emailLookup"] },
           { "key": "idempotency", "type": "unique", "columns": ["idempotencyKeyHash"] },
           {
             "key": "workflow_created",
@@ -192,41 +165,18 @@
         ],
         "columns": [
           { "key": "submissionId", "type": "string", "size": 64, "required": true },
-          { "key": "preferredName", "type": "string", "size": 256, "required": true },
+          { "key": "emailLookup", "type": "string", "size": 64, "required": true },
+          { "key": "encryptionKeyVersion", "type": "string", "size": 16, "required": true },
+          { "key": "encryptedPayload", "type": "string", "size": 65535, "required": true },
           {
-            "key": "contactEmail",
+            "key": "encryptedInternalNotes",
             "type": "string",
-            "size": 320,
-            "required": true,
-            "encrypt": true
+            "size": 65535,
+            "required": false
           },
-          {
-            "key": "contactPhone",
-            "type": "string",
-            "size": 64,
-            "required": false,
-            "encrypt": true
-          },
-          { "key": "country", "type": "string", "size": 128, "required": true },
-          { "key": "timezone", "type": "string", "size": 128, "required": true },
           { "key": "skillAreas", "type": "string", "size": 128, "required": true, "array": true },
-          { "key": "experienceSummary", "type": "string", "size": 10000, "required": true },
-          {
-            "key": "portfolioUrls",
-            "type": "string",
-            "size": 2048,
-            "required": false,
-            "array": true
-          },
-          {
-            "key": "attachmentIds",
-            "type": "string",
-            "size": 64,
-            "required": false,
-            "array": true
-          },
-          { "key": "availability", "type": "string", "size": 128, "required": true },
-          { "key": "languages", "type": "string", "size": 64, "required": true, "array": true },
+          { "key": "experienceBand", "type": "string", "size": 128, "required": true },
+          { "key": "attachmentCount", "type": "integer", "required": true, "min": 0 },
           { "key": "publicProfileConsent", "type": "boolean", "required": true },
           { "key": "applicationConsentAt", "type": "datetime", "required": true },
           { "key": "dataProcessingConsentAt", "type": "datetime", "required": true },
@@ -247,19 +197,13 @@
             "required": true
           },
           { "key": "assignedReviewerId", "type": "string", "size": 64, "required": false },
-          {
-            "key": "internalNotes",
-            "type": "string",
-            "size": 10000,
-            "required": false,
-            "encrypt": true
-          },
           { "key": "idempotencyKeyHash", "type": "string", "size": 128, "required": true },
           { "key": "createdAt", "type": "datetime", "required": true },
           { "key": "updatedAt", "type": "datetime", "required": true }
         ],
         "indexes": [
           { "key": "submission_id", "type": "unique", "columns": ["submissionId"] },
+          { "key": "email_lookup", "type": "key", "columns": ["emailLookup"] },
           { "key": "idempotency", "type": "unique", "columns": ["idempotencyKeyHash"] },
           {
             "key": "workflow_created",
