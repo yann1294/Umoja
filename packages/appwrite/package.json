@@ -16,6 +16,10 @@
       "types": "./src/auth-policy.ts",
       "default": "./src/auth-policy.ts"
     },
+    "./cms": {
+      "types": "./src/cms.ts",
+      "default": "./src/cms.ts"
+    },
     "./config": {
       "types": "./src/config.ts",
       "default": "./src/config.ts"
@@ -31,6 +35,10 @@
     "./permissions": {
       "types": "./src/permissions.ts",
       "default": "./src/permissions.ts"
+    },
+    "./intake-security": {
+      "types": "./src/intake-security.ts",
+      "default": "./src/intake-security.ts"
     }
   },
   "scripts": {
