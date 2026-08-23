@@ -38,6 +38,31 @@
   background: var(--u-color-mist);
   font-weight: 600;
 }
+.auth-status {
+  padding: 1rem;
+  margin-top: var(--u-space-2);
+  border-inline-start: 0.25rem solid var(--u-color-gold);
+  background: var(--u-color-mist);
+  font-weight: 600;
+}
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-1);
+  margin-top: var(--u-space-3);
+}
+.auth-text-link {
+  display: inline-flex;
+  min-height: var(--u-control-min-size);
+  align-items: center;
+  justify-self: start;
+  border-radius: var(--u-radius-control);
+  color: var(--u-color-canopy);
+  font-weight: 700;
+}
+.auth-card code {
+  overflow-wrap: anywhere;
+}
 .auth-note {
   margin: 0;
   color: var(--u-color-slate);

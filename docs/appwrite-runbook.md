@@ -197,6 +197,38 @@ The Appwrite application Team is `umoja-operations`. Roles are `admin`, `cms-edi
 Appwrite Console organization roles are not Umoja application roles. Server guards require a
 confirmed `umoja-operations` membership and the appropriate application role.
 
+### Workspace authorization matrix
+
+Every protected request resolves the Appwrite session and account again, then reads current Team
+membership and roles. A hidden link is never used as an authorization control. Removed membership,
+a disabled account, an unconfirmed invitation, an expired/revoked session, or an unverified email
+fails closed before a protected Server Component, Server Action, or Route Handler proceeds.
+
+| Subject or state | Workspace | Approved operational capability | Governance-only actions |
+| --- | --- | --- | --- |
+| Anonymous visitor | Sign-in required | None | Denied |
+| Authenticated applicant/record owner without Team membership | Denied; own-record permissions only | Read/update only records explicitly permissioned to that user | Denied |
+| `admin` | Allowed | Current CMS, intake, project, invitation and audit operations only | Denied |
+| `cms-editor` | Allowed | CMS draft/revision operations | Denied |
+| `reviewer` | Allowed | Intake review operations | Denied |
+| `core` | Allowed | Workspace shell only until a narrower capability is approved | Denied |
+| `extended` | Allowed | Workspace shell only until a narrower capability is approved | Denied |
+| `project-manager` | Allowed | Approved project operations | Denied |
+| Missing or removed membership | Denied immediately on the next server check | None | Denied |
+| Pending membership | Invitation acceptance only | None | Denied |
+| Expired or revoked session | Sign-in required | None | Denied |
+| Disabled account | Denied | None | Denied |
+
+`admin` is an application operations role, not final institutional governance authority. No current
+role maps to `governance.manage`; publication of legal/governance claims and every governance-only
+mutation must continue to return a policy-required denial until a separate governance policy and
+role are approved.
+
+Applicant ownership is implemented with per-row `Role.user(userId)` read/update permissions where
+an authenticated owner exists. It never creates a Team membership. Reviewer and administrator
+access remains separately expressed through Team-role permissions, and row ownership does not grant
+access to another applicant's record or to private workspace navigation.
+
 ## Invite-only onboarding
 
 There is no public signup route. An application administrator invites an email address to the
@@ -208,6 +240,18 @@ Sessions use an HTTP-only, `SameSite=Lax`, path-scoped cookie and `Secure` in pr
 deletes the Appwrite session and expires the cookie. Configure verified email and recovery URLs for
 each real environment. Require MFA for production administrators as an organizational launch rule;
 MFA factor availability alone does not enforce administrator enrollment.
+
+Before privileged production access is enabled:
+
+1. An Appwrite Console organization owner must invite at least one initial Umoja application
+   administrator; never encode an administrator email in source, seed data, or Cloud tests.
+2. Assign only the minimum `umoja-operations` application role needed for the operator's work.
+3. Enroll MFA for every administrator, verify it interactively, and record the launch check without
+   recording recovery codes or factors in the repository.
+4. Retain a second, independently secured Console recovery owner so one lost account cannot lock out
+   the project. Console ownership is not Umoja application authorization.
+5. Test removal from the Team, account disablement, role removal, sign-out, session expiry and
+   recovery URLs in staging before production registration.
 
 ## CMS publishing and revalidation
 

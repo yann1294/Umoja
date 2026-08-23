@@ -7,8 +7,13 @@ import "./workspace-auth.css";
 
 export default async function SignInPage({
   params,
-}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  searchParams,
+}: Readonly<{
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ reason?: string }>;
+}>) {
   const { locale } = await params;
+  const { reason } = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
   const french = locale === "fr";
   return (
@@ -22,6 +27,13 @@ export default async function SignInPage({
               ? "Accédez aux outils opérationnels avec votre compte invité."
               : "Use your invited account to access operational tools."}
           </p>
+          {reason === "session-expired" ? (
+            <div className="auth-status" role="status">
+              {french
+                ? "Votre session a expiré ou a été révoquée. Reconnectez-vous pour continuer."
+                : "Your session expired or was revoked. Sign in again to continue."}
+            </div>
+          ) : null}
           <SignInForm locale={locale} />
         </div>
       </Container>

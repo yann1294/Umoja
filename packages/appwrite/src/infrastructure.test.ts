@@ -63,11 +63,15 @@ describe("versioned infrastructure", () => {
       path.join(root, "apps/web/lib/appwrite/encryption.ts"),
       "utf8",
     );
+    const auth = fs.readFileSync(path.join(root, "apps/web/lib/appwrite/auth.ts"), "utf8");
+    const session = fs.readFileSync(path.join(root, "apps/web/lib/appwrite/session.ts"), "utf8");
     expect(browser).not.toContain("node-appwrite");
     expect(browser).not.toMatch(/APPWRITE_(?:SSR|SERVER|BOOTSTRAP)_API_KEY/);
     expect(browser).not.toContain("encryption");
     expect(admin).toMatch(/^import "server-only";/);
     expect(encryption).toMatch(/^import "server-only";/);
+    expect(auth).toMatch(/^import "server-only";/);
+    expect(session).toMatch(/^import "server-only";/);
     expect(encryption).not.toMatch(/console\.(?:log|error|warn)/);
   });
 

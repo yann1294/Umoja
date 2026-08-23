@@ -22,7 +22,13 @@ export function SignInForm({ locale }: Readonly<{ locale: "en" | "fr" }>) {
         body: JSON.stringify({ email: data.get("email"), password: data.get("password") }),
       });
       if (!response.ok) throw new Error("sign-in");
-      router.replace(`/${locale}/workspace`);
+      const result = (await response.json()) as { user?: { reason?: string } };
+      const reason = result.user?.reason;
+      router.replace(
+        reason && reason !== "allowed"
+          ? `/${locale}/account-state?reason=${encodeURIComponent(reason)}`
+          : `/${locale}/workspace`,
+      );
       router.refresh();
     } catch {
       setError(
@@ -67,6 +73,9 @@ export function SignInForm({ locale }: Readonly<{ locale: "en" | "fr" }>) {
       <Button type="submit" loading={pending} loadingLabel={french ? "Connexion…" : "Signing in…"}>
         {french ? "Se connecter" : "Sign in"}
       </Button>
+      <a className="auth-text-link" href={`/${locale}/forgot-password`}>
+        {french ? "Mot de passe oublié?" : "Forgot your password?"}
+      </a>
       <p className="auth-note">
         {french
           ? "L’espace Umoja est accessible uniquement sur invitation."

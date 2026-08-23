@@ -55,3 +55,20 @@ export function auditTablePermissions(): string[] {
     Permission.create(applicationTeamRole("admin")),
   ];
 }
+
+/**
+ * Row permissions for an authenticated applicant's own record. Ownership does not grant Team
+ * membership or workspace access; reviewers and administrators retain their separately scoped
+ * operational access.
+ */
+export function applicantRecordPermissions(ownerUserId: string): string[] {
+  const owner = Role.user(ownerUserId);
+  return [
+    Permission.read(owner),
+    Permission.update(owner),
+    Permission.read(applicationTeamRole("reviewer")),
+    Permission.update(applicationTeamRole("reviewer")),
+    Permission.read(applicationTeamRole("admin")),
+    Permission.update(applicationTeamRole("admin")),
+  ];
+}

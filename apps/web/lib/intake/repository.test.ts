@@ -47,13 +47,17 @@ const talent: TalentIntake = {
 
 function tableDouble() {
   let row: Record<string, unknown> | undefined;
+  let lastRequest: Record<string, unknown> | undefined;
   return {
-    createRow: vi.fn(async ({ rowId, data }: { rowId: string; data: Record<string, unknown> }) => {
+    createRow: vi.fn(async (request: { rowId: string; data: Record<string, unknown> }) => {
+      const { rowId, data } = request;
+      lastRequest = request;
       row = { ...data, $id: rowId };
       return row;
     }),
     getRow: vi.fn(async () => row),
     row: () => row,
+    request: () => lastRequest,
   };
 }
 
@@ -125,6 +129,29 @@ describe("encrypted intake repository", () => {
     ])
       expect(serialized).not.toContain(plaintext);
     await expect(repository.getTalent("talent-one")).resolves.toEqual(talent);
+  });
+
+  it("adds per-record owner permissions without granting workspace membership", async () => {
+    const tables = tableDouble();
+    const repository = new AppwriteEncryptedIntakeRepository(
+      tables as unknown as TablesDB,
+      keyring,
+      async () => true,
+    );
+    await repository.createProject(
+      {
+        submissionId: "owned-project",
+        keyHash: "v1.idempotency",
+        payload: project,
+        policyVersion: "2026-08",
+        claimedAt: "2026-08-23T00:00:00.000Z",
+        ownerUserId: "applicant-one",
+      },
+      "en",
+    );
+    const permissions = tables.request()?.permissions as string[];
+    expect(permissions.some((permission) => permission.includes("user:applicant-one"))).toBe(true);
+    expect(permissions.some((permission) => permission.includes('"any"'))).toBe(false);
   });
 
   it("does not attempt decryption until the read is authorized", async () => {

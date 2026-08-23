@@ -7,6 +7,7 @@ import {
   type ProjectIntake,
   type TalentIntake,
 } from "@umoja/validation";
+import { applicantRecordPermissions } from "@umoja/appwrite/permissions";
 import { getAppwriteConfig } from "@/lib/appwrite/config";
 import {
   createAppwriteBlindIndex,
@@ -33,6 +34,7 @@ type PreparedSubmission<T> = Readonly<{
   payload: T;
   policyVersion: string;
   claimedAt: string;
+  ownerUserId?: string;
 }>;
 
 export class IntakeRepositoryAccessError extends Error {
@@ -69,6 +71,7 @@ export class AppwriteEncryptedIntakeRepository {
       databaseId: this.resources.databaseId,
       tableId: this.resources.tables.projectIntakes,
       rowId: input.submissionId,
+      ...(input.ownerUserId ? { permissions: applicantRecordPermissions(input.ownerUserId) } : {}),
       data: {
         submissionId: input.submissionId,
         emailLookup: createAppwriteBlindIndex(
@@ -103,6 +106,7 @@ export class AppwriteEncryptedIntakeRepository {
       databaseId: this.resources.databaseId,
       tableId: this.resources.tables.talentIntakes,
       rowId: input.submissionId,
+      ...(input.ownerUserId ? { permissions: applicantRecordPermissions(input.ownerUserId) } : {}),
       data: {
         submissionId: input.submissionId,
         emailLookup: createAppwriteBlindIndex(

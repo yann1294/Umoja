@@ -2,17 +2,22 @@ import "server-only";
 
 import { Account, Client, TablesDB, Teams } from "node-appwrite";
 import { cookies } from "next/headers";
+import { sessionCookiePolicy } from "@umoja/appwrite/auth-policy";
 import { getServerAppwriteEnvironment } from "./env";
 
 export function appwriteSessionCookieName(projectId: string) {
   return `a_session_${projectId}`;
 }
 
+export async function getAppwriteSessionSecret() {
+  const env = getServerAppwriteEnvironment();
+  return (await cookies()).get(appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID))
+    ?.value;
+}
+
 export async function createSessionServices() {
   const env = getServerAppwriteEnvironment();
-  const secret = (await cookies()).get(
-    appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID),
-  )?.value;
+  const secret = await getAppwriteSessionSecret();
   if (!secret) return null;
   const client = new Client()
     .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
@@ -29,10 +34,7 @@ export async function createSessionServices() {
 export async function setAppwriteSessionCookie(secret: string, expiresAt?: string) {
   const env = getServerAppwriteEnvironment();
   (await cookies()).set(appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID), secret, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
+    ...sessionCookiePolicy(process.env.NODE_ENV === "production"),
     priority: "high",
     ...(expiresAt ? { expires: new Date(expiresAt) } : {}),
   });
@@ -41,10 +43,7 @@ export async function setAppwriteSessionCookie(secret: string, expiresAt?: strin
 export async function clearAppwriteSessionCookie() {
   const env = getServerAppwriteEnvironment();
   (await cookies()).set(appwriteSessionCookieName(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID), "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
+    ...sessionCookiePolicy(process.env.NODE_ENV === "production"),
     maxAge: 0,
   });
 }
