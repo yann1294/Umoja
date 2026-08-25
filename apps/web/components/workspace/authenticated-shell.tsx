@@ -10,7 +10,7 @@ import type { WorkspaceNavigationItem } from "./workspace-shell";
 
 type Props = Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content";
+  current: "workspace" | "admin" | "content" | "intake";
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
   sessionState: "active" | "stale";
@@ -31,7 +31,11 @@ export function AuthenticatedShell({
   const drawerTriggerRef = useRef<HTMLButtonElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const pageLabel =
-    current === "content"
+    current === "intake"
+      ? french
+        ? "Demandes"
+        : "Intakes"
+      : current === "content"
       ? french
         ? "Contenu public"
         : "Public content"
@@ -202,7 +206,7 @@ function WorkspaceNavigation({
   navigation,
   onNavigate,
 }: Readonly<{
-  current: "workspace" | "admin" | "content";
+  current: "workspace" | "admin" | "content" | "intake";
   idPrefix: string;
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];

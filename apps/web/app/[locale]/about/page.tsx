@@ -5,6 +5,7 @@ import { getEditorialPage, localize } from "@/content/public-content";
 import { publicMetadata } from "@/content/public-metadata";
 import { routing } from "@/i18n/routing";
 import { EditorialRoute } from "../editorial-page";
+import { getPublishedCmsPage } from "@/lib/cms/service";
 type Props = Readonly<{ params: Promise<{ locale: string }> }>;
 const page = getEditorialPage("about")!;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -20,5 +21,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function About({ params }: Props) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  return <EditorialRoute locale={locale} page={page} showAboutLinks />;
+  const cms = await getPublishedCmsPage(locale, "about");
+  return <EditorialRoute locale={locale} page={page} cms={cms} showAboutLinks />;
 }

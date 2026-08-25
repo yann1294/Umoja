@@ -33,9 +33,10 @@ export function WorkspaceOverview({
       ? {
           title: french ? "Révision des demandes" : "Intake review",
           description: french
-            ? "Les dossiers vérifiés apparaîtront ici lorsque le flux de révision sera lancé."
-            : "Verified submissions will appear here when the review workflow launches.",
-          status: french ? "Bientôt disponible" : "Coming next",
+            ? "Consultez les demandes chiffrées et assurez leur suivi."
+            : "Review encrypted submissions and manage their follow-up.",
+          status: french ? "Ouvrir les demandes" : "Open intakes",
+          href: `/${locale}/admin/intake`,
         }
       : null,
     canUseWorkspaceCapability(user, "projects.manage")
@@ -173,9 +174,10 @@ export function AdminOverview({
     {
       title: french ? "Révision des demandes" : "Intake review",
       description: french
-        ? "Le traitement sécurisé des demandes sera activé avec le flux de révision."
-        : "Secure submission handling will be enabled with the review workflow.",
-      status: french ? "Après l’étape demandes" : "Available after intake stage",
+        ? "Examinez les dossiers chiffrés et attribuez le suivi."
+        : "Review encrypted submissions and assign follow-up.",
+      status: french ? "Ouvrir les demandes" : "Open intakes",
+      href: `/${locale}/admin/intake`,
     },
     {
       title: french ? "Sécurité et audit" : "Security and audit",
