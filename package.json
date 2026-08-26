@@ -37,6 +37,7 @@
     "supabase:test:parity": "pnpm --filter @umoja/web test:unit -- --run lib/cms/repository.test.ts lib/intake/repository.test.ts lib/appwrite/encryption.test.ts",
     "supabase:test:remote-policy-smoke": "node scripts/supabase-remote-policy-smoke.mjs",
     "supabase:test:remote-policy-matrix": "node scripts/supabase-remote-policy-matrix.mjs",
+    "supabase:test:remote-auth-lifecycle": "node scripts/supabase-remote-auth-lifecycle.mjs",
     "supabase:export": "supabase db dump --local --schema public --schema private --file supabase/.temp/umoja-local-schema.sql",
     "supabase:push:dev": "node scripts/supabase-push-dev.mjs",
     "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:e2e && pnpm build"
