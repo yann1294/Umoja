@@ -3,9 +3,11 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { UmojaRole } from "@umoja/appwrite/permissions";
+import type { ServerPrincipal } from "@/lib/auth/principal";
 import { createSupabaseServerClient } from "./server";
 import { createSupabaseAdminClient } from "./admin";
 import { getSupabaseEnvironment } from "./env";
+import { toSupabaseServerPrincipal } from "./principal";
 
 export type SupabaseWorkspaceUser = Readonly<{
   id: string;
@@ -21,29 +23,38 @@ export const supabaseSignInSchema = z.object({
   password: z.string().min(12).max(256),
 });
 
-export async function getSupabaseWorkspaceUser(): Promise<SupabaseWorkspaceUser | null> {
+export async function getSupabaseServerPrincipal(): Promise<ServerPrincipal | null> {
   const client = await createSupabaseServerClient();
   const {
     data: { user },
   } = await client.auth.getUser();
-  if (!user || user.banned_until) return null;
+  if (!user) return null;
   const { data: assignments, error } = await client
     .from("user_roles")
     .select("role, revoked_at")
     .is("revoked_at", null)
     .eq("user_id", user.id);
   if (error || !assignments?.length) return null;
+  const { data: memberships, error: membershipError } = await client
+    .from("membership_history")
+    .select("effective_from, effective_to")
+    .eq("user_id", user.id)
+    .is("effective_to", null);
+  if (membershipError || !memberships?.length) return null;
   const { data: factors } = await client.auth.mfa.listFactors();
+  return toSupabaseServerPrincipal(user, assignments, memberships, factors);
+}
+
+export async function getSupabaseWorkspaceUser(): Promise<SupabaseWorkspaceUser | null> {
+  const principal = await getSupabaseServerPrincipal();
+  if (!principal) return null;
   return {
-    id: user.id,
-    email: user.email ?? "",
-    name: typeof user.user_metadata.full_name === "string" ? user.user_metadata.full_name : "",
-    emailVerified: Boolean(user.email_confirmed_at),
-    mfaEnabled: Boolean(
-      factors?.totp?.some((factor) => factor.status === "verified") ||
-      factors?.webauthn?.some((factor) => factor.status === "verified"),
-    ),
-    roles: assignments.map((assignment) => assignment.role as UmojaRole),
+    id: principal.actorId,
+    email: principal.email,
+    name: "",
+    emailVerified: principal.emailVerified,
+    mfaEnabled: principal.mfaVerified,
+    roles: principal.roles,
   };
 }
 

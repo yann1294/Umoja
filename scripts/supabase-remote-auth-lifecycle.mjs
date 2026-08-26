@@ -42,6 +42,36 @@ try {
     headers: { apikey: key, "content-type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
+  if (!accepted.ok) throw new Error(`sign-in:${accepted.status}`);
+  const session = await accepted.json();
+  const assignment = await fetch(`${url}/rest/v1/user_roles`, {
+    method: "POST",
+    headers: { ...adminHeaders, prefer: "return=minimal" },
+    body: JSON.stringify({ user_id: id, role: "cms-editor" }),
+  });
+  const activeMembership = await fetch(`${url}/rest/v1/membership_history`, {
+    method: "POST",
+    headers: { ...adminHeaders, prefer: "return=minimal" },
+    body: JSON.stringify({ user_id: id, tier: "core", effective_from: new Date().toISOString() }),
+  });
+  const userHeaders = { apikey: key, authorization: `Bearer ${session.access_token}` };
+  const refreshedRoles = await fetch(
+    `${url}/rest/v1/user_roles?select=role,revoked_at&user_id=eq.${id}&revoked_at=is.null`,
+    { headers: userHeaders },
+  );
+  const refreshedMemberships = await fetch(
+    `${url}/rest/v1/membership_history?select=effective_from,effective_to&user_id=eq.${id}&effective_to=is.null`,
+    { headers: userHeaders },
+  );
+  const revoked = await fetch(`${url}/rest/v1/user_roles?user_id=eq.${id}&role=eq.cms-editor&revoked_at=is.null`, {
+    method: "PATCH",
+    headers: { ...adminHeaders, prefer: "return=minimal" },
+    body: JSON.stringify({ revoked_at: new Date().toISOString() }),
+  });
+  const rolesAfterRevocation = await fetch(
+    `${url}/rest/v1/user_roles?select=role&user_id=eq.${id}&revoked_at=is.null`,
+    { headers: userHeaders },
+  );
   const banned = await fetch(`${url}/auth/v1/admin/users/${id}`, {
     method: "PUT",
     headers: adminHeaders,
@@ -52,11 +82,25 @@ try {
     headers: { apikey: key, "content-type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  const passed = rejected.status >= 400 && accepted.ok && banned.ok && deniedAfterBan.status >= 400;
+  const roleRows = refreshedRoles.ok ? await refreshedRoles.json() : [];
+  const membershipRows = refreshedMemberships.ok ? await refreshedMemberships.json() : [];
+  const revokedRoleRows = rolesAfterRevocation.ok ? await rolesAfterRevocation.json() : [];
+  const passed =
+    rejected.status >= 400 &&
+    assignment.ok &&
+    activeMembership.ok &&
+    roleRows.length === 1 &&
+    membershipRows.length === 1 &&
+    revoked.ok &&
+    revokedRoleRows.length === 0 &&
+    banned.ok &&
+    deniedAfterBan.status >= 400;
   console.log(
     JSON.stringify({
       signInRejected: rejected.status >= 400,
       signInAccepted: accepted.ok,
+      roleRefresh: roleRows.length === 1 && revokedRoleRows.length === 0,
+      membershipRefresh: membershipRows.length === 1,
       disabledDenied: deniedAfterBan.status >= 400,
       emailDelivery: "manual-gate",
       passed,
