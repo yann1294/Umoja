@@ -1,6 +1,6 @@
 # ADR 0001 — Evaluate Supabase before the Phase 12 backend expansion
 
-- Status: Proposed — migration spike approved; production cutover not yet approved
+- Status: Proposed — migration spike approved; production cutover approved
 - Date: 2026-08-26
 - Owners: Umoja product and engineering leads
 - Decision scope: Authentication, relational data, CMS persistence, intake persistence, private storage, authorization, and future workspace data
