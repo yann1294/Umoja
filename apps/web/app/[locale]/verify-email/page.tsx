@@ -10,10 +10,10 @@ export default async function VerifyEmailPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ userId?: string; secret?: string }>;
+  searchParams: Promise<{ userId?: string; secret?: string; verified?: string }>;
 }) {
   const { locale } = await params;
-  const { userId = "", secret = "" } = await searchParams;
+  const { userId = "", secret = "", verified } = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
   const french = locale === "fr";
   return (
@@ -23,7 +23,14 @@ export default async function VerifyEmailPage({
           <h1 id="verification-title">
             {french ? "Vérifier l’adresse courriel" : "Verify email address"}
           </h1>
-          {userId && secret ? (
+          {verified === "1" ? (
+            <>
+              <p role="status">{french ? "Votre adresse courriel est vérifiée." : "Your email address is verified."}</p>
+              <LinkButton href={`/${locale}/sign-in`}>
+                {french ? "Se connecter" : "Sign in"}
+              </LinkButton>
+            </>
+          ) : userId && secret ? (
             <TokenActionForm
               endpoint="/api/auth/verification/confirm"
               locale={locale}

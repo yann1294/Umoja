@@ -37,7 +37,10 @@ Use synthetic development data. If any real user or applicant data exists, stop 
 Create one Supabase development project in an appropriate available region. Record the region and project reference without committing secrets. In the Supabase dashboard:
 
 - Keep public signup disabled or enforce invitation-only onboarding in the server flow.
-- Configure exact development redirect URLs for verification, recovery, and Auth callback routes.
+- Configure the exact development Auth callback URL: `APP_URL/api/supabase-auth/callback`.
+  The callback receives the one-time code server-side and then redirects only to the
+  locale-preserving clean routes `/en|fr/verify-email`, `/en|fr/accept-invite`, or
+  `/en|fr/recover-password`. Do not allow arbitrary redirect origins or destinations.
 - Set the global Storage upload limit no higher than 10 MB for the pilot, even though Free supports up to 50 MB.
 - Do not create permissive tables, buckets, or policies manually; migrations should remain the source of truth.
 - Do not add real applicant data.
@@ -137,6 +140,17 @@ Roles remain `admin`, `cms-editor`, `reviewer`, `core`, `extended`, and `project
 Implement invitation-led Supabase Auth with email verification, recovery, sign-out, session refresh, account-state checks, and MFA-ready privileged access. Preserve the refined authenticated shell and all Prompt 9 policy behavior.
 
 Do not attempt to migrate live Appwrite sessions. If only synthetic/development users exist, create fresh Supabase users and re-invite the initial administrator. If real users exist, require an approved account migration and communication plan; do not copy password material without a documented supported method.
+
+### Email-link validation evidence
+
+- 2026-08-26: the controlled English verification email was received and clicked, but
+  landed on the Umoja homepage rather than `/en/verify-email`. This is a **failed
+  redirect-validation attempt**, not a successful verification test. The previous
+  implementation supplied the final page as `redirectTo`, while the server callback
+  unconditionally targeted a workspace route. The corrected implementation now
+  supplies only the server callback as `redirectTo`, exchanges the code there, and
+  redirects to a clean verified-success route. Re-run remains pending after `APP_URL`
+  is present in the ignored environment and the callback URL is allow-listed.
 
 ## 7. Storage migration
 

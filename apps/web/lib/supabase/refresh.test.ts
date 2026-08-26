@@ -15,7 +15,7 @@ describe("Supabase SSR refresh boundary", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://project.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-test-key");
     vi.stubEnv("SUPABASE_SECRET_KEY", "server-only-test-key");
-    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://umoja.example.test");
+    vi.stubEnv("APP_URL", "https://umoja.example.test");
     getUser.mockReset().mockResolvedValue({ data: { user: { id: "actor-1" } } });
   });
 

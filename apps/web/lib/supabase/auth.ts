@@ -6,8 +6,8 @@ import type { UmojaRole } from "@umoja/appwrite/permissions";
 import type { ServerPrincipal } from "@/lib/auth/principal";
 import { createSupabaseServerClient } from "./server";
 import { createSupabaseAdminClient } from "./admin";
-import { getSupabaseEnvironment } from "./env";
 import { toSupabaseServerPrincipal } from "./principal";
+import { supabaseAuthCallbackUrl } from "./redirects";
 
 export type SupabaseWorkspaceUser = Readonly<{
   id: string;
@@ -81,7 +81,7 @@ export async function requestSupabaseRecovery(email: unknown, locale: "en" | "fr
   const value = z.email().parse(email);
   const client = await createSupabaseServerClient();
   await client.auth.resetPasswordForEmail(value, {
-    redirectTo: `${getSupabaseEnvironment().APP_URL}/${locale}/recover-password`,
+    redirectTo: supabaseAuthCallbackUrl(locale, "recovery"),
   });
 }
 
@@ -106,7 +106,7 @@ export async function issueSupabaseInvite(
     .parse(roles);
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin.auth.admin.inviteUserByEmail(recipient, {
-    redirectTo: `${getSupabaseEnvironment().APP_URL}/${locale}/accept-invite`,
+    redirectTo: supabaseAuthCallbackUrl(locale, "invite"),
   });
   if (error || !data.user) throw new Error("Invitation unavailable.");
   const { error: roleError } = await admin
