@@ -1,9 +1,25 @@
 # Supabase Migration Spike and Cutover Runbook
 
-Status: proposed migration path after Prompt 11  
+Status: proposed remote-only development-project spike after Prompt 11  
 Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 
 ## 1. Safety boundary
+
+### Current remote-only execution mode
+
+This spike uses only the newly configured empty development project from ignored
+`apps/web/.env.local`. Do not use Docker, `supabase start`, `supabase stop`, local database
+resets, pgTAP, or `supabase db reset --linked`. The latter is prohibited in every environment.
+
+Before each additive remote migration, read the configured project identity without printing any
+credential, run `supabase migration list --linked`, inspect every pending migration, and run
+`supabase db push --linked --dry-run`. Apply only the reviewed pending migration with
+`supabase db push --linked`. Read migration history, buckets, and generated types back afterward.
+
+Synthetic users must be created through the supported server-only Supabase Auth Admin API, given
+unique test identifiers, and removed with all dependent records and objects in `finally` blocks.
+Never seed or directly insert into `auth.users` or another Auth schema using SQL. Appwrite remains
+untouched; its real-data state is unknown until a separately authorized read-only inventory works.
 
 Start from the reviewed Prompt 11 baseline:
 
