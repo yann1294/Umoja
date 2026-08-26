@@ -24,7 +24,9 @@ If code and documentation conflict, stop and explain the conflict. Do not silent
 
 - Use TypeScript with strict type checking and the Next.js App Router.
 - Prefer Server Components; add Client Components only where interactivity requires them.
-- Keep Appwrite credentials and privileged operations server-side.
+- Keep every backend secret and privileged operation server-side. Browser code may receive only explicitly publishable Appwrite or Supabase project values.
+- When Supabase is the active backend, enable RLS on every exposed table, test grants and policies for each operation/role, keep role assignments outside user-editable metadata, and use the secret/service key only in trusted server paths after explicit validation and authorization.
+- Do not run Appwrite and Supabase as a permanent split Auth/data/storage architecture. A migration branch may keep adapters temporarily for parity tests, but the accepted runtime must have one canonical identity and authorization system.
 - Validate untrusted input at system boundaries.
 - Enforce authorization in server-side policies, not only in navigation or UI visibility.
 - Build accessible semantic interfaces targeting WCAG 2.2 AA.
