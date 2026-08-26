@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { UmojaRole } from "@umoja/appwrite/permissions";
 import { createSupabaseServerClient } from "./server";
+import { createSupabaseAdminClient } from "./admin";
+import { getSupabaseEnvironment } from "./env";
 
 export type SupabaseWorkspaceUser = Readonly<{
   id: string;
@@ -62,4 +64,42 @@ export async function signInWithSupabase(input: unknown) {
 export async function signOutOfSupabase() {
   const client = await createSupabaseServerClient();
   await client.auth.signOut();
+}
+
+export async function requestSupabaseRecovery(email: unknown, locale: "en" | "fr" = "en") {
+  const value = z.email().parse(email);
+  const client = await createSupabaseServerClient();
+  await client.auth.resetPasswordForEmail(value, {
+    redirectTo: `${getSupabaseEnvironment().APP_URL}/${locale}/recover-password`,
+  });
+}
+
+export async function resetSupabasePassword(password: unknown) {
+  const value = z.string().min(12).max(256).parse(password);
+  const client = await createSupabaseServerClient();
+  const { error } = await client.auth.updateUser({ password: value });
+  if (error) throw new Error("Password reset unavailable.");
+}
+
+export async function issueSupabaseInvite(
+  email: unknown,
+  roles: readonly UmojaRole[],
+  locale: "en" | "fr" = "en",
+) {
+  const issuer = await requireSupabaseWorkspaceUser(locale);
+  if (!issuer.roles.includes("admin")) throw new Error("Invitation unavailable.");
+  const recipient = z.email().parse(email);
+  const safeRoles = z
+    .array(z.enum(["admin", "cms-editor", "reviewer", "core", "extended", "project-manager"]))
+    .min(1)
+    .parse(roles);
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(recipient, {
+    redirectTo: `${getSupabaseEnvironment().APP_URL}/${locale}/accept-invite`,
+  });
+  if (error || !data.user) throw new Error("Invitation unavailable.");
+  const { error: roleError } = await admin
+    .from("user_roles")
+    .insert(safeRoles.map((role) => ({ user_id: data.user.id, role, granted_by: issuer.id })));
+  if (roleError) throw new Error("Invitation unavailable.");
 }
