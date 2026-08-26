@@ -2,7 +2,7 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import type { UmojaRole } from "@umoja/appwrite/permissions";
+import { rolesHaveCapability, type UmojaCapability, type UmojaRole } from "@umoja/appwrite";
 import type { ServerPrincipal } from "@/lib/auth/principal";
 import { createSupabaseServerClient } from "./server";
 import { createSupabaseAdminClient } from "./admin";
@@ -62,6 +62,28 @@ export async function requireSupabaseWorkspaceUser(locale = "en") {
   const user = await getSupabaseWorkspaceUser();
   if (!user) redirect(`/${locale}/sign-in`);
   return user;
+}
+
+/** This boundary is used only by route groups that are fully Supabase-backed. */
+export async function requireSupabaseWorkspaceCapability(
+  capability: UmojaCapability,
+  locale: string = "en",
+) {
+  const safeLocale = locale === "fr" ? "fr" : "en";
+  const principal = await getSupabaseServerPrincipal();
+  if (!principal)
+    redirect(`/${safeLocale}/admin/content/sign-in?next=/${safeLocale}/admin/content`);
+  if (!rolesHaveCapability(principal.roles, capability) || !principal.membershipActive) {
+    redirect(`/${safeLocale}/account-state?reason=forbidden`);
+  }
+  return {
+    id: principal.actorId,
+    name: "",
+    email: principal.email,
+    emailVerified: principal.emailVerified,
+    mfaEnabled: principal.mfaVerified,
+    roles: principal.roles,
+  } satisfies SupabaseWorkspaceUser;
 }
 
 export async function signInWithSupabase(input: unknown) {
