@@ -121,6 +121,8 @@ export type Database = {
           current_revision_id: string | null;
           id: string;
           locale: string;
+          preview_expires_at: string | null;
+          preview_token_hash: string | null;
           published_at: string | null;
           slug: string;
           stable_key: string;
@@ -136,6 +138,8 @@ export type Database = {
           current_revision_id?: string | null;
           id?: string;
           locale: string;
+          preview_expires_at?: string | null;
+          preview_token_hash?: string | null;
           published_at?: string | null;
           slug: string;
           stable_key: string;
@@ -151,6 +155,8 @@ export type Database = {
           current_revision_id?: string | null;
           id?: string;
           locale?: string;
+          preview_expires_at?: string | null;
+          preview_token_hash?: string | null;
           published_at?: string | null;
           slug?: string;
           stable_key?: string;
@@ -630,6 +636,34 @@ export type Database = {
           current_revision_id: string | null;
           id: string;
           locale: string;
+          preview_expires_at: string | null;
+          preview_token_hash: string | null;
+          published_at: string | null;
+          slug: string;
+          stable_key: string;
+          state: Database["public"]["Enums"]["cms_state"];
+          translation_group_id: string;
+          updated_at: string;
+          updated_by_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "cms_pages";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      rollback_cms_page: {
+        Args: { p_page_id: string; p_revision_id: string };
+        Returns: {
+          archived_at: string | null;
+          author_id: string;
+          created_at: string;
+          current_revision_id: string | null;
+          id: string;
+          locale: string;
+          preview_expires_at: string | null;
+          preview_token_hash: string | null;
           published_at: string | null;
           slug: string;
           stable_key: string;
