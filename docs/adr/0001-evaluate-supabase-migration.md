@@ -47,6 +47,8 @@ Retain Umoja's application-layer encryption and HMAC model. RLS and private buck
 Accept Supabase only when the branch proves all of the following:
 
 1. Invite-only Auth, verification, recovery, secure Next.js SSR cookies, session refresh, account disablement, and MFA-ready privileged access work without public signup.
+
+   Manual delivery/exchange verification for English/French verification, invitation, and recovery is currently deferred. The observed English verification homepage redirect is unresolved. This gate cannot pass for development/private preview or production until all six flows are manually verified; automated disposable-user tests do not replace that evidence.
 2. The role vocabulary `admin`, `cms-editor`, `reviewer`, `core`, `extended`, and `project-manager` is represented in trusted database records, not user-editable metadata.
 3. RLS is enabled on every exposed table and tested separately for `anon`, record owner, every role, missing membership, disabled account, and service-role paths.
 4. Public CMS queries expose only complete published revisions; draft, review, audit, intake, private profile, and membership rows remain private.

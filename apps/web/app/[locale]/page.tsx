@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
 import type { CmsPage } from "@umoja/appwrite/cms";
-import { cmsField, getPublishedCmsPage } from "@/lib/cms/service";
+import { cmsField, getSupabasePublishedCmsPage } from "@/lib/cms/service";
 
 import styles from "./page.module.css";
 
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "Home" });
-  const cms = await getPublishedCmsPage(locale, "home");
+  const cms = await getSupabasePublishedCmsPage(locale, "home");
 
   return {
     title: cms?.seoTitle ?? cms?.title ?? t("title"),
@@ -35,7 +35,7 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "Home" });
-  const cms = await getPublishedCmsPage(locale, "home", {
+  const cms = await getSupabasePublishedCmsPage(locale, "home", {
     [`${locale}:home`]: homeFallback(locale, {
       title: t("title"),
       introduction: t("introduction"),

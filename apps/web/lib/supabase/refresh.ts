@@ -10,9 +10,9 @@ import { getSupabaseEnvironment } from "./env";
  * Refreshes a Supabase PKCE session for a request and returns the response carrying
  * any rotated cookies. Call this only from a route group that is fully Supabase-backed.
  */
-export async function refreshSupabaseRequest(request: NextRequest) {
+export async function refreshSupabaseRequest(request: NextRequest, initialResponse?: NextResponse) {
   const env = getSupabaseEnvironment();
-  let response = NextResponse.next({ request });
+  let response = initialResponse ?? NextResponse.next({ request });
   const client = createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,

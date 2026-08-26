@@ -3,7 +3,7 @@ import { hasLocale } from "next-intl";
 import { ContentEditorForm } from "@/components/cms/content-editor-form";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
-import { requireWorkspaceCapability } from "@/lib/appwrite/auth";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
 import { createContent } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export default async function NewContent({
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireWorkspaceCapability("cms.manage", locale);
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
   const french = locale === "fr";
   return (
     <WorkspaceShell current="content" locale={locale} user={user}>

@@ -1,43 +1,30 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { ID } from "node-appwrite";
-import { InputFile } from "node-appwrite/file";
-import { cmsMediaFilePermissions } from "@umoja/appwrite/permissions";
-import { requireWorkspaceCapability } from "@/lib/appwrite/auth";
-import { createRuntimeServices } from "@/lib/appwrite/admin";
-import { getAppwriteConfig } from "@/lib/appwrite/config";
-import { createSessionServices } from "@/lib/appwrite/session";
-import { createCmsEditorRepository } from "@/lib/cms/service";
-
-const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
-const maximumBytes = 10 * 1024 * 1024;
-
-function validSignature(type: string, bytes: Uint8Array) {
-  if (type === "image/png")
-    return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
-  if (type === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  if (type === "image/webp")
-    return (
-      new TextDecoder().decode(bytes.slice(0, 4)) === "RIFF" &&
-      new TextDecoder().decode(bytes.slice(8, 12)) === "WEBP"
-    );
-  return false;
-}
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
+import {
+  cmsMediaMaximumBytes,
+  cmsMediaTypes,
+  uploadPrivateCmsMedia,
+  validCmsMediaSignature,
+} from "@/lib/cms/supabase-media";
 
 export async function POST(request: Request) {
   const form = await request.formData();
   const locale = form.get("locale") === "fr" ? "fr" : "en";
-  const user = await requireWorkspaceCapability("cms.manage", locale);
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
   const file = form.get("file");
   const altEn = String(form.get("altEn") ?? "").trim();
   const altFr = String(form.get("altFr") ?? "").trim();
   const consentState = form.get("consentState") === "recorded" ? "recorded" : "not-required";
   if (
     !(file instanceof File) ||
-    !allowedTypes.has(file.type) ||
+    !cmsMediaTypes.has(file.type) ||
     file.size < 1 ||
-    file.size > maximumBytes ||
+    file.size > cmsMediaMaximumBytes ||
     !altEn ||
     !altFr
   ) {
@@ -49,7 +36,7 @@ export async function POST(request: Request) {
     );
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (!validSignature(file.type, bytes))
+  if (!validCmsMediaSignature(file.type, bytes))
     return Response.json(
       {
         error:
@@ -61,19 +48,10 @@ export async function POST(request: Request) {
     );
 
   const assetKey = randomUUID();
-  const fileId = ID.unique();
-  const config = getAppwriteConfig();
-  const runtime = createRuntimeServices();
-  await runtime.storage.createFile({
-    bucketId: config.buckets.cmsMedia,
-    fileId,
-    file: InputFile.fromBuffer(bytes, file.name),
-    permissions: cmsMediaFilePermissions(false),
-  });
+  const client = await createSupabaseServerClient();
+  const fileId = await uploadPrivateCmsMedia(client, bytes, file.type as "image/png" | "image/jpeg" | "image/webp");
   try {
-    const session = await createSessionServices();
-    if (!session) throw new Error("Session unavailable");
-    const page = await createCmsEditorRepository(session.tables).createDraft(
+    const page = await (await createSupabaseCmsEditorRepository()).createDraft(
       {
         stableKey: `media:${assetKey}`,
         translationGroupId: assetKey,
@@ -102,9 +80,7 @@ export async function POST(request: Request) {
     );
     return Response.json({ id: page.id, assetKey }, { status: 201 });
   } catch {
-    await runtime.storage
-      .deleteFile({ bucketId: config.buckets.cmsMedia, fileId })
-      .catch(() => undefined);
+    await createSupabaseAdminClient().storage.from("cms-private").remove([fileId]).catch(() => undefined);
     return Response.json(
       {
         error:
@@ -120,14 +96,14 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const form = await request.formData();
   const locale = form.get("locale") === "fr" ? "fr" : "en";
-  const user = await requireWorkspaceCapability("cms.manage", locale);
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
   const pageId = String(form.get("pageId") ?? "");
   const file = form.get("file");
   if (
     !(file instanceof File) ||
-    !allowedTypes.has(file.type) ||
+    !cmsMediaTypes.has(file.type) ||
     file.size < 1 ||
-    file.size > maximumBytes
+    file.size > cmsMediaMaximumBytes
   ) {
     return Response.json(
       {
@@ -137,7 +113,7 @@ export async function PUT(request: Request) {
     );
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (!validSignature(file.type, bytes)) {
+  if (!validCmsMediaSignature(file.type, bytes)) {
     return Response.json(
       {
         error:
@@ -148,23 +124,17 @@ export async function PUT(request: Request) {
       { status: 400 },
     );
   }
-  const session = await createSessionServices();
-  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  const repository = createCmsEditorRepository(session.tables);
+  const repository = await createSupabaseCmsEditorRepository();
   const page = await repository.getDraft(pageId);
   const metadata = page?.blocks.find((block) => block.type === "media-metadata");
   if (!page || !metadata || metadata.type !== "media-metadata") {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
-  const fileId = ID.unique();
-  const runtime = createRuntimeServices();
-  const bucketId = getAppwriteConfig().buckets.cmsMedia;
-  await runtime.storage.createFile({
-    bucketId,
-    fileId,
-    file: InputFile.fromBuffer(bytes, file.name),
-    permissions: cmsMediaFilePermissions(false),
-  });
+  const fileId = await uploadPrivateCmsMedia(
+    await createSupabaseServerClient(),
+    bytes,
+    file.type as "image/png" | "image/jpeg" | "image/webp",
+  );
   try {
     await repository.updateDraft(
       page.id,
@@ -188,7 +158,7 @@ export async function PUT(request: Request) {
     );
     return Response.json({ replaced: true });
   } catch {
-    await runtime.storage.deleteFile({ bucketId, fileId }).catch(() => undefined);
+    await createSupabaseAdminClient().storage.from("cms-private").remove([fileId]).catch(() => undefined);
     return Response.json(
       {
         error:

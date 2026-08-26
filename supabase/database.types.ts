@@ -628,7 +628,7 @@ export type Database = {
     };
     Functions: {
       publish_cms_page: {
-        Args: { change_summary?: string; page_id: string };
+        Args: { p_change_summary?: string; p_page_id: string };
         Returns: {
           archived_at: string | null;
           author_id: string;

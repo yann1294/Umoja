@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
-import { requireWorkspaceCapability } from "@/lib/appwrite/auth";
-import { createSessionServices } from "@/lib/appwrite/session";
-import { createCmsEditorRepository } from "@/lib/cms/service";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 
 export const dynamic = "force-dynamic";
 export default async function RevisionComparison({
@@ -13,10 +12,8 @@ export default async function RevisionComparison({
 }: Readonly<{ params: Promise<{ locale: string; pageId: string; revisionId: string }> }>) {
   const { locale, pageId, revisionId } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireWorkspaceCapability("cms.manage", locale);
-  const services = await createSessionServices();
-  if (!services) notFound();
-  const repository = createCmsEditorRepository(services.tables);
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
+  const repository = await createSupabaseCmsEditorRepository();
   const [page, revisions] = await Promise.all([
     repository.getDraft(pageId),
     repository.listRevisions(pageId),

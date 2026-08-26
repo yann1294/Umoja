@@ -1,7 +1,6 @@
-import type { UmojaCapability } from "@umoja/appwrite";
+import { rolesHaveCapability, type UmojaCapability, type UmojaRole } from "@umoja/appwrite";
 import type { ReactNode } from "react";
 
-import { canUseWorkspaceCapability, type WorkspaceUser } from "@/lib/appwrite/auth";
 import { AuthenticatedShell } from "./authenticated-shell";
 import "./workspace-shell.css";
 
@@ -13,8 +12,18 @@ export type WorkspaceNavigationItem = Readonly<{
 
 type CandidateNavigationItem = WorkspaceNavigationItem & Readonly<{ capability: UmojaCapability }>;
 
+/** Canonical shell shape shared by the temporary Appwrite and Supabase route groups. */
+export type WorkspaceShellUser = Readonly<{
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  mfaEnabled: boolean;
+  roles: readonly UmojaRole[];
+}>;
+
 export function getWorkspaceNavigation(
-  user: WorkspaceUser,
+  user: WorkspaceShellUser,
   locale: "en" | "fr",
 ): readonly WorkspaceNavigationItem[] {
   const french = locale === "fr";
@@ -46,7 +55,7 @@ export function getWorkspaceNavigation(
   ];
 
   return candidates
-    .filter((item) => canUseWorkspaceCapability(user, item.capability))
+    .filter((item) => rolesHaveCapability(user.roles, item.capability))
     .map(({ href, label, section }) => ({ href, label, section }));
 }
 
@@ -61,7 +70,7 @@ export function WorkspaceShell({
   current: "workspace" | "admin" | "content" | "intake";
   locale: "en" | "fr";
   sessionState?: "active" | "stale";
-  user: WorkspaceUser;
+  user: WorkspaceShellUser;
 }>) {
   return (
     <AuthenticatedShell

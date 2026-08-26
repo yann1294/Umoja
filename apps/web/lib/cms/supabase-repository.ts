@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   assertPublishable,
@@ -186,28 +185,15 @@ export class SupabaseCmsRepository implements CmsRepository {
     assertPublishable(current);
     if (current.state !== "review")
       throw new Error("Content must be in review before publication.");
-    const raw = await this.raw(id);
-    const published = await this.writeRevision(
-      raw,
-      current,
-      actorId,
-      "Published complete revision",
-      "published",
-    );
-    const { data, error } = await this.client
-      .from("cms_pages")
-      .update({
-        state: "published",
-        current_revision_id: published.id,
-        published_at: new Date().toISOString(),
-        updated_by_id: actorId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    // The RPC creates the immutable revision, moves the public pointer, and writes a digest-only
+    // audit row in one transaction. The user-scoped client supplies auth.uid(); actorId remains a
+    // domain-interface parameter for parity with the temporary Appwrite adapter.
+    const { data, error } = await this.client.rpc("publish_cms_page", {
+      p_page_id: id,
+      p_change_summary: "Published complete revision",
+    });
     if (error) throw error;
-    const result = page(data, published);
+    const result = page(data, await this.latest(id));
     await this.onPublish(result);
     return result;
   }

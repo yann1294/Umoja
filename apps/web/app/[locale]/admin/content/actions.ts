@@ -8,9 +8,8 @@ import {
   type CmsBlock,
   type CmsPageInput,
 } from "@umoja/appwrite/cms";
-import { requireWorkspaceCapability } from "@/lib/appwrite/auth";
-import { createSessionServices } from "@/lib/appwrite/session";
-import { createCmsEditorRepository } from "@/lib/cms/service";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 
 export type CmsActionState = Readonly<{
   ok: boolean;
@@ -71,10 +70,8 @@ function inputFrom(form: FormData): CmsPageInput {
 }
 
 async function editor(locale: string) {
-  const user = await requireWorkspaceCapability("cms.manage", locale);
-  const services = await createSessionServices();
-  if (!services) throw new Error("Session unavailable");
-  return { user, repository: createCmsEditorRepository(services.tables) };
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
+  return { user, repository: await createSupabaseCmsEditorRepository() };
 }
 
 function safeFailure(error: unknown, locale: string): CmsActionState {
@@ -128,15 +125,13 @@ export async function saveContent(
 }
 
 export async function transitionContent(locale: string, pageId: string, action: string) {
-  let user = await requireWorkspaceCapability(
+  let user = await requireSupabaseWorkspaceCapability(
     action === "publish" || action === "unpublish" ? "cms.publish" : "cms.manage",
     locale,
   );
-  const services = await createSessionServices();
-  if (!services) throw new Error("Session unavailable");
-  const repository = createCmsEditorRepository(services.tables);
+  const repository = await createSupabaseCmsEditorRepository();
   if (action === "archive" && (await repository.getDraft(pageId))?.currentRevisionId) {
-    user = await requireWorkspaceCapability("cms.publish", locale);
+    user = await requireSupabaseWorkspaceCapability("cms.publish", locale);
   }
   if (action === "submit") await repository.submitForReview(pageId, user.id);
   else if (action === "publish") await repository.publish(pageId, user.id);

@@ -144,13 +144,16 @@ Do not attempt to migrate live Appwrite sessions. If only synthetic/development 
 ### Email-link validation evidence
 
 - 2026-08-26: the controlled English verification email was received and clicked, but
-  landed on the Umoja homepage rather than `/en/verify-email`. This is a **failed
-  redirect-validation attempt**, not a successful verification test. The previous
-  implementation supplied the final page as `redirectTo`, while the server callback
-  unconditionally targeted a workspace route. The corrected implementation now
-  supplies only the server callback as `redirectTo`, exchanges the code there, and
-  redirects to a clean verified-success route. Re-run remains pending after `APP_URL`
-  is present in the ignored environment and the callback URL is allow-listed.
+  landed on the Umoja homepage rather than `/en/verify-email`. This is an **unresolved
+  redirect mismatch**, not a successful verification test. The corrected callback flow
+  is implemented but has not been manually exchanged successfully.
+- Manual delivery/exchange verification is deferred for all six required flows: English
+  and French verification, invitation acceptance/password setup, and recovery/reset.
+  No real user invitation, verification, or recovery may launch until every flow has
+  been manually re-tested successfully against the configured dashboard URLs.
+- This remains a required development/private-preview gate and a production-cutover
+  blocker. Automated tests use only confirmed disposable Auth Admin users and cannot
+  replace an inbox delivery/link-exchange check.
 
 ## 7. Storage migration
 

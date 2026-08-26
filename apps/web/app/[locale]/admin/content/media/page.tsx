@@ -5,9 +5,9 @@ import { MediaReplacement, MediaUpload } from "@/components/cms/media-upload";
 import { statusLabel } from "@/components/cms/content-workflow";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
-import { canUseWorkspaceCapability, requireWorkspaceCapability } from "@/lib/appwrite/auth";
-import { createSessionServices } from "@/lib/appwrite/session";
-import { createCmsEditorRepository } from "@/lib/cms/service";
+import { rolesHaveCapability } from "@umoja/appwrite";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 import { transitionMedia, updateMediaMetadata } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -16,14 +16,12 @@ export default async function MediaPage({
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireWorkspaceCapability("cms.manage", locale);
-  const services = await createSessionServices();
-  if (!services) notFound();
-  const pages = (await createCmsEditorRepository(services.tables).list()).filter((page) =>
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
+  const pages = (await (await createSupabaseCmsEditorRepository()).list()).filter((page) =>
     page.stableKey.startsWith("media:"),
   );
   const french = locale === "fr";
-  const canPublish = canUseWorkspaceCapability(user, "cms.publish");
+  const canPublish = rolesHaveCapability(user.roles, "cms.publish");
   return (
     <WorkspaceShell current="content" locale={locale} user={user}>
       <header className="workspace-page-header">
