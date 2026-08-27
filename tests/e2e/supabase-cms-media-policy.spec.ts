@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import { expect, test } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
 
 test.use({ trace: "off", screenshot: "off" });
 test.describe.configure({ mode: "serial" });
+test.setTimeout(120_000);
 
 type Role = "admin" | "cms-editor" | "reviewer" | "extended";
 type SyntheticUser = Readonly<{ id: string; email: string; headers: HeadersInit }>;
@@ -34,7 +34,6 @@ const service = {
   authorization: `Bearer ${secretKey}`,
   "content-type": "application/json",
 };
-const storageAdmin = createClient(url, secretKey, { auth: { persistSession: false } });
 const run = randomUUID();
 const password = `Umoja-${randomUUID()}-A9!`;
 const users: SyntheticUser[] = [];
@@ -97,6 +96,18 @@ async function createUser(role: Role): Promise<SyntheticUser> {
   return user;
 }
 
+async function signInCms(
+  page: import("@playwright/test").Page,
+  user: SyntheticUser,
+  next = "/en/admin/content",
+) {
+  await page.context().clearCookies();
+  await page.goto(`/en/admin/content/sign-in?next=${encodeURIComponent(next)}`);
+  await page.getByLabel("Email address").fill(user.email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+}
+
 async function cleanupPage(id: string) {
   await expectOk(
     await request(`/rest/v1/cms_pages?id=eq.${id}`, {
@@ -134,10 +145,22 @@ async function cleanupPage(id: string) {
 
 test.afterAll(async () => {
   for (const path of storagePaths) {
-    const privateResult = await storageAdmin.storage.from("cms-private").remove([path]);
-    if (privateResult.error) throw new Error("cleanup:delete-private-object");
-    const publicResult = await storageAdmin.storage.from("cms-public").remove([path]);
-    if (publicResult.error) throw new Error("cleanup:delete-public-object");
+    await expectOk(
+      await request("/storage/v1/object/cms-private", {
+        method: "DELETE",
+        headers: service,
+        body: JSON.stringify({ prefixes: [path] }),
+      }),
+      "delete-private-object",
+    );
+    await expectOk(
+      await request("/storage/v1/object/cms-public", {
+        method: "DELETE",
+        headers: service,
+        body: JSON.stringify({ prefixes: [path] }),
+      }),
+      "delete-public-object",
+    );
   }
   for (const id of pageIds) await cleanupPage(id);
   for (const user of users) {
@@ -169,6 +192,7 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
     createUser("reviewer"),
     createUser("extended"),
   ]);
+  const disabled = await createUser("cms-editor");
   const slug = `synthetic-${run}`;
   const draft = await expectOk(
     await request("/rest/v1/cms_pages", {
@@ -187,6 +211,16 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
   );
   const contentPage = (await draft.json())[0] as { id: string };
   pageIds.push(contentPage.id);
+  const anonymousRevisionless = await expectOk(
+    await request(`/rest/v1/cms_pages?select=id&id=eq.${contentPage.id}`, {
+      headers: { apikey: publishableKey },
+    }),
+    "anonymous-revisionless",
+  );
+  expect(await anonymousRevisionless.json()).toHaveLength(0);
+  await signInCms(page, editor);
+  await expect(page).toHaveURL(/\/en\/admin\/content$/);
+  await expect(page.getByRole("heading", { name: "Public content" })).toBeVisible();
   const revision = await expectOk(
     await request("/rest/v1/cms_revisions", {
       method: "POST",
@@ -204,6 +238,35 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
     "create-revision",
   );
   const originalRevision = (await revision.json())[0] as { id: string };
+
+  const previewRequest = (browserPage: import("@playwright/test").Page) =>
+    browserPage.evaluate(
+      async ({ pageId, revisionId }) =>
+        (
+          await fetch("/api/cms/preview", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ pageId, revisionId, locale: "en", expiresInMinutes: 5 }),
+          })
+        ).status,
+      { pageId: contentPage.id, revisionId: originalRevision.id },
+    );
+  await page.context().clearCookies();
+  expect(await previewRequest(page)).toBe(403);
+  for (const deniedUser of [reviewer, unrelated]) {
+    await signInCms(page, deniedUser);
+    expect(await previewRequest(page)).toBe(403);
+  }
+  await signInCms(page, disabled);
+  await expectOk(
+    await request(`/auth/v1/admin/users/${disabled.id}`, {
+      method: "PUT",
+      headers: service,
+      body: JSON.stringify({ ban_duration: "876000h" }),
+    }),
+    "disable-user",
+  );
+  expect(await previewRequest(page)).toBe(403);
 
   const draftQuery = `/rest/v1/cms_pages?select=id&slug=eq.${slug}`;
   const [anonymousDraft, reviewerDraft, unrelatedDraft, editorDraft] = await Promise.all([
@@ -394,16 +457,47 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
     }),
     "create-media-revision",
   );
-  await page.goto("/en/admin/content/sign-in?next=/en/admin/content/media");
-  await page.getByLabel("Email address").fill(editor.email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await signInCms(page, editor, "/en/admin/content/media");
   await expect(page).toHaveURL(/\/en\/admin\/content\/media$/);
-  const privateSource = await page.request.get(`/api/cms/media/private/${assetKey}`);
-  expect(privateSource.status()).toBe(200);
-  expect(privateSource.headers()["cache-control"]).toContain("no-store");
-  expect(privateSource.headers()["content-disposition"]).toContain("attachment");
-  expect(new Uint8Array(await privateSource.body())).toEqual(png);
+  await expect(page.getByRole("heading", { name: "Media library" })).toBeVisible();
+  expect((await page.context().cookies()).some(({ name }) => name.startsWith("sb-"))).toBe(true);
+  const privateSource = await page.evaluate(async (key) => {
+    const response = await fetch(`/api/cms/media/private/${key}`);
+    return {
+      status: response.status,
+      cacheControl: response.headers.get("cache-control"),
+      disposition: response.headers.get("content-disposition"),
+      body: [...new Uint8Array(await response.arrayBuffer())],
+    };
+  }, assetKey);
+  expect(privateSource.status).toBe(200);
+  expect(privateSource.cacheControl).toContain("no-store");
+  expect(privateSource.disposition).toContain("attachment");
+  expect(privateSource.body).toEqual([...png]);
+  for (const deniedUser of [reviewer, unrelated, disabled]) {
+    await signInCms(page, deniedUser, "/en/admin/content/media");
+    expect(
+      await page.evaluate(
+        async (key) => (await fetch(`/api/cms/media/private/${key}`)).status,
+        assetKey,
+      ),
+    ).toBe(404);
+  }
+  await page.context().clearCookies();
+  expect(
+    await page.evaluate(
+      async (key) => (await fetch(`/api/cms/media/private/${key}`)).status,
+      assetKey,
+    ),
+  ).toBe(404);
+  await signInCms(page, admin, "/en/admin/content/media");
+  await expect(page).toHaveURL(/\/en\/admin\/content\/media$/);
+  expect(
+    await page.evaluate(
+      async (key) => (await fetch(`/api/cms/media/private/${key}`)).status,
+      assetKey,
+    ),
+  ).toBe(200);
   await expectOk(
     await request(`/rest/v1/cms_pages?id=eq.${mediaPageId}`, {
       method: "PATCH",
@@ -486,8 +580,14 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
   const deliveredReplacement = await page.request.get(`/api/cms/media/${assetKey}`);
   expect(deliveredReplacement.status()).toBe(200);
   expect(new Uint8Array(await deliveredReplacement.body())).toEqual(replacement);
-  const removedOriginal = await storageAdmin.storage.from("cms-public").remove([objectPath]);
-  expect(removedOriginal.error).toBeNull();
+  await expectOk(
+    await request("/storage/v1/object/cms-public", {
+      method: "DELETE",
+      headers: service,
+      body: JSON.stringify({ prefixes: [objectPath] }),
+    }),
+    "remove-original-derivative",
+  );
   await expectOk(
     await request(`/rest/v1/cms_pages?id=eq.${mediaPageId}`, {
       method: "PATCH",
@@ -496,10 +596,14 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
     }),
     "unpublish-media",
   );
-  const removedReplacement = await storageAdmin.storage
-    .from("cms-public")
-    .remove([replacementPath]);
-  expect(removedReplacement.error).toBeNull();
+  await expectOk(
+    await request("/storage/v1/object/cms-public", {
+      method: "DELETE",
+      headers: service,
+      body: JSON.stringify({ prefixes: [replacementPath] }),
+    }),
+    "remove-replacement-derivative",
+  );
   expect((await page.request.get(`/api/cms/media/${assetKey}`)).status()).toBe(404);
 
   const rollback = await expectOk(
@@ -516,6 +620,45 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
     "anonymous-after-rollback",
   );
   expect(await afterRollback.json()).toHaveLength(0);
+
+  await signInCms(page, editor);
+  await expectOk(
+    await request(`/rest/v1/user_roles?user_id=eq.${editor.id}&role=eq.cms-editor`, {
+      method: "PATCH",
+      headers: service,
+      body: JSON.stringify({ revoked_at: new Date().toISOString() }),
+    }),
+    "revoke-editor-role",
+  );
+  await page.goto("/en/admin/content");
+  await expect(page).toHaveURL(/\/en\/admin\/content\/sign-in|\/en\/account-state/);
+  await expectOk(
+    await request(`/rest/v1/user_roles?user_id=eq.${editor.id}&role=eq.cms-editor`, {
+      method: "PATCH",
+      headers: service,
+      body: JSON.stringify({ revoked_at: null }),
+    }),
+    "restore-editor-role",
+  );
+  await expectOk(
+    await request(`/rest/v1/membership_history?user_id=eq.${editor.id}&effective_to=is.null`, {
+      method: "PATCH",
+      headers: service,
+      body: JSON.stringify({ effective_to: new Date().toISOString() }),
+    }),
+    "expire-editor-membership",
+  );
+  await signInCms(page, editor);
+  await page.goto("/en/admin/content");
+  await expect(page).toHaveURL(/\/en\/admin\/content\/sign-in|\/en\/account-state/);
+  await expectOk(
+    await request(`/rest/v1/membership_history?user_id=eq.${editor.id}`, {
+      method: "PATCH",
+      headers: service,
+      body: JSON.stringify({ effective_to: null }),
+    }),
+    "restore-editor-membership",
+  );
 
   const mediaResponse = await page.request.get(`/api/cms/media/${randomUUID()}`);
   expect(mediaResponse.status()).toBe(404);
