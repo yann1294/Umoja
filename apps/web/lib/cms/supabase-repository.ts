@@ -70,7 +70,7 @@ export class SupabaseCmsRepository implements CmsRepository {
       .eq("page_id", id)
       .order("revision_number", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     if (error) throw error;
     return data;
   }
@@ -85,7 +85,14 @@ export class SupabaseCmsRepository implements CmsRepository {
       .select("*")
       .order("updated_at", { ascending: false });
     if (error) throw error;
-    const values = await Promise.all(data.map(async (row) => page(row, await this.latest(row.id))));
+    const values = (
+      await Promise.all(
+        data.map(async (row) => {
+          const revision = await this.latest(row.id);
+          return revision ? page(row, revision) : null;
+        }),
+      )
+    ).filter((value): value is CmsPage => value !== null);
     return values.filter(
       (value) =>
         (!filters.locale || value.locale === filters.locale) &&
@@ -103,7 +110,9 @@ export class SupabaseCmsRepository implements CmsRepository {
       .eq("id", id)
       .maybeSingle();
     if (error) throw error;
-    return data ? page(data, await this.latest(id)) : null;
+    if (!data) return null;
+    const latest = await this.latest(id);
+    return latest ? page(data, latest) : null;
   }
   async getPublished(locale: CmsLocale, slug: string) {
     const { data, error } = await this.client
@@ -143,7 +152,7 @@ export class SupabaseCmsRepository implements CmsRepository {
     return page(source, selected);
   }
   async listRevisions(id: string) {
-    const source = await this.must(id);
+    await this.must(id);
     const { data, error } = await this.client
       .from("cms_revisions")
       .select("*")
@@ -198,6 +207,7 @@ export class SupabaseCmsRepository implements CmsRepository {
     return this.transition(id, actorId, "review");
   }
   async publish(id: string, actorId: string) {
+    void actorId;
     const current = await this.must(id);
     assertPublishable(current);
     if (current.state !== "review")
@@ -210,7 +220,9 @@ export class SupabaseCmsRepository implements CmsRepository {
       p_change_summary: "Published complete revision",
     });
     if (error) throw error;
-    const result = page(data, await this.latest(id));
+    const published = await this.latest(id);
+    if (!published) throw new Error("CMS revision not found after publication.");
+    const result = page(data, published);
     await this.onPublish(result);
     return result;
   }
@@ -227,6 +239,7 @@ export class SupabaseCmsRepository implements CmsRepository {
     return this.transition(id, actorId, "draft", { archived_at: null });
   }
   async rollback(id: string, revisionId: string, actorId: string) {
+    void actorId;
     const { data, error } = await this.client.rpc(
       "rollback_cms_page" as never,
       {
@@ -257,7 +270,9 @@ export class SupabaseCmsRepository implements CmsRepository {
       .select()
       .single();
     if (error) throw error;
-    const result = page(data, await this.latest(id));
+    const latest = await this.latest(id);
+    if (!latest) throw new Error("CMS revision not found after transition.");
+    const result = page(data, latest);
     if (state !== "review") await this.onPublish(result);
     return result;
   }
