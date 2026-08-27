@@ -9,7 +9,7 @@ const intlMiddleware = createMiddleware(routing);
 function isSupabaseCmsMediaPath(pathname: string) {
   return (
     /^\/(en|fr)\/admin\/content(?:\/|$)/.test(pathname) ||
-    /^\/api\/cms\/media(?:\/|$)/.test(pathname)
+    /^\/api\/cms\/(?:media|preview)(?:\/|$)/.test(pathname)
   );
 }
 
@@ -29,5 +29,9 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|trpc|_next|_vercel|design-system|.*\\..*).*)", "/api/cms/media/:path*"],
+  matcher: [
+    "/((?!api|trpc|_next|_vercel|design-system|.*\\..*).*)",
+    "/api/cms/media/:path*",
+    "/api/cms/preview/:path*",
+  ],
 };

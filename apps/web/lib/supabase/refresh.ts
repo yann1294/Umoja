@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type { Database } from "../../../../supabase/database.types";
 import { getSupabaseEnvironment } from "./env";
+import { supabaseServerCookieOptions } from "./cookies";
 
 /**
  * Refreshes a Supabase PKCE session for a request and returns the response carrying
@@ -22,7 +23,9 @@ export async function refreshSupabaseRequest(request: NextRequest, initialRespon
         setAll: (cookiesToSet) => {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, supabaseServerCookieOptions(options)),
+          );
         },
       },
     },
