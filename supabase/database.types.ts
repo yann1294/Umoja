@@ -241,6 +241,72 @@ export type Database = {
           },
         ];
       };
+      intake_files: {
+        Row: {
+          applicant_id: string | null;
+          archived_at: string | null;
+          content_digest: string;
+          created_at: string;
+          created_by: string | null;
+          encrypted_metadata: string;
+          encrypted_size: number;
+          encryption_key_version: string;
+          id: string;
+          media_type: string;
+          object_path: string;
+          original_size: number;
+          project_intake_id: string | null;
+          talent_intake_id: string | null;
+        };
+        Insert: {
+          applicant_id?: string | null;
+          archived_at?: string | null;
+          content_digest: string;
+          created_at?: string;
+          created_by?: string | null;
+          encrypted_metadata: string;
+          encrypted_size: number;
+          encryption_key_version: string;
+          id?: string;
+          media_type: string;
+          object_path: string;
+          original_size: number;
+          project_intake_id?: string | null;
+          talent_intake_id?: string | null;
+        };
+        Update: {
+          applicant_id?: string | null;
+          archived_at?: string | null;
+          content_digest?: string;
+          created_at?: string;
+          created_by?: string | null;
+          encrypted_metadata?: string;
+          encrypted_size?: number;
+          encryption_key_version?: string;
+          id?: string;
+          media_type?: string;
+          object_path?: string;
+          original_size?: number;
+          project_intake_id?: string | null;
+          talent_intake_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "intake_files_project_intake_id_fkey";
+            columns: ["project_intake_id"];
+            isOneToOne: false;
+            referencedRelation: "project_intakes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "intake_files_talent_intake_id_fkey";
+            columns: ["talent_intake_id"];
+            isOneToOne: false;
+            referencedRelation: "talent_intakes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       membership_history: {
         Row: {
           approved_by: string | null;
@@ -456,6 +522,8 @@ export type Database = {
         Row: {
           applicant_id: string | null;
           archived_at: string | null;
+          assigned_at: string | null;
+          assigned_by: string | null;
           assigned_reviewer_id: string | null;
           attachment_count: number;
           consent_at: string;
@@ -476,6 +544,8 @@ export type Database = {
         Insert: {
           applicant_id?: string | null;
           archived_at?: string | null;
+          assigned_at?: string | null;
+          assigned_by?: string | null;
           assigned_reviewer_id?: string | null;
           attachment_count?: number;
           consent_at: string;
@@ -496,6 +566,8 @@ export type Database = {
         Update: {
           applicant_id?: string | null;
           archived_at?: string | null;
+          assigned_at?: string | null;
+          assigned_by?: string | null;
           assigned_reviewer_id?: string | null;
           attachment_count?: number;
           consent_at?: string;
@@ -544,6 +616,8 @@ export type Database = {
           applicant_id: string | null;
           application_consent_at: string;
           archived_at: string | null;
+          assigned_at: string | null;
+          assigned_by: string | null;
           assigned_reviewer_id: string | null;
           attachment_count: number;
           created_at: string;
@@ -567,6 +641,8 @@ export type Database = {
           applicant_id?: string | null;
           application_consent_at: string;
           archived_at?: string | null;
+          assigned_at?: string | null;
+          assigned_by?: string | null;
           assigned_reviewer_id?: string | null;
           attachment_count?: number;
           created_at?: string;
@@ -590,6 +666,8 @@ export type Database = {
           applicant_id?: string | null;
           application_consent_at?: string;
           archived_at?: string | null;
+          assigned_at?: string | null;
+          assigned_by?: string | null;
           assigned_reviewer_id?: string | null;
           attachment_count?: number;
           created_at?: string;
@@ -640,6 +718,104 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      archive_intake_file: {
+        Args: { p_after_digest: string; p_file_id: string };
+        Returns: string;
+      };
+      create_encrypted_project_intake: {
+        Args: {
+          p_after_digest: string;
+          p_applicant_id: string;
+          p_attachment_count: number;
+          p_consent_at: string;
+          p_email_lookup: string;
+          p_encrypted_payload: string;
+          p_encryption_key_version: string;
+          p_idempotency_key_hash: string;
+          p_locale: string;
+          p_policy_version: string;
+          p_service_areas: string[];
+          p_submission_id: string;
+        };
+        Returns: {
+          applicant_id: string | null;
+          archived_at: string | null;
+          assigned_at: string | null;
+          assigned_by: string | null;
+          assigned_reviewer_id: string | null;
+          attachment_count: number;
+          consent_at: string;
+          created_at: string;
+          email_lookup: string;
+          encrypted_internal_notes: string | null;
+          encrypted_payload: string;
+          encryption_key_version: string;
+          id: string;
+          idempotency_key_hash: string;
+          locale: string;
+          policy_version: string;
+          service_areas: string[];
+          status: Database["public"]["Enums"]["intake_status"];
+          submission_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "project_intakes";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      create_encrypted_talent_intake: {
+        Args: {
+          p_after_digest: string;
+          p_applicant_id: string;
+          p_application_consent_at: string;
+          p_attachment_count: number;
+          p_data_processing_consent_at: string;
+          p_email_lookup: string;
+          p_encrypted_payload: string;
+          p_encryption_key_version: string;
+          p_experience_band: string;
+          p_idempotency_key_hash: string;
+          p_locale: string;
+          p_policy_version: string;
+          p_public_profile_consent: boolean;
+          p_skill_areas: string[];
+          p_submission_id: string;
+        };
+        Returns: {
+          applicant_id: string | null;
+          application_consent_at: string;
+          archived_at: string | null;
+          assigned_at: string | null;
+          assigned_by: string | null;
+          assigned_reviewer_id: string | null;
+          attachment_count: number;
+          created_at: string;
+          data_processing_consent_at: string;
+          email_lookup: string;
+          encrypted_internal_notes: string | null;
+          encrypted_payload: string;
+          encryption_key_version: string;
+          experience_band: string;
+          id: string;
+          idempotency_key_hash: string;
+          locale: string;
+          policy_version: string;
+          public_profile_consent: boolean;
+          skill_areas: string[];
+          status: Database["public"]["Enums"]["intake_status"];
+          submission_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "talent_intakes";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       issue_cms_preview_token: {
         Args: {
           p_expires_at: string;
@@ -701,6 +877,42 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      register_intake_file: {
+        Args: {
+          p_content_digest: string;
+          p_encrypted_metadata: string;
+          p_encrypted_size: number;
+          p_encryption_key_version: string;
+          p_file_id: string;
+          p_intake_id: string;
+          p_kind: string;
+          p_media_type: string;
+          p_object_path: string;
+          p_original_size: number;
+        };
+        Returns: {
+          applicant_id: string | null;
+          archived_at: string | null;
+          content_digest: string;
+          created_at: string;
+          created_by: string | null;
+          encrypted_metadata: string;
+          encrypted_size: number;
+          encryption_key_version: string;
+          id: string;
+          media_type: string;
+          object_path: string;
+          original_size: number;
+          project_intake_id: string | null;
+          talent_intake_id: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "intake_files";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       revoke_cms_preview_token: {
         Args: { p_page_id: string };
         Returns: {
@@ -756,6 +968,17 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      update_intake_review: {
+        Args: {
+          p_after_digest: string;
+          p_assigned_reviewer_id: string;
+          p_encrypted_internal_notes: string;
+          p_intake_id: string;
+          p_kind: string;
+          p_status: Database["public"]["Enums"]["intake_status"];
+        };
+        Returns: string;
       };
       validate_cms_preview_token: {
         Args: { p_locale: string; p_page_id: string; p_token_hash: string };
