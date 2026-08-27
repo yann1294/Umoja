@@ -125,6 +125,23 @@ export class SupabaseCmsRepository implements CmsRepository {
     if (revisionError) throw revisionError;
     return page(data, published);
   }
+  /** Server-only preview boundary calls this with an already validated capability binding. */
+  async getPreviewRevision(id: string, revisionId: string) {
+    const { data: source, error: pageError } = await this.client
+      .from("cms_pages")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (pageError || !source) return null;
+    const { data: selected, error: revisionError } = await this.client
+      .from("cms_revisions")
+      .select("*")
+      .eq("id", revisionId)
+      .eq("page_id", id)
+      .maybeSingle();
+    if (revisionError || !selected) return null;
+    return page(source, selected);
+  }
   async listRevisions(id: string) {
     const source = await this.must(id);
     const { data, error } = await this.client
@@ -210,10 +227,13 @@ export class SupabaseCmsRepository implements CmsRepository {
     return this.transition(id, actorId, "draft", { archived_at: null });
   }
   async rollback(id: string, revisionId: string, actorId: string) {
-    const { data, error } = await this.client.rpc("rollback_cms_page" as never, {
-      p_page_id: id,
-      p_revision_id: revisionId,
-    } as never);
+    const { data, error } = await this.client.rpc(
+      "rollback_cms_page" as never,
+      {
+        p_page_id: id,
+        p_revision_id: revisionId,
+      } as never,
+    );
     if (error) throw error;
     const result = await this.must((data as { id: string }).id);
     await this.onPublish(result);

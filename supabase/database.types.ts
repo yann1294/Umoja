@@ -122,6 +122,8 @@ export type Database = {
           id: string;
           locale: string;
           preview_expires_at: string | null;
+          preview_revision_id: string | null;
+          preview_revoked_at: string | null;
           preview_token_hash: string | null;
           published_at: string | null;
           slug: string;
@@ -139,6 +141,8 @@ export type Database = {
           id?: string;
           locale: string;
           preview_expires_at?: string | null;
+          preview_revision_id?: string | null;
+          preview_revoked_at?: string | null;
           preview_token_hash?: string | null;
           published_at?: string | null;
           slug: string;
@@ -156,6 +160,8 @@ export type Database = {
           id?: string;
           locale?: string;
           preview_expires_at?: string | null;
+          preview_revision_id?: string | null;
+          preview_revoked_at?: string | null;
           preview_token_hash?: string | null;
           published_at?: string | null;
           slug?: string;
@@ -169,6 +175,13 @@ export type Database = {
           {
             foreignKeyName: "cms_pages_current_revision_fk";
             columns: ["current_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "cms_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cms_pages_preview_revision_id_fkey";
+            columns: ["preview_revision_id"];
             isOneToOne: false;
             referencedRelation: "cms_revisions";
             referencedColumns: ["id"];
@@ -627,6 +640,39 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      issue_cms_preview_token: {
+        Args: {
+          p_expires_at: string;
+          p_page_id: string;
+          p_revision_id: string;
+          p_token_hash: string;
+        };
+        Returns: {
+          archived_at: string | null;
+          author_id: string;
+          created_at: string;
+          current_revision_id: string | null;
+          id: string;
+          locale: string;
+          preview_expires_at: string | null;
+          preview_revision_id: string | null;
+          preview_revoked_at: string | null;
+          preview_token_hash: string | null;
+          published_at: string | null;
+          slug: string;
+          stable_key: string;
+          state: Database["public"]["Enums"]["cms_state"];
+          translation_group_id: string;
+          updated_at: string;
+          updated_by_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "cms_pages";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       publish_cms_page: {
         Args: { p_change_summary?: string; p_page_id: string };
         Returns: {
@@ -637,6 +683,36 @@ export type Database = {
           id: string;
           locale: string;
           preview_expires_at: string | null;
+          preview_revision_id: string | null;
+          preview_revoked_at: string | null;
+          preview_token_hash: string | null;
+          published_at: string | null;
+          slug: string;
+          stable_key: string;
+          state: Database["public"]["Enums"]["cms_state"];
+          translation_group_id: string;
+          updated_at: string;
+          updated_by_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "cms_pages";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      revoke_cms_preview_token: {
+        Args: { p_page_id: string };
+        Returns: {
+          archived_at: string | null;
+          author_id: string;
+          created_at: string;
+          current_revision_id: string | null;
+          id: string;
+          locale: string;
+          preview_expires_at: string | null;
+          preview_revision_id: string | null;
+          preview_revoked_at: string | null;
           preview_token_hash: string | null;
           published_at: string | null;
           slug: string;
@@ -663,6 +739,8 @@ export type Database = {
           id: string;
           locale: string;
           preview_expires_at: string | null;
+          preview_revision_id: string | null;
+          preview_revoked_at: string | null;
           preview_token_hash: string | null;
           published_at: string | null;
           slug: string;
@@ -678,6 +756,13 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      validate_cms_preview_token: {
+        Args: { p_locale: string; p_page_id: string; p_token_hash: string };
+        Returns: {
+          page_id: string;
+          revision_id: string;
+        }[];
       };
     };
     Enums: {

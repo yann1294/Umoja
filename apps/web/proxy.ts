@@ -19,12 +19,15 @@ export default async function proxy(request: NextRequest) {
   const response = request.nextUrl.pathname.startsWith("/api/")
     ? NextResponse.next({ request })
     : intlMiddleware(request);
-  return cmsMedia ? (await refreshSupabaseRequest(request, response)).response : response;
+  const result = cmsMedia ? (await refreshSupabaseRequest(request, response)).response : response;
+  if (/^\/(en|fr)\/preview\/[0-9a-f-]{36}$/.test(request.nextUrl.pathname)) {
+    result.headers.set("Cache-Control", "no-store, private");
+    result.headers.set("Referrer-Policy", "no-referrer");
+    result.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  }
+  return result;
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|trpc|_next|_vercel|design-system|.*\\..*).*)",
-    "/api/cms/media/:path*",
-  ],
+  matcher: ["/((?!api|trpc|_next|_vercel|design-system|.*\\..*).*)", "/api/cms/media/:path*"],
 };

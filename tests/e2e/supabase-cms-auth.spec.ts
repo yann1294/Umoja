@@ -60,7 +60,13 @@ async function cleanupPage(id: string) {
     await api(`/rest/v1/cms_pages?id=eq.${id}`, {
       method: "PATCH",
       headers: service,
-      body: JSON.stringify({ current_revision_id: null, state: "draft" }),
+      body: JSON.stringify({
+        current_revision_id: null,
+        preview_revision_id: null,
+        preview_token_hash: null,
+        preview_expires_at: null,
+        state: "draft",
+      }),
     }),
     "clear-page-pointer",
   );
@@ -201,12 +207,37 @@ test("anonymous reads the published synthetic CMS route", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Synthetic browser CMS" })).toBeVisible();
 });
 test("admin signs in through scoped Supabase CMS route", async ({ page }) => {
+  await signInCmsAdmin(page);
+  await expect(page.getByRole("heading", { name: "Public content" })).toBeVisible();
+});
+async function signInCmsAdmin(page: import("@playwright/test").Page) {
   await page.goto(`/en/admin/content/sign-in?next=/en/admin/content`);
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/en\/admin\/content$/);
-  await expect(page.getByRole("heading", { name: "Public content" })).toBeVisible();
+}
+test("exchanges a revision-bound preview capability for a clean, no-store preview", async ({ page }) => {
+  await signInCmsAdmin(page);
+  const issued = await page.request.post("/api/cms/preview", {
+    data: { pageId, revisionId, locale: "en", expiresInMinutes: 5 },
+  });
+  expect(issued.status()).toBe(200);
+  expect(issued.headers()["cache-control"]).toContain("no-store");
+  const body = (await issued.json()) as { previewExchangePath: string };
+  expect(body.previewExchangePath).toMatch(/^\/api\/cms\/preview\/exchange\?/);
+  await page.goto(body.previewExchangePath);
+  await expect(page).toHaveURL(new RegExp(`/en/preview/${pageId}$`));
+  await expect(page.getByRole("heading", { name: "Synthetic browser CMS" })).toBeVisible();
+  expect(page.url()).not.toContain("token=");
+  const preview = await page.request.get(`/en/preview/${pageId}`);
+  expect(preview.headers()["cache-control"]).toContain("no-store");
+  expect(preview.headers()["referrer-policy"]).toBe("no-referrer");
+
+  const revoked = await page.request.delete("/api/cms/preview", { data: { pageId, locale: "en" } });
+  expect(revoked.status()).toBe(204);
+  await page.goto(`/en/preview/${pageId}`);
+  await expect(page.getByRole("heading", { name: "Synthetic browser CMS" })).toHaveCount(0);
 });
 test("unpublish invalidates the public route back to its editorial fallback", async ({ page }) => {
   const unpublished = await api(`/rest/v1/cms_pages?id=eq.${pageId}`, {
