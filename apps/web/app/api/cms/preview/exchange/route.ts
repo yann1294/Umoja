@@ -22,7 +22,12 @@ export async function GET(request: Request) {
   if ((locale !== "en" && locale !== "fr") || !pageId || !token) return notFound();
   const binding = await validateCmsPreviewCapability({ pageId, locale, token });
   if (!binding || binding.pageId !== pageId) return notFound();
-  const response = NextResponse.redirect(new URL(`/${locale}/preview/${pageId}`, url.origin), 303);
+  const cleanPreviewPath = `/${locale}/preview/${pageId}`;
+  const response = NextResponse.redirect(new URL(cleanPreviewPath, url.origin), 303);
+  // Keep the capability exchange on the browser's current origin. Next may
+  // normalize request.url to APP_URL behind a local or reverse proxy; an
+  // absolute redirect would then strand this host-only preview cookie.
+  response.headers.set("Location", cleanPreviewPath);
   response.headers.set("Cache-Control", "no-store, private");
   response.headers.set("Referrer-Policy", "no-referrer");
   response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");

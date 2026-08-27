@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getSupabaseEnvironment } from "@/lib/supabase/env";
 
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
 const idSchema = z.string().uuid();
@@ -77,8 +78,8 @@ export const cmsPreviewCookie = {
   options: (locale: "en" | "fr", pageId: string, maxAge: number) => ({
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: `/${locale}/preview/${pageId}`,
+    secure: new URL(getSupabaseEnvironment().APP_URL).protocol === "https:",
+    path: `/${locale}/preview`,
     maxAge,
   }),
 };
