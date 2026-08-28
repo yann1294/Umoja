@@ -144,11 +144,16 @@ export class SupabaseApplicantPrivateStorage {
     };
   }
 
-  async download(fileId: string) {
+  async download(
+    fileId: string,
+    expected?: Readonly<{ kind: PersistedIntakeKind; intakeId: string }>,
+  ) {
     const row = await this.get(fileId);
     // No scanner is configured in this spike. Quarantined or rejected content is never delivered.
     if (!intakeFileCanBeDelivered(row.scan_status)) throw new IntakeRepositoryAccessError();
     const source = parent(row);
+    if (expected && (source.kind !== expected.kind || source.intakeId !== expected.intakeId))
+      throw new IntakeRepositoryAccessError();
     if (
       !(await this.authorize({
         operation: "download",
@@ -207,9 +212,14 @@ export class SupabaseApplicantPrivateStorage {
     }));
   }
 
-  async remove(fileId: string) {
+  async remove(
+    fileId: string,
+    expected?: Readonly<{ kind: PersistedIntakeKind; intakeId: string }>,
+  ) {
     const row = await this.get(fileId);
     const source = parent(row);
+    if (expected && (source.kind !== expected.kind || source.intakeId !== expected.intakeId))
+      throw new IntakeRepositoryAccessError();
     if (
       !(await this.authorize({
         operation: "delete",

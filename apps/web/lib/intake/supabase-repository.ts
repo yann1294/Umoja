@@ -60,7 +60,14 @@ function canReview(principal: ServerPrincipal | null) {
 }
 
 function canRead(principal: ServerPrincipal | null, row: IntakeRow) {
-  return Boolean(principal && (row.applicant_id === principal.actorId || canReview(principal)));
+  return Boolean(
+    principal &&
+    (row.applicant_id === principal.actorId ||
+      (principal.membershipActive && principal.roles.includes("admin")) ||
+      (principal.membershipActive &&
+        principal.roles.includes("reviewer") &&
+        row.assigned_reviewer_id === principal.actorId)),
+  );
 }
 
 function table(kind: PersistedIntakeKind) {
@@ -202,6 +209,32 @@ export class SupabaseEncryptedIntakeRepository {
     return this.getSensitive("talent", id, TalentIntakeSchema);
   }
 
+  async getForReview(kind: PersistedIntakeKind, id: string) {
+    const row = await this.raw(kind, id);
+    if (!row || !canRead(this.principal, row)) throw new IntakeRepositoryAccessError();
+    try {
+      const payload = JSON.parse(
+        decryptIntakeValue(
+          row.encrypted_payload,
+          `intake:${kind}:${row.submission_id}:payload`,
+          this.keyring,
+        ),
+      ) as Record<string, unknown>;
+      const notes = row.encrypted_internal_notes
+        ? (JSON.parse(
+            decryptIntakeValue(
+              row.encrypted_internal_notes,
+              `intake:${kind}:${row.submission_id}:notes`,
+              this.keyring,
+            ),
+          ) as Array<{ actorId: string; createdAt: string; text: string }>)
+        : [];
+      return { summary: summary(kind, row), payload, notes };
+    } catch {
+      throw new IntakeRepositoryAccessError();
+    }
+  }
+
   async findByEmail(kind: PersistedIntakeKind, normalizedEmail: string) {
     if (!canReview(this.principal)) throw new IntakeRepositoryAccessError();
     const lookup = createIntakeBlindIndex(normalizedEmail, `intake:${kind}:email`, this.keyring);
@@ -217,6 +250,7 @@ export class SupabaseEncryptedIntakeRepository {
 
   async updateReview(kind: PersistedIntakeKind, id: string, input: IntakeReviewUpdate) {
     if (!canReview(this.principal)) throw new IntakeRepositoryAccessError();
+    if (input.status === "accepted") throw new IntakeRepositoryAccessError();
     const current = await this.raw(kind, id);
     if (!current || !canRead(this.principal, current)) throw new IntakeRepositoryAccessError();
     const notes = current.encrypted_internal_notes

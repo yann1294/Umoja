@@ -13,13 +13,24 @@ function isSupabaseCmsMediaPath(pathname: string) {
   );
 }
 
+function isSupabaseIntakeAdminPath(pathname: string) {
+  return (
+    /^\/(en|fr)\/admin\/intake(?:\/|$)/.test(pathname) ||
+    /^\/api\/intake\/admin(?:\/|$)/.test(pathname)
+  );
+}
+
 /** Only the atomically migrated CMS/media group refreshes Supabase session cookies. */
 export default async function proxy(request: NextRequest) {
-  const cmsMedia = isSupabaseCmsMediaPath(request.nextUrl.pathname);
+  const supabaseRoute =
+    isSupabaseCmsMediaPath(request.nextUrl.pathname) ||
+    isSupabaseIntakeAdminPath(request.nextUrl.pathname);
   const response = request.nextUrl.pathname.startsWith("/api/")
     ? NextResponse.next({ request })
     : intlMiddleware(request);
-  const result = cmsMedia ? (await refreshSupabaseRequest(request, response)).response : response;
+  const result = supabaseRoute
+    ? (await refreshSupabaseRequest(request, response)).response
+    : response;
   if (/^\/(en|fr)\/preview\/[0-9a-f-]{36}$/.test(request.nextUrl.pathname)) {
     result.headers.set("Cache-Control", "no-store, private");
     result.headers.set("Referrer-Policy", "no-referrer");
@@ -33,5 +44,6 @@ export const config = {
     "/((?!api|trpc|_next|_vercel|design-system|.*\\..*).*)",
     "/api/cms/media/:path*",
     "/api/cms/preview/:path*",
+    "/api/intake/admin/:path*",
   ],
 };
