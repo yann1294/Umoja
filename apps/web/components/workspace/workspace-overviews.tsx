@@ -1,5 +1,7 @@
-import type { WorkspaceUser } from "@/lib/appwrite/auth";
-import { canUseWorkspaceCapability } from "@/lib/appwrite/auth";
+import {
+  canUseSupabaseWorkspaceCapability as canUseWorkspaceCapability,
+  type SupabaseWorkspaceUser as WorkspaceUser,
+} from "@/lib/supabase/auth";
 import { displayName, roleLabels } from "./workspace-copy";
 
 export function WorkspaceOverview({
@@ -159,8 +161,8 @@ export function AdminOverview({
     {
       title: french ? "Accès et membres" : "Access and membership",
       description: french
-        ? "Les invitations et rôles restent gérés de manière contrôlée dans Appwrite pendant cette étape."
-        : "Invitations and roles remain controlled through Appwrite at this stage.",
+        ? "Les invitations et rôles sont contrôlés par les attributions relationnelles Umoja."
+        : "Invitations and roles are controlled through Umoja’s relational assignments.",
       status: french ? "Gestion assistée" : "Console-assisted",
     },
     {
