@@ -20,11 +20,16 @@ function isSupabaseIntakeAdminPath(pathname: string) {
   );
 }
 
-/** Only the atomically migrated CMS/media group refreshes Supabase session cookies. */
+function isCanonicalSupabaseWorkspacePath(pathname: string) {
+  return /^\/(en|fr)\/(?:workspace|admin)(?:\/|$)/.test(pathname);
+}
+
+/** Migrated protected route groups refresh the one canonical Supabase session per request. */
 export default async function proxy(request: NextRequest) {
   const supabaseRoute =
     isSupabaseCmsMediaPath(request.nextUrl.pathname) ||
-    isSupabaseIntakeAdminPath(request.nextUrl.pathname);
+    isSupabaseIntakeAdminPath(request.nextUrl.pathname) ||
+    isCanonicalSupabaseWorkspacePath(request.nextUrl.pathname);
   const response = request.nextUrl.pathname.startsWith("/api/")
     ? NextResponse.next({ request })
     : intlMiddleware(request);

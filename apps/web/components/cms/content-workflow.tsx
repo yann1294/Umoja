@@ -5,7 +5,8 @@ import {
   type CmsPage,
   type CmsRevision,
 } from "@umoja/appwrite/cms";
-import { canUseWorkspaceCapability, type WorkspaceUser } from "@/lib/appwrite/auth";
+import { rolesHaveCapability } from "@/lib/auth/policy";
+import type { SupabaseWorkspaceUser as WorkspaceUser } from "@/lib/supabase/auth";
 import { rollbackContent, transitionContent } from "@/app/[locale]/admin/content/actions";
 
 export function ContentWorkflow({
@@ -14,7 +15,7 @@ export function ContentWorkflow({
   user,
 }: Readonly<{ locale: "en" | "fr"; page: CmsPage; user: WorkspaceUser }>) {
   const french = locale === "fr";
-  const canPublish = canUseWorkspaceCapability(user, "cms.publish");
+  const canPublish = rolesHaveCapability(user.roles, "cms.publish");
   const governanceBlocked = isGovernanceControlled(page);
   const consentBlocked = !hasPublicationConsent(page);
   return (

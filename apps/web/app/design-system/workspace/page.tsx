@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import type { UmojaRole } from "@umoja/appwrite";
+import type { UmojaRole } from "@/lib/auth/policy";
 
 import { AdminOverview, WorkspaceOverview } from "@/components/workspace/workspace-overviews";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";

@@ -16,11 +16,12 @@ export function principalCanReviewIntake(
 export async function requireSupabaseIntakeReviewer(locale: string = "en") {
   const safeLocale = locale === "fr" ? "fr" : "en";
   const principal = await getSupabaseServerPrincipal();
-  if (!principal) redirect(`/${safeLocale}/admin/intake/sign-in?next=/${safeLocale}/admin/intake`);
+  if (!principal)
+    redirect(`/${safeLocale}/sign-in?next=${encodeURIComponent(`/${safeLocale}/admin/intake`)}`);
   if (!principalCanReviewIntake(principal))
-    redirect(`/${safeLocale}/admin/intake/account-state?reason=forbidden`);
+    redirect(`/${safeLocale}/account-state?reason=forbidden`);
   if (process.env.SUPABASE_PRIVILEGED_MFA_REQUIRED === "1" && !principal.mfaVerified)
-    redirect(`/${safeLocale}/admin/intake/account-state?reason=mfa-required`);
+    redirect(`/${safeLocale}/account-state?reason=mfa-required`);
   return {
     id: principal.actorId,
     name: "",

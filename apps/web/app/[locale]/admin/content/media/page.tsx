@@ -5,7 +5,7 @@ import { MediaReplacement, MediaUpload } from "@/components/cms/media-upload";
 import { statusLabel } from "@/components/cms/content-workflow";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
-import { rolesHaveCapability } from "@umoja/appwrite";
+import { rolesHaveCapability } from "@/lib/auth/policy";
 import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
 import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 import { transitionMedia, updateMediaMetadata } from "./actions";

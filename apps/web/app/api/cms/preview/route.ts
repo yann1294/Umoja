@@ -1,6 +1,6 @@
 import "server-only";
 
-import { rolesHaveCapability } from "@umoja/appwrite";
+import { rolesHaveCapability } from "@/lib/auth/policy";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseServerPrincipal } from "@/lib/supabase/auth";

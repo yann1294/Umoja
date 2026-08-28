@@ -1,5 +1,6 @@
-import { rolesHaveCapability, type UmojaCapability, type UmojaRole } from "@umoja/appwrite";
 import type { ReactNode } from "react";
+
+import { rolesHaveCapability, type UmojaCapability, type UmojaRole } from "@/lib/auth/policy";
 
 import { AuthenticatedShell } from "./authenticated-shell";
 import "./workspace-shell.css";

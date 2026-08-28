@@ -4,7 +4,7 @@ import { Button } from "@umoja/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
-import type { WorkspaceUser } from "@/lib/appwrite/auth";
+import type { SupabaseWorkspaceUser as WorkspaceUser } from "@/lib/supabase/auth";
 import { displayName, initialsFor, roleLabels } from "./workspace-copy";
 
 export function AccountMenu({
@@ -87,7 +87,7 @@ export function AccountMenu({
     setPending("refresh");
     setMessage("");
     try {
-      const response = await fetch("/api/auth/session/refresh", { method: "POST" });
+      const response = await fetch("/api/supabase-auth/session/refresh", { method: "POST" });
       if (!response.ok) {
         router.replace(`/${locale}/sign-in?reason=session-expired`);
         router.refresh();
@@ -109,7 +109,7 @@ export function AccountMenu({
   async function signOut() {
     setPending("sign-out");
     try {
-      await fetch("/api/auth/sign-out", { method: "POST" });
+      await fetch("/api/supabase-auth/sign-out", { method: "POST" });
     } finally {
       router.replace(`/${locale}/sign-in`);
       router.refresh();
