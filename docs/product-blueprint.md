@@ -213,6 +213,26 @@ Even Core members should receive full access only to projects on which they are 
 
 Acceptance should never be a single checkbox. Store the assessment and who approved it.
 
+### Public intake ownership and review semantics
+
+Project and talent intake remain publicly accessible without authentication. A new anonymous
+submission has no account owner and no applicant-readable access. Umoja must never infer ownership
+from an email address, encrypted email, email blind index, submission reference, or another value
+provided by the applicant.
+
+A future account may claim a submission only through a cryptographically random, expiring,
+single-use capability bound to the submission, intake kind, intended recipient, and verified user.
+Until English and French verification, invitation, and recovery email delivery/exchange are proven,
+rendered production paths must not issue claim links or expose applicant read-back. The confirmation
+may show a non-secret submission reference and state that Umoja will contact the applicant.
+
+Operational review may triage, request information, qualify or shortlist where the implemented
+workflow supports those meanings, decline, or record withdrawal. The persisted `accepted` state is
+reserved for a future governance/commercial approval capability. Reviewers and operations
+administrators must not expose or apply it, and an intake review decision is not project acceptance.
+Existing stored states remain stable until an additive, reviewed workflow migration defines any new
+vocabulary and its compatibility mapping.
+
 ### B. Extended-to-Core progression
 
 1. Applicant creates a private profile and consents to data use.

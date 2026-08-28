@@ -169,6 +169,28 @@ Do not upload using the secret/service key when ownership-based RLS should apply
 
 ## 8. Data migration
 
+### Intake ownership and review decision
+
+- Public project and talent submissions do not require an account.
+- New anonymous rows use `applicant_id = null` and have no applicant-readable policy.
+- Never derive ownership from email, encrypted values, HMAC blind indexes, submission references,
+  or other applicant-supplied data.
+- A future claim capability must be random, expiring, single-use, replacement/revocation aware, and
+  bound to intake kind, submission, intended recipient, and verified user. Store only its digest and
+  digest-only audit evidence.
+- Keep claim issuance, claim delivery, and applicant read-back disabled in rendered paths until all
+  six English/French verification, invitation, and recovery email flows pass.
+- Public confirmation exposes only a non-secret reference and explains that Umoja will contact the
+  applicant.
+- `accepted` is reserved for a future governance/commercial approval capability. Reviewer and
+  operations-admin routes must reject it.
+- Preserve the current stored enum during the initial cutover. Map `new` to submitted, `triage` and
+  `in_review` to operational review, `contacted` to an information/contact step, `closed` to a closed
+  or declined outcome with separately encrypted notes, and `duplicate` to duplicate closure. Add a
+  future migration before introducing distinct `needs_information`, `shortlisted`, `qualified`,
+  `declined`, or `withdrawn` stored states.
+- `/contact` remains mock-only and non-persistent.
+
 Before copying anything, classify the Appwrite data:
 
 - Published CMS content
@@ -197,6 +219,20 @@ Produce counts and deterministic digests before and after migration. Never print
 10. Switch the branch runtime fully to Supabase; do not leave production dual writes.
 11. Remove Appwrite runtime dependencies, environment requirements, health checks, and adapters only after parity passes. Preserve migration/export tooling and Git history.
 12. Keep Appwrite Cloud unchanged through the agreed rollback window.
+
+### Atomic intake cutover and rollback boundary
+
+Switch the public project/talent APIs, attachment transfer, reviewer queue/detail/actions, private
+file delivery/archive, and intake audits together. The switched group must use anonymous trusted
+Supabase submission services and a Supabase reviewer/admin principal; it must not combine Appwrite
+identity, tables, Storage, environment parsing, or crypto adapters with Supabase data.
+
+Before merge, rollback is deployment of the reviewed Prompt 11 Appwrite baseline. Stop development
+Supabase intake writes first and remove only synthetic spike records through their marker-scoped
+cleanup. Do not copy or reconcile real records without a separately approved inventory and legal
+plan. After the intake switch, remaining workspace and non-CMS administration may stay Appwrite-only
+temporarily, but that route-group split is migration-only and cannot be accepted as the final
+runtime.
 
 ## 10. Rollback
 

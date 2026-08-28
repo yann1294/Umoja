@@ -34,6 +34,15 @@ Do not run a production dual-backend architecture and do not split Auth/data int
 
 Retain Umoja's application-layer encryption and HMAC model. RLS and private buckets provide access control; they do not replace application encryption for classified sensitive fields and private applicant files.
 
+For the intake spike, project and talent forms remain anonymous. Anonymous submissions have
+`applicant_id = null` and no applicant-readable access. Ownership cannot be inferred from applicant
+attributes or blind indexes. A dormant claim foundation may be evaluated only as an opaque,
+expiring, single-use, submission/type/recipient/user-bound capability with digest-only persistence
+and audits. Claim delivery and applicant read-back remain disabled until the six manual Auth email
+flows pass. The `accepted` intake state remains reserved for a future governance/commercial
+capability and is unavailable to reviewer and operations-admin workflows. `/contact` remains an
+explicitly non-persistent mock.
+
 ## Why a spike instead of immediate cutover
 
 - The stated Appwrite upload blocker is not proven.
@@ -53,6 +62,10 @@ Accept Supabase only when the branch proves all of the following:
 3. RLS is enabled on every exposed table and tested separately for `anon`, record owner, every role, missing membership, disabled account, and service-role paths.
 4. Public CMS queries expose only complete published revisions; draft, review, audit, intake, private profile, and membership rows remain private.
 5. Project/talent intake validation, AES-256-GCM envelopes, HMAC blind indexes, idempotency, digest-only audit records, and review authorization retain behavior parity.
+
+   The atomic intake switch must preserve anonymous submission without assigning ownership, keep
+   claim delivery disabled, and fail closed for `accepted` until governance/commercial approval is
+   separately designed.
 6. Separate `cms-public`, `cms-private`, and `applicant-private` buckets work with least-privilege Storage RLS. Private files remain application-encrypted and use authorized server delivery only.
 7. Phase 12 profile, skill, portfolio, availability, and membership-history tables are reproducible from SQL migrations with deterministic RLS tests.
 8. Existing public, authentication, workspace, admin, CMS, and intake UI behavior and responsive screenshots do not regress.
