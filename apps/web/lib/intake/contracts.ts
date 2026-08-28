@@ -6,10 +6,12 @@ export type IntakeReviewStatus =
 
 export type PreparedIntakeSubmission<T extends ProjectIntake | TalentIntake> = Readonly<{
   submissionId: string;
+  publicReference?: string;
   keyHash: string;
   payload: T;
   policyVersion: string;
   claimedAt: string;
+  /** Migration-test compatibility only; public creation deliberately ignores this value. */
   ownerUserId?: string;
 }>;
 
@@ -24,6 +26,7 @@ export type IntakeSummary = Readonly<{
   assignedReviewerId?: string;
   categories: readonly string[];
   attachmentCount: number;
+  publicReference: string;
 }>;
 
 export type IntakeReviewUpdate = Readonly<{

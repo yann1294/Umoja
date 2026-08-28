@@ -34,6 +34,20 @@ function digest(value: unknown) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
+function publicReference(
+  kind: PersistedIntakeKind,
+  input: PreparedIntakeSubmission<ProjectIntake | TalentIntake>,
+) {
+  return (
+    input.publicReference ??
+    `${kind === "project" ? "UP" : "UT"}-${createHash("sha256")
+      .update(input.submissionId)
+      .digest("hex")
+      .slice(0, 12)
+      .toUpperCase()}`
+  );
+}
+
 function duplicate(error: unknown) {
   return Boolean(error && typeof error === "object" && "code" in error && error.code === "23505");
 }
@@ -66,6 +80,7 @@ function summary(kind: PersistedIntakeKind, row: IntakeRow): IntakeSummary {
     categories:
       kind === "project" ? (row as ProjectRow).service_areas : (row as TalentRow).skill_areas,
     attachmentCount: row.attachment_count,
+    publicReference: row.public_reference ?? "",
   };
 }
 
@@ -99,8 +114,8 @@ export class SupabaseEncryptedIntakeRepository {
       }),
       // Postgres accepts NULL for anonymous submissions; generated RPC argument types do not
       // currently represent nullable function parameters.
-      p_applicant_id: input.ownerUserId ?? (null as unknown as string),
-      p_attachment_count: payload.attachments.length,
+      p_applicant_id: null as unknown as string,
+      p_attachment_count: 0,
       p_consent_at: input.claimedAt,
       p_email_lookup: createIntakeBlindIndex(
         payload.contact.email,
@@ -112,6 +127,7 @@ export class SupabaseEncryptedIntakeRepository {
       p_idempotency_key_hash: input.keyHash,
       p_locale: locale,
       p_policy_version: input.policyVersion,
+      p_public_reference: publicReference("project", input),
       p_service_areas: payload.need.serviceAreas,
       p_submission_id: input.submissionId,
     });
@@ -137,7 +153,7 @@ export class SupabaseEncryptedIntakeRepository {
         keyHash: input.keyHash,
         policyVersion: input.policyVersion,
       }),
-      p_applicant_id: input.ownerUserId ?? (null as unknown as string),
+      p_applicant_id: null as unknown as string,
       p_application_consent_at: input.claimedAt,
       p_attachment_count: 0,
       p_data_processing_consent_at: input.claimedAt,
@@ -152,6 +168,7 @@ export class SupabaseEncryptedIntakeRepository {
       p_idempotency_key_hash: input.keyHash,
       p_locale: locale,
       p_policy_version: input.policyVersion,
+      p_public_reference: publicReference("talent", input),
       p_public_profile_consent: payload.publicProfileConsent,
       p_skill_areas: payload.skillAreas,
       p_submission_id: input.submissionId,

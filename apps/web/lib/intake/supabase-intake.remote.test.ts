@@ -327,6 +327,7 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
       ),
       p_locale: "en",
       p_policy_version: "2026-08",
+      p_public_reference: "UP-TESTDENIED01",
       p_service_areas: ["Product engineering"],
       p_submission_id: randomUUID(),
     };

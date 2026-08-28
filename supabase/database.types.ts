@@ -323,6 +323,8 @@ export type Database = {
           object_path: string;
           original_size: number;
           project_intake_id: string | null;
+          scan_status: Database["public"]["Enums"]["intake_file_scan_status"];
+          scanned_at: string | null;
           talent_intake_id: string | null;
         };
         Insert: {
@@ -339,6 +341,8 @@ export type Database = {
           object_path: string;
           original_size: number;
           project_intake_id?: string | null;
+          scan_status?: Database["public"]["Enums"]["intake_file_scan_status"];
+          scanned_at?: string | null;
           talent_intake_id?: string | null;
         };
         Update: {
@@ -355,6 +359,8 @@ export type Database = {
           object_path?: string;
           original_size?: number;
           project_intake_id?: string | null;
+          scan_status?: Database["public"]["Enums"]["intake_file_scan_status"];
+          scanned_at?: string | null;
           talent_intake_id?: string | null;
         };
         Relationships: [
@@ -603,6 +609,7 @@ export type Database = {
           idempotency_key_hash: string;
           locale: string;
           policy_version: string;
+          public_reference: string | null;
           service_areas: string[];
           status: Database["public"]["Enums"]["intake_status"];
           submission_id: string;
@@ -625,6 +632,7 @@ export type Database = {
           idempotency_key_hash: string;
           locale: string;
           policy_version: string;
+          public_reference?: string | null;
           service_areas: string[];
           status?: Database["public"]["Enums"]["intake_status"];
           submission_id: string;
@@ -647,6 +655,7 @@ export type Database = {
           idempotency_key_hash?: string;
           locale?: string;
           policy_version?: string;
+          public_reference?: string | null;
           service_areas?: string[];
           status?: Database["public"]["Enums"]["intake_status"];
           submission_id?: string;
@@ -699,6 +708,7 @@ export type Database = {
           locale: string;
           policy_version: string;
           public_profile_consent: boolean;
+          public_reference: string | null;
           skill_areas: string[];
           status: Database["public"]["Enums"]["intake_status"];
           submission_id: string;
@@ -724,6 +734,7 @@ export type Database = {
           locale: string;
           policy_version: string;
           public_profile_consent?: boolean;
+          public_reference?: string | null;
           skill_areas: string[];
           status?: Database["public"]["Enums"]["intake_status"];
           submission_id: string;
@@ -749,6 +760,7 @@ export type Database = {
           locale?: string;
           policy_version?: string;
           public_profile_consent?: boolean;
+          public_reference?: string | null;
           skill_areas?: string[];
           status?: Database["public"]["Enums"]["intake_status"];
           submission_id?: string;
@@ -789,6 +801,29 @@ export type Database = {
         Args: { p_after_digest: string; p_file_id: string };
         Returns: string;
       };
+      check_intake_rate_limit: {
+        Args: {
+          p_key_digest: string;
+          p_limit?: number;
+          p_window_seconds?: number;
+        };
+        Returns: {
+          allowed: boolean;
+          retry_after_seconds: number;
+        }[];
+      };
+      claim_intake_idempotency: {
+        Args: { p_expires_at: string; p_key_hash: string };
+        Returns: boolean;
+      };
+      complete_intake_idempotency: {
+        Args: {
+          p_key_hash: string;
+          p_public_reference: string;
+          p_submission_id: string;
+        };
+        Returns: undefined;
+      };
       consume_intake_claim: {
         Args: {
           p_actor_id: string;
@@ -812,6 +847,7 @@ export type Database = {
           p_idempotency_key_hash: string;
           p_locale: string;
           p_policy_version: string;
+          p_public_reference: string;
           p_service_areas: string[];
           p_submission_id: string;
         };
@@ -832,6 +868,7 @@ export type Database = {
           idempotency_key_hash: string;
           locale: string;
           policy_version: string;
+          public_reference: string | null;
           service_areas: string[];
           status: Database["public"]["Enums"]["intake_status"];
           submission_id: string;
@@ -859,6 +896,7 @@ export type Database = {
           p_locale: string;
           p_policy_version: string;
           p_public_profile_consent: boolean;
+          p_public_reference: string;
           p_skill_areas: string[];
           p_submission_id: string;
         };
@@ -882,6 +920,7 @@ export type Database = {
           locale: string;
           policy_version: string;
           public_profile_consent: boolean;
+          public_reference: string | null;
           skill_areas: string[];
           status: Database["public"]["Enums"]["intake_status"];
           submission_id: string;
@@ -1014,6 +1053,8 @@ export type Database = {
           object_path: string;
           original_size: number;
           project_intake_id: string | null;
+          scan_status: Database["public"]["Enums"]["intake_file_scan_status"];
+          scanned_at: string | null;
           talent_intake_id: string | null;
         };
         SetofOptions: {
@@ -1022,6 +1063,10 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      release_intake_idempotency: {
+        Args: { p_key_hash: string };
+        Returns: undefined;
       };
       revoke_cms_preview_token: {
         Args: { p_page_id: string };
@@ -1104,6 +1149,7 @@ export type Database = {
     };
     Enums: {
       cms_state: "draft" | "review" | "published" | "archived";
+      intake_file_scan_status: "quarantined" | "clean" | "rejected";
       intake_status:
         "new" | "triage" | "in_review" | "contacted" | "accepted" | "closed" | "duplicate";
       membership_tier: "applicant" | "extended" | "core" | "lead";
@@ -1235,6 +1281,7 @@ export const Constants = {
   public: {
     Enums: {
       cms_state: ["draft", "review", "published", "archived"],
+      intake_file_scan_status: ["quarantined", "clean", "rejected"],
       intake_status: ["new", "triage", "in_review", "contacted", "accepted", "closed", "duplicate"],
       membership_tier: ["applicant", "extended", "core", "lead"],
       profile_visibility: ["private", "public"],

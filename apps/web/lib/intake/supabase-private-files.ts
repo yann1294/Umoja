@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateIntakeFile } from "@umoja/appwrite/intake-security";
+import { validateIntakeFile } from "./security";
 import type { Database } from "../../../../supabase/database.types";
 import type { PersistedIntakeKind } from "./contracts";
 import {
