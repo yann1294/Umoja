@@ -13,7 +13,7 @@ import { SupabaseEncryptedIntakeRepository } from "./supabase-repository";
 const runRemote = process.env.RUN_SUPABASE_REMOTE_INTAKE === "1";
 const remote = describe.runIf(runRemote);
 
-type Role = "admin" | "reviewer" | "core" | "extended";
+type Role = "admin" | "reviewer" | "cms-editor" | "project-manager" | "core" | "extended";
 type SyntheticUser = Readonly<{
   id: string;
   email: string;
@@ -79,6 +79,9 @@ let reviewer: SyntheticUser;
 let admin: SyntheticUser;
 let unrelated: SyntheticUser;
 let disabled: SyntheticUser;
+let removed: SyntheticUser;
+let cmsEditor: SyntheticUser;
+let projectManager: SyntheticUser;
 let projectId = "";
 let talentId = "";
 let projectSubmissionId = "";
@@ -201,6 +204,38 @@ async function cleanup() {
   }
 }
 
+async function verifyCleanup() {
+  const userIds = users.map((user) => user.id);
+  const targets = [...intakeIds, ...fileIds];
+  if (fileIds.length)
+    expect((await service.from("intake_files").select("id").in("id", fileIds)).data ?? []).toEqual(
+      [],
+    );
+  if (intakeIds.length) {
+    expect(
+      (await service.from("project_intakes").select("id").in("id", intakeIds)).data ?? [],
+    ).toEqual([]);
+    expect(
+      (await service.from("talent_intakes").select("id").in("id", intakeIds)).data ?? [],
+    ).toEqual([]);
+  }
+  if (targets.length)
+    expect(
+      (await service.from("audit_logs").select("id").in("target_id", targets)).data ?? [],
+    ).toEqual([]);
+  if (userIds.length) {
+    expect(
+      (await service.from("user_roles").select("user_id").in("user_id", userIds)).data ?? [],
+    ).toEqual([]);
+    expect(
+      (await service.from("membership_history").select("user_id").in("user_id", userIds)).data ??
+        [],
+    ).toEqual([]);
+  }
+  for (const objectPath of storagePaths)
+    expect((await service.storage.from("applicant-private").download(objectPath)).data).toBeNull();
+}
+
 remote("Supabase encrypted intake and applicant-private authorization", () => {
   beforeAll(async () => {
     try {
@@ -209,6 +244,14 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
       admin = await createUser("admin");
       unrelated = await createUser("core");
       disabled = await createUser("reviewer");
+      removed = await createUser("reviewer");
+      cmsEditor = await createUser("cms-editor");
+      projectManager = await createUser("project-manager");
+      const endMembership = await service
+        .from("membership_history")
+        .update({ effective_to: new Date().toISOString() })
+        .eq("user_id", removed.id);
+      if (endMembership.error) throw new Error(`setup:membership-end:${endMembership.error.code}`);
       const repository = new SupabaseEncryptedIntakeRepository(service, keyring, null, true);
       projectSubmissionId = randomUUID();
       talentSubmissionId = randomUUID();
@@ -259,7 +302,10 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     }
   }, 120_000);
 
-  afterAll(cleanup, 120_000);
+  afterAll(async () => {
+    await cleanup();
+    await verifyCleanup();
+  }, 120_000);
 
   it("keeps plaintext out of rows, enforces ownership, and preserves idempotency", async () => {
     const stored = await service.from("project_intakes").select("*").eq("id", projectId).single();
@@ -275,12 +321,13 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     expect(stored.data?.encrypted_payload).toMatch(/^v1\./);
     expect(stored.data?.email_lookup).toMatch(/^v1\./);
     expect(stored.data).toMatchObject({
+      applicant_id: null,
       consent_at: expect.any(String),
       policy_version: "2026-08",
     });
 
     const ownerRead = await owner.client.from("project_intakes").select("id").eq("id", projectId);
-    expect(ownerRead.data).toEqual([{ id: projectId }]);
+    expect(ownerRead.data).toEqual([]);
     const unrelatedRead = await unrelated.client
       .from("project_intakes")
       .select("id")
@@ -293,6 +340,11 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
       .select("id")
       .eq("id", projectId);
     expect(disabledRead.data ?? []).toEqual([]);
+    for (const denied of [owner, cmsEditor, projectManager, removed]) {
+      expect(
+        (await denied.client.from("project_intakes").select("id").eq("id", projectId)).data ?? [],
+      ).toEqual([]);
+    }
 
     const duplicate = await new SupabaseEncryptedIntakeRepository(
       service,
@@ -350,7 +402,9 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
       keyring,
       admin.principal,
     );
-    await expect(reviewerRepository.getProject(projectId)).resolves.toEqual(project);
+    await expect(reviewerRepository.getProject(projectId)).rejects.toBeInstanceOf(
+      IntakeRepositoryAccessError,
+    );
     await expect(adminRepository.getTalent(talentId)).resolves.toEqual(talent);
     await expect(
       new SupabaseEncryptedIntakeRepository(
@@ -363,12 +417,13 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     expect(exact.map((value) => value.id)).toContain(projectId);
     expect(await reviewerRepository.findByEmail("project", "different@example.test")).toEqual([]);
 
-    const triaged = await reviewerRepository.updateReview("project", projectId, {
+    const triaged = await adminRepository.updateReview("project", projectId, {
       assignedReviewerId: reviewer.id,
       note: `Synthetic note ${run}`,
       status: "triage",
     });
     expect(triaged).toMatchObject({ assignedReviewerId: reviewer.id, status: "triage" });
+    await expect(reviewerRepository.getProject(projectId)).resolves.toEqual(project);
     await expect(
       new SupabaseEncryptedIntakeRepository(
         unrelated.client,
@@ -432,7 +487,7 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     );
     const uploaded = await trustedUpload.upload(
       "project",
-      { applicantId: owner.id, id: projectId, submissionId: projectSubmissionId },
+      { applicantId: null, id: projectId, submissionId: projectSubmissionId },
       { bytes: pdf, mediaType: "application/pdf", name: `synthetic-${run}.pdf` },
     );
     fileIds.push(uploaded.id);
@@ -441,6 +496,7 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     storagePaths.push(metadata.data!.object_path);
     expect(metadata.data!.object_path).toMatch(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.umojaenc$/);
     expect(JSON.stringify(metadata.data)).not.toContain(`synthetic-${run}.pdf`);
+    expect(metadata.data?.scan_status).toBe("quarantined");
 
     const forbiddenRegistration = {
       p_content_digest: metadata.data!.content_digest,
@@ -475,6 +531,9 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
       reviewer.client,
       admin.client,
       disabled.client,
+      removed.client,
+      cmsEditor.client,
+      projectManager.client,
     ]) {
       const listing = await client.storage.from("applicant-private").list();
       expect(listing.data ?? []).toEqual([]);
@@ -504,7 +563,18 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
       ).toBeNull();
     }
 
-    for (const allowed of [owner, reviewer, admin]) {
+    await expect(
+      new SupabaseApplicantPrivateStorage(service, keyring, actor(reviewer, "download")).download(
+        uploaded.id,
+      ),
+    ).rejects.toBeInstanceOf(IntakeRepositoryAccessError);
+    const syntheticScan = await service
+      .from("intake_files")
+      .update({ scan_status: "clean", scanned_at: new Date().toISOString() })
+      .eq("id", uploaded.id);
+    expect(syntheticScan.error).toBeNull();
+
+    for (const allowed of [reviewer, admin]) {
       const boundary = new SupabaseApplicantPrivateStorage(
         service,
         keyring,
@@ -516,7 +586,7 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
         name: `synthetic-${run}.pdf`,
       });
     }
-    for (const denied of [null, unrelated]) {
+    for (const denied of [null, owner, unrelated]) {
       const boundary = new SupabaseApplicantPrivateStorage(
         service,
         keyring,
@@ -554,7 +624,7 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     expect(
       (await service.storage.from("applicant-private").download(metadata.data!.object_path)).error,
     ).not.toBeNull();
-  }, 30_000);
+  }, 90_000);
 
   it("fails closed for MIME/signature mismatch and ciphertext tampering", async () => {
     const boundary = new SupabaseApplicantPrivateStorage(
@@ -565,7 +635,7 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     await expect(
       boundary.upload(
         "talent",
-        { applicantId: owner.id, id: talentId, submissionId: talentSubmissionId },
+        { applicantId: null, id: talentId, submissionId: talentSubmissionId },
         {
           bytes: new Uint8Array([1, 2, 3, 4]),
           mediaType: "application/pdf",
@@ -577,12 +647,16 @@ remote("Supabase encrypted intake and applicant-private authorization", () => {
     const pdf = new Uint8Array([0x25, 0x50, 0x44, 0x46, 1, 2, 3]);
     const uploaded = await boundary.upload(
       "talent",
-      { applicantId: owner.id, id: talentId, submissionId: talentSubmissionId },
+      { applicantId: null, id: talentId, submissionId: talentSubmissionId },
       { bytes: pdf, mediaType: "application/pdf", name: "synthetic-proof.pdf" },
     );
     fileIds.push(uploaded.id);
     const metadata = await service.from("intake_files").select("*").eq("id", uploaded.id).single();
     storagePaths.push(metadata.data!.object_path);
+    await service
+      .from("intake_files")
+      .update({ scan_status: "clean", scanned_at: new Date().toISOString() })
+      .eq("id", uploaded.id);
     const encrypted = await service.storage
       .from("applicant-private")
       .download(metadata.data!.object_path);

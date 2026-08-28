@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
-import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { createClient, type User } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ProjectIntake, TalentIntake } from "@umoja/validation";
 import type { ServerPrincipal } from "@/lib/auth/principal";
@@ -253,12 +253,14 @@ remote("dormant Supabase intake claim boundary", () => {
       }),
     ).rejects.toBeInstanceOf(IntakeRepositoryAccessError);
 
-    const expired = await boundary.issue("talent", talentOne, intended.id);
+    const expired = await boundary.issue(
+      "talent",
+      talentOne,
+      intended.id,
+      new Date(Date.now() + 1_000),
+    );
     claimIds.push(expired.claimId);
-    await service
-      .from("intake_claim_capabilities")
-      .update({ expires_at: new Date(Date.now() - 1000).toISOString() })
-      .eq("id", expired.claimId);
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
     await expect(
       boundary.consume(expired.token, "talent", talentOne, {
         disabled: false,

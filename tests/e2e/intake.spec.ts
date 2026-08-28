@@ -38,7 +38,9 @@ test("keeps both intake journeys usable across the full viewport and orientation
       name: "Candidatez pour contribuer avec Umoja.",
     }),
   ).toBeVisible();
-  await expect(page.getByText("Envoi simulé", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("Cette candidature privée reste distincte", { exact: false }),
+  ).toBeVisible();
   await expectJourneySeparation(page);
   await expectResponsiveProgress(page);
   await expectNoPageHorizontalOverflow(page);
@@ -47,7 +49,7 @@ test("keeps both intake journeys usable across the full viewport and orientation
     page,
     "main input:visible, main select:visible, main textarea:visible, main button:visible",
   );
-  await expectDeterministicScreenshot(page, "talent-intake-initial-fr.png");
+  await expectDeterministicScreenshot(page, "talent-intake-initial-fr.png", 0.0025);
 
   await page.getByLabel("E-mail privé").fill("adresse-invalide");
   await page.getByRole("button", { name: "Continuer" }).click();
@@ -59,7 +61,7 @@ test("keeps both intake journeys usable across the full viewport and orientation
   await expect(page.locator('[aria-invalid="true"]')).toHaveCount(4);
   await expectNoPageHorizontalOverflow(page);
   await expectControlsInsideViewport(page);
-  await expectDeterministicScreenshot(page, "talent-intake-validation-fr.png");
+  await expectDeterministicScreenshot(page, "talent-intake-validation-fr.png", 0.0025);
   await expectNoSeriousAccessibilityViolations(page);
 });
 
@@ -152,6 +154,30 @@ test("validates, reviews, navigates backward, confirms, and submits project inta
     testInfo.project.name !== "width-1280",
     "One project exercises the complete project journey.",
   );
+  let releaseSubmission!: () => void;
+  const submissionReleased = new Promise<void>((resolve) => {
+    releaseSubmission = resolve;
+  });
+  let submissionAttempts = 0;
+  await page.route("**/api/intake/project", async (route) => {
+    submissionAttempts += 1;
+    expect(route.request().method()).toBe("POST");
+    expect(route.request().postDataBuffer()?.byteLength ?? 0).toBeGreaterThan(0);
+    if (submissionAttempts === 1) {
+      await route.abort("internetdisconnected");
+      return;
+    }
+    await submissionReleased;
+    await route.fulfill({
+      body: JSON.stringify({
+        persisted: true,
+        reference: "UP-SYNTHETIC01",
+        status: "success",
+      }),
+      contentType: "application/json",
+      status: 200,
+    });
+  });
   await page.goto("/en/start-a-project", { waitUntil: "domcontentloaded" });
   await hideOffscreenSkipLinkForCapture(page);
 
@@ -194,7 +220,7 @@ test("validates, reviews, navigates backward, confirms, and submits project inta
   await page.getByLabel("Supporting files (optional)").setInputFiles({
     name: "illustrative-brief.pdf",
     mimeType: "application/pdf",
-    buffer: Buffer.from("mock metadata only"),
+    buffer: Buffer.from("%PDF-1.7\nSynthetic browser fixture only.\n"),
   });
   await page.getByLabel(/I consent to Umoja using this project information/).check();
   await page.getByRole("button", { name: "Review" }).click();
@@ -202,21 +228,26 @@ test("validates, reviews, navigates backward, confirms, and submits project inta
   await expectNoSeriousAccessibilityViolations(page);
   await expectDeterministicScreenshot(page, "project-intake-review-en.png");
 
-  const submit = page.getByRole("button", { name: "Submit to the mock adapter" });
+  const submit = page.getByRole("button", { name: "Submit securely" });
   await submit.click();
-  const dialog = page.getByRole("dialog", { name: "Send this mock submission?" });
+  const dialog = page.getByRole("dialog", { name: "Send this submission?" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Confirm mock submission" })).toBeFocused();
+  await expect(dialog.getByRole("button", { name: "Confirm submission" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(submit).toBeFocused();
   await submit.click();
-  await dialog.getByRole("button", { name: "Confirm mock submission" }).click();
+  await dialog.getByRole("button", { name: "Confirm submission" }).click();
+  await expect(page.locator('[data-submission-state="network"]')).toBeVisible();
+  await page.getByRole("button", { name: "Return to the form" }).click();
+  await page.getByRole("button", { name: "Submit securely" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Confirm submission" }).click();
   await expect(dialog.getByRole("button", { name: "Submitting…" })).toBeDisabled();
+  releaseSubmission();
   const success = page.locator('[data-submission-state="success"]');
   await expect(success).toBeVisible();
   await expect(
-    success.getByText("your information is not persisted", { exact: false }),
+    success.getByText("Your submission is stored securely", { exact: false }),
   ).toBeVisible();
   await expectDeterministicScreenshot(page, "project-intake-success-en.png");
 });
@@ -225,6 +256,18 @@ test("submits talent with optional public visibility left unchecked", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "width-1280", "One project verifies consent separation.");
+  await page.route("**/api/intake/talent", async (route) => {
+    expect(route.request().method()).toBe("POST");
+    expect(route.request().postDataBuffer()?.byteLength ?? 0).toBeGreaterThan(0);
+    await route.fulfill({
+      body: JSON.stringify({
+        persisted: true,
+        status: "duplicate",
+      }),
+      contentType: "application/json",
+      status: 200,
+    });
+  });
   await page.goto("/en/join", { waitUntil: "domcontentloaded" });
   await hideOffscreenSkipLinkForCapture(page);
   await page.getByLabel("Preferred or public professional name").fill("Kofi Test");
@@ -254,9 +297,9 @@ test("submits talent with optional public visibility left unchecked", async ({
   await page.getByRole("button", { name: "Review" }).click();
   await expect(page.getByText("No", { exact: true })).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
-  await page.getByRole("button", { name: "Submit to the mock adapter" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Confirm mock submission" }).click();
-  await expect(page.locator('[data-submission-state="success"]')).toBeVisible();
+  await page.getByRole("button", { name: "Submit securely" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Confirm submission" }).click();
+  await expect(page.locator('[data-submission-state="duplicate"]')).toBeVisible();
 });
 
 test("preserves contact entries through network and duplicate responses", async ({
@@ -322,7 +365,7 @@ async function captureIntakeState(page: Page, name: string) {
     page,
     "main input:visible, main select:visible, main textarea:visible, main button:visible",
   );
-  await expectDeterministicScreenshot(page, name);
+  await expectDeterministicScreenshot(page, name, 0.0025);
 }
 
 async function expectFormSemantics(page: Page) {

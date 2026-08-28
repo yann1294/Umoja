@@ -100,4 +100,24 @@ describe("Supabase encrypted intake repository", () => {
     );
     expect(result).toEqual({ status: "duplicate" });
   });
+
+  it("reserves accepted for a future governance boundary", async () => {
+    const rpc = vi.fn();
+    const repository = new SupabaseEncryptedIntakeRepository(
+      { rpc } as unknown as SupabaseClient<Database>,
+      keyring,
+      {
+        actorId: randomUUID(),
+        email: "synthetic@example.test",
+        emailVerified: true,
+        membershipActive: true,
+        mfaVerified: false,
+        roles: ["admin"],
+      },
+    );
+    await expect(
+      repository.updateReview("project", randomUUID(), { status: "accepted" }),
+    ).rejects.toBeInstanceOf(IntakeRepositoryAccessError);
+    expect(rpc).not.toHaveBeenCalled();
+  });
 });
