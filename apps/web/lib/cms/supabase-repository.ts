@@ -12,7 +12,7 @@ import {
   type CmsRepository,
   type CmsRevision,
   type CmsState,
-} from "@umoja/appwrite/cms";
+} from "./domain";
 import type { Database } from "../../../../supabase/database.types";
 
 type Client = SupabaseClient<Database>;

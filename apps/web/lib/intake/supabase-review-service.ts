@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseServerPrincipal } from "@/lib/supabase/auth";
 import { createIntakeEncryptionKeyringFromEnvironment } from "./encryption";
 import type { IntakeReviewStatus, PersistedIntakeKind } from "./contracts";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 import { SupabaseEncryptedIntakeRepository } from "./supabase-repository";
 
 const reviewStatuses = new Set<IntakeReviewStatus>([

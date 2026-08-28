@@ -23,7 +23,7 @@ import type {
   PersistedIntakeKind,
   PreparedIntakeSubmission,
 } from "./contracts";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 
 type Client = SupabaseClient<Database>;
 type ProjectRow = Database["public"]["Tables"]["project_intakes"]["Row"];

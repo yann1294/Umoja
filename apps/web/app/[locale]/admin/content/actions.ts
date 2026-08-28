@@ -7,7 +7,7 @@ import {
   cmsPageInputSchema,
   type CmsBlock,
   type CmsPageInput,
-} from "@umoja/appwrite/cms";
+} from "@/lib/cms/domain";
 import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
 import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 

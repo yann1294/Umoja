@@ -12,7 +12,7 @@ import {
   encryptIntakeValue,
   type IntakeEncryptionKeyring,
 } from "./encryption";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 
 const BUCKET = "applicant-private";
 const ENCRYPTED_CONTENT_TYPE = "application/octet-stream";

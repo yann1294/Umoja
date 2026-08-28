@@ -6,7 +6,7 @@ import type { ProjectIntake, TalentIntake } from "@umoja/validation";
 import type { ServerPrincipal } from "@/lib/auth/principal";
 import type { Database } from "../../../../supabase/database.types";
 import { createIntakeBlindIndex, createIntakeEncryptionKeyringFromEnvironment } from "./encryption";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 import { SupabaseApplicantPrivateStorage } from "./supabase-private-files";
 import { SupabaseEncryptedIntakeRepository } from "./supabase-repository";
 

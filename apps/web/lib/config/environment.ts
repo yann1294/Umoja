@@ -15,10 +15,6 @@ const applicationEnvironmentSchema = z.object({
     .string()
     .regex(/^v[1-9][0-9]*$/)
     .optional(),
-  APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION: z
-    .string()
-    .regex(/^v[1-9][0-9]*$/)
-    .optional(),
 });
 
 export class ApplicationEnvironmentError extends Error {
@@ -40,22 +36,18 @@ export function getApplicationEnvironment(
 
 /**
  * Returns only server-side encryption configuration. Canonical UMOJA names take precedence while
- * the Supabase and Appwrite aliases preserve existing development ciphertext and key rotation.
+ * the Supabase alias preserves existing development ciphertext and key rotation.
  */
 export function getIntakeCryptographyEnvironment(
   source: Readonly<Record<string, string | undefined>> = process.env,
 ) {
   const shared = getApplicationEnvironment(source);
   const activeVersion =
-    shared.UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION ??
-    shared.SUPABASE_ACTIVE_ENCRYPTION_KEY_VERSION ??
-    shared.APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION;
+    shared.UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION ?? shared.SUPABASE_ACTIVE_ENCRYPTION_KEY_VERSION;
   if (!activeVersion) throw new ApplicationEnvironmentError();
   const suffix = activeVersion.toUpperCase();
   const resolve = (purpose: "DATA_ENCRYPTION" | "FILE_ENCRYPTION" | "LOOKUP_HMAC") =>
-    source[`UMOJA_${purpose}_KEY_${suffix}`] ??
-    source[`SUPABASE_${purpose}_KEY_${suffix}`] ??
-    source[`APPWRITE_${purpose}_KEY_${suffix}`];
+    source[`UMOJA_${purpose}_KEY_${suffix}`] ?? source[`SUPABASE_${purpose}_KEY_${suffix}`];
   const data = resolve("DATA_ENCRYPTION");
   const file = resolve("FILE_ENCRYPTION");
   const lookup = resolve("LOOKUP_HMAC");

@@ -85,9 +85,10 @@ NEXT_REVALIDATION_SECRET=
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
 
 Shared application configuration is provider-neutral. `APP_URL`, `NEXT_REVALIDATION_SECRET`, and
-the canonical `UMOJA_*` encryption key names are parsed outside either backend adapter. During the
-reversible migration, existing `SUPABASE_*` and `APPWRITE_*` key aliases remain accepted after the
-canonical names so existing AES-GCM envelopes, AAD contexts, and HMAC indexes remain readable.
+the canonical `UMOJA_*` encryption key names are parsed outside either backend adapter. The existing
+`SUPABASE_*` key aliases remain accepted after the canonical names so existing AES-GCM envelopes,
+AAD contexts, and HMAC indexes remain readable. Appwrite key aliases are retained only in rollback
+history and migration tooling, not the running application.
 
 The deterministic remote type-drift check is:
 
@@ -294,6 +295,12 @@ temporarily, but that route-group split is migration-only and cannot be accepted
 runtime.
 
 ## 10. Rollback
+
+The branch runtime candidate has no Appwrite SDK, session, repository, environment, or route-handler
+dependency in `apps/web`. Appwrite remains an untouched external rollback environment and the
+versioned provisioning/inventory package remains available for disposition work. Rollback is a Git
+deployment operation to the reviewed Appwrite baseline—not a runtime provider flag, dual write, or
+per-request choice. Do not restore the removed web adapters into the Supabase runtime candidate.
 
 Before merge, rollback means switching back to the reviewed Appwrite branch. After a development cutover, rollback requires stopping Supabase writes, reconciling any development-only data, restoring the Appwrite environment configuration, and redeploying the last Appwrite commit. Do not promise data rollback after real dual-system writes unless a tested reconciliation mechanism exists.
 

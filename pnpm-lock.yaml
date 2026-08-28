@@ -35,9 +35,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@appwrite.io/react':
-        specifier: ^0.1.0
-        version: 0.1.0(@tanstack/react-query@5.102.0(react@19.2.3))(appwrite@25.2.0)(next@16.3.2(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(node-appwrite@26.2.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@hookform/resolvers':
         specifier: 5.9.1
         version: 5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.86.0(react@19.2.3))(zod@4.4.3)
@@ -50,9 +47,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.102.0
         version: 5.102.0(react@19.2.3)
-      '@umoja/appwrite':
-        specifier: workspace:*
-        version: link:../../packages/appwrite
       '@umoja/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -62,18 +56,12 @@ importers:
       '@umoja/validation':
         specifier: workspace:*
         version: link:../../packages/validation
-      appwrite:
-        specifier: ^25.2.0
-        version: 25.2.0
       next:
         specifier: 16.3.2
         version: 16.3.2(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl:
         specifier: 4.13.7
         version: 4.13.7(@swc/helpers@0.5.23)(next@16.3.2(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
-      node-appwrite:
-        specifier: ^26.2.0
-        version: 26.2.0
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -198,24 +186,6 @@ packages:
 
   '@adobe/css-tools@4.5.0':
     resolution: {integrity: sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q==}
-
-  '@appwrite.io/react@0.1.0':
-    resolution: {integrity: sha512-3o/J+SBM53K47J25rjG7VtYhfSva3tssGXTuoL1e9KKb6escr/AL1nJqhG9LHs/yGrujASnuamXBQPYqdvNCfw==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.0.0
-      '@tanstack/react-start': ^1.0.0
-      appwrite: ^25.2.0
-      next: '>=15.0.0'
-      node-appwrite: ^26.0.0
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@tanstack/react-start':
-        optional: true
-      next:
-        optional: true
-      node-appwrite:
-        optional: true
 
   '@asamuzakjp/css-color@6.0.7':
     resolution: {integrity: sha512-vC/bk1Lz7Tn/EfU9/apOTBk80/8dyGyWMowPoV1tJ52muDGsDqt2HPT2klrFUiY60MQmQv9q8yIht15JnBgDGw==}
@@ -2414,9 +2384,6 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
-  node-appwrite@26.2.0:
-    resolution: {integrity: sha512-rRToHOuG05F5Q3BGRoJNNIcO69zrYul/V9HOTxfcMSqhdw3TwInAl7pnSnMRW7D0MOQcvaLb8iZIwE1P8TP9Cw==}
-
   node-appwrite@28.0.0:
     resolution: {integrity: sha512-3pLMannNwZf1WUJYdZ998B/ckgAkUGI+Wis31GEwy2NJlx0PooghXe6U3ZJvH86oFaLGl+evnjFWcaQJXu+PZg==}
 
@@ -2648,9 +2615,6 @@ packages:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
     hasBin: true
-
-  server-only@0.0.1:
-    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
 
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
@@ -3053,17 +3017,6 @@ packages:
 snapshots:
 
   '@adobe/css-tools@4.5.0': {}
-
-  '@appwrite.io/react@0.1.0(@tanstack/react-query@5.102.0(react@19.2.3))(appwrite@25.2.0)(next@16.3.2(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(node-appwrite@26.2.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
-    dependencies:
-      '@tanstack/react-query': 5.102.0(react@19.2.3)
-      appwrite: 25.2.0
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-      server-only: 0.0.1
-    optionalDependencies:
-      next: 16.3.2(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      node-appwrite: 26.2.0
 
   '@asamuzakjp/css-color@6.0.7':
     dependencies:
@@ -5215,11 +5168,6 @@ snapshots:
 
   node-addon-api@7.1.1: {}
 
-  node-appwrite@26.2.0:
-    dependencies:
-      json-bigint: 1.0.0
-      undici: 6.28.0
-
   node-appwrite@28.0.0:
     dependencies:
       json-bigint: 1.0.0
@@ -5478,8 +5426,6 @@ snapshots:
   semver@6.3.1: {}
 
   semver@7.8.5: {}
-
-  server-only@0.0.1: {}
 
   set-function-length@1.2.2:
     dependencies:

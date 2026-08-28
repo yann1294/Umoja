@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import type { Database } from "../../../../supabase/database.types";
 import { createIntakeEncryptionKeyring, decryptIntakeFile, decryptIntakeValue } from "./encryption";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 import {
   intakeFileCanBeDelivered,
   prepareSupabaseApplicantFile,

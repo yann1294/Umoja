@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { WorkspaceUser } from "@/lib/appwrite/auth";
+import type { SupabaseWorkspaceUser as WorkspaceUser } from "@/lib/supabase/auth";
 import { getWorkspaceNavigation } from "./workspace-shell";
 
 function user(roles: WorkspaceUser["roles"]): WorkspaceUser {

@@ -4,7 +4,7 @@ import {
   isGovernanceControlled,
   type CmsPage,
   type CmsRevision,
-} from "@umoja/appwrite/cms";
+} from "@/lib/cms/domain";
 import { rolesHaveCapability } from "@/lib/auth/policy";
 import type { SupabaseWorkspaceUser as WorkspaceUser } from "@/lib/supabase/auth";
 import { rollbackContent, transitionContent } from "@/app/[locale]/admin/content/actions";

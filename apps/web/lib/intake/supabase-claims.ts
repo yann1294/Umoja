@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ServerPrincipal } from "@/lib/auth/principal";
 import type { Database } from "../../../../supabase/database.types";
 import type { PersistedIntakeKind } from "./contracts";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 
 type Client = SupabaseClient<Database>;
 

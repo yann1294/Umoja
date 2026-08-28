@@ -17,7 +17,7 @@ describe("provider-neutral application environment", () => {
     ).toMatchObject({ APP_URL: "https://umoja.example", NEXT_REVALIDATION_SECRET: "test-only" });
   });
 
-  it("prefers canonical key names and preserves legacy aliases", () => {
+  it("prefers canonical key names and preserves the Supabase migration alias", () => {
     const canonical = getIntakeCryptographyEnvironment({
       APP_URL: "https://umoja.example",
       UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION: "v1",
@@ -27,10 +27,10 @@ describe("provider-neutral application environment", () => {
     });
     const legacy = getIntakeCryptographyEnvironment({
       APP_URL: "https://umoja.example",
-      APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION: "v1",
-      APPWRITE_DATA_ENCRYPTION_KEY_V1: key(1),
-      APPWRITE_FILE_ENCRYPTION_KEY_V1: key(2),
-      APPWRITE_LOOKUP_HMAC_KEY_V1: key(3),
+      SUPABASE_ACTIVE_ENCRYPTION_KEY_VERSION: "v1",
+      SUPABASE_DATA_ENCRYPTION_KEY_V1: key(1),
+      SUPABASE_FILE_ENCRYPTION_KEY_V1: key(2),
+      SUPABASE_LOOKUP_HMAC_KEY_V1: key(3),
     });
     expect(canonical).toEqual(legacy);
   });

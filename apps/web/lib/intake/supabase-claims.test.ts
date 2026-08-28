@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import type { ServerPrincipal } from "@/lib/auth/principal";
 import type { Database } from "../../../../supabase/database.types";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 import {
   createIntakeClaimToken,
   intakeClaimTokenMatches,

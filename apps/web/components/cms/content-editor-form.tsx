@@ -2,7 +2,7 @@
 
 import { Button } from "@umoja/ui";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
-import type { CmsPage } from "@umoja/appwrite/cms";
+import type { CmsPage } from "@/lib/cms/domain";
 import type { CmsActionState } from "@/app/[locale]/admin/content/actions";
 
 const initialState: CmsActionState = { ok: false, message: "" };

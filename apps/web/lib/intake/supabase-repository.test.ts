@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ProjectIntake } from "@umoja/validation";
 import type { Database } from "../../../../supabase/database.types";
 import { createIntakeBlindIndex, createIntakeEncryptionKeyring } from "./encryption";
-import { IntakeRepositoryAccessError } from "./repository";
+import { IntakeRepositoryAccessError } from "./errors";
 import { SupabaseEncryptedIntakeRepository } from "./supabase-repository";
 
 const keyring = createIntakeEncryptionKeyring({

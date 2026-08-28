@@ -5,7 +5,7 @@ import { hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
-import type { CmsPage } from "@umoja/appwrite/cms";
+import type { CmsPage } from "@/lib/cms/domain";
 import { cmsField, getSupabasePublishedCmsPage } from "@/lib/cms/service";
 
 import styles from "./page.module.css";

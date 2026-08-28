@@ -6,8 +6,9 @@ const { revalidatePath, revalidateTag } = vi.hoisted(() => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath, revalidateTag }));
-vi.mock("@/lib/appwrite/env", () => ({
-  getServerAppwriteEnvironment: () => ({
+vi.mock("@/lib/config/environment", () => ({
+  getApplicationEnvironment: () => ({
+    APP_URL: "http://localhost",
     NEXT_REVALIDATION_SECRET: "test-only-revalidation-secret",
   }),
 }));
