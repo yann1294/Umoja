@@ -43,6 +43,10 @@ function sha256(bytes: Uint8Array) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+export function intakeFileCanBeDelivered(scanStatus: FileRow["scan_status"]) {
+  return scanStatus === "clean";
+}
+
 function safeName(value: string) {
   const leaf = value.split(/[\\/]/).pop()?.normalize("NFKC").trim() ?? "download";
   return leaf.replace(/[\u0000-\u001f\u007f";]+/g, "_").slice(0, 180) || "download";
@@ -136,11 +140,14 @@ export class SupabaseApplicantPrivateStorage {
       id: registered.data.id,
       mediaType: prepared.mediaType,
       originalSize: prepared.originalSize,
+      objectPath: prepared.objectPath,
     };
   }
 
   async download(fileId: string) {
     const row = await this.get(fileId);
+    // No scanner is configured in this spike. Quarantined or rejected content is never delivered.
+    if (!intakeFileCanBeDelivered(row.scan_status)) throw new IntakeRepositoryAccessError();
     const source = parent(row);
     if (
       !(await this.authorize({
@@ -169,6 +176,35 @@ export class SupabaseApplicantPrivateStorage {
     } catch {
       throw new IntakeRepositoryAccessError();
     }
+  }
+
+  async list(kind: PersistedIntakeKind, intakeId: string) {
+    const intake = await this.intake(kind, intakeId);
+    if (
+      !(await this.authorize({
+        operation: "download",
+        kind,
+        intakeId,
+        applicantId: null,
+      }))
+    )
+      throw new IntakeRepositoryAccessError();
+    const parentColumn = kind === "project" ? "project_intake_id" : "talent_intake_id";
+    const { data, error } = await this.client
+      .from("intake_files")
+      .select("id, media_type, original_size, scan_status, created_at")
+      .eq(parentColumn, intakeId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    void intake;
+    return data.map((row) => ({
+      id: row.id,
+      mediaType: row.media_type,
+      originalSize: row.original_size,
+      scanStatus: row.scan_status,
+      createdAt: row.created_at,
+    }));
   }
 
   async remove(fileId: string) {

@@ -6,6 +6,7 @@ import { createIntakeBlindIndex, createIntakeEncryptionKeyringFromEnvironment } 
 import { prepareIntakeSubmission } from "./secure-boundary";
 import type { IntakeIdempotencyStore, IntakeRateLimiter } from "./security";
 import { SupabaseEncryptedIntakeRepository } from "./supabase-repository";
+import { SupabaseApplicantPrivateStorage } from "./supabase-private-files";
 
 const POLICY_VERSION = "2026-08";
 
@@ -56,6 +57,7 @@ export async function persistSupabasePublicIntake(
   remoteKey: string,
   locale: "en" | "fr",
   honeypot?: unknown,
+  files: readonly Readonly<{ name: string; mediaType: string; bytes: Uint8Array }>[] = [],
 ) {
   const client = createSupabaseAdminClient();
   const keyring = createIntakeEncryptionKeyringFromEnvironment(process.env);
@@ -85,6 +87,49 @@ export async function persistSupabasePublicIntake(
     if (result.status === "duplicate") {
       await guards.idempotencyStore.release(prepared.keyHash);
       return { status: "duplicate" as const, persisted: true };
+    }
+    const row = result.row;
+    const storage = new SupabaseApplicantPrivateStorage(
+      client,
+      keyring,
+      async (request) => request.operation === "upload" && request.intakeId === row.id,
+    );
+    const uploaded: Array<{ id: string; objectPath: string }> = [];
+    try {
+      for (const file of files) {
+        const created = await storage.upload(
+          kind,
+          { applicantId: null, id: row.id, submissionId: prepared.submissionId },
+          file,
+        );
+        uploaded.push({ id: created.id, objectPath: created.objectPath });
+      }
+    } catch {
+      for (const file of uploaded) {
+        await client.storage.from("applicant-private").remove([file.objectPath]);
+      }
+      if (uploaded.length) {
+        await client
+          .from("audit_logs")
+          .delete()
+          .in(
+            "target_id",
+            uploaded.map((file) => file.id),
+          );
+        await client
+          .from("intake_files")
+          .delete()
+          .in(
+            "id",
+            uploaded.map((file) => file.id),
+          );
+      }
+      await client.from("audit_logs").delete().eq("target_id", row.id);
+      await client
+        .from(kind === "project" ? "project_intakes" : "talent_intakes")
+        .delete()
+        .eq("id", row.id);
+      throw new Error("intake_file_transfer_unavailable");
     }
     await guards.idempotencyStore.complete(
       prepared.keyHash,

@@ -1,7 +1,13 @@
-import { describe, expect, it } from "vitest";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { describe, expect, it, vi } from "vitest";
+import type { Database } from "../../../../supabase/database.types";
 import { createIntakeEncryptionKeyring, decryptIntakeFile, decryptIntakeValue } from "./encryption";
 import { IntakeRepositoryAccessError } from "./repository";
-import { prepareSupabaseApplicantFile } from "./supabase-private-files";
+import {
+  intakeFileCanBeDelivered,
+  prepareSupabaseApplicantFile,
+  SupabaseApplicantPrivateStorage,
+} from "./supabase-private-files";
 
 const keyring = createIntakeEncryptionKeyring({
   activeVersion: "v1",
@@ -50,5 +56,34 @@ describe("Supabase applicant-private file preparation", () => {
         keyring,
       ),
     ).toThrow(IntakeRepositoryAccessError);
+  });
+
+  it("keeps unscanned and rejected uploads unavailable", () => {
+    expect(intakeFileCanBeDelivered("quarantined")).toBe(false);
+    expect(intakeFileCanBeDelivered("rejected")).toBe(false);
+    expect(intakeFileCanBeDelivered("clean")).toBe(true);
+  });
+
+  it("removes ciphertext when metadata registration fails", async () => {
+    const remove = vi.fn(async () => ({ data: null, error: null }));
+    const upload = vi.fn(async () => ({ data: { path: "synthetic" }, error: null }));
+    const client = {
+      rpc: vi.fn(async () => ({ data: null, error: { code: "synthetic" } })),
+      storage: { from: () => ({ remove, upload }) },
+    } as unknown as SupabaseClient<Database>;
+    const storage = new SupabaseApplicantPrivateStorage(client, keyring, async () => true);
+    await expect(
+      storage.upload(
+        "project",
+        { applicantId: null, id: crypto.randomUUID(), submissionId: crypto.randomUUID() },
+        {
+          bytes: new Uint8Array([0x25, 0x50, 0x44, 0x46, 1]),
+          mediaType: "application/pdf",
+          name: "synthetic.pdf",
+        },
+      ),
+    ).rejects.toMatchObject({ code: "synthetic" });
+    expect(upload).toHaveBeenCalledOnce();
+    expect(remove).toHaveBeenCalledOnce();
   });
 });
