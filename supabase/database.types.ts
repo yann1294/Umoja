@@ -320,11 +320,18 @@ export type Database = {
           encryption_key_version: string;
           id: string;
           media_type: string;
+          next_scan_at: string | null;
           object_path: string;
           original_size: number;
           project_intake_id: string | null;
+          scan_attempts: number;
+          scan_error_digest: string | null;
+          scan_started_at: string | null;
           scan_status: Database["public"]["Enums"]["intake_file_scan_status"];
           scanned_at: string | null;
+          scanner_provider: string | null;
+          scanner_version: string | null;
+          signature_database_version: string | null;
           talent_intake_id: string | null;
         };
         Insert: {
@@ -338,11 +345,18 @@ export type Database = {
           encryption_key_version: string;
           id?: string;
           media_type: string;
+          next_scan_at?: string | null;
           object_path: string;
           original_size: number;
           project_intake_id?: string | null;
+          scan_attempts?: number;
+          scan_error_digest?: string | null;
+          scan_started_at?: string | null;
           scan_status?: Database["public"]["Enums"]["intake_file_scan_status"];
           scanned_at?: string | null;
+          scanner_provider?: string | null;
+          scanner_version?: string | null;
+          signature_database_version?: string | null;
           talent_intake_id?: string | null;
         };
         Update: {
@@ -356,11 +370,18 @@ export type Database = {
           encryption_key_version?: string;
           id?: string;
           media_type?: string;
+          next_scan_at?: string | null;
           object_path?: string;
           original_size?: number;
           project_intake_id?: string | null;
+          scan_attempts?: number;
+          scan_error_digest?: string | null;
+          scan_started_at?: string | null;
           scan_status?: Database["public"]["Enums"]["intake_file_scan_status"];
           scanned_at?: string | null;
+          scanner_provider?: string | null;
+          scanner_version?: string | null;
+          signature_database_version?: string | null;
           talent_intake_id?: string | null;
         };
         Relationships: [
@@ -812,8 +833,27 @@ export type Database = {
           retry_after_seconds: number;
         }[];
       };
+      claim_intake_file_scan: {
+        Args: {
+          p_file_id: string;
+          p_provider: string;
+          p_provider_version: string;
+        };
+        Returns: boolean;
+      };
       claim_intake_idempotency: {
         Args: { p_expires_at: string; p_key_hash: string };
+        Returns: boolean;
+      };
+      complete_intake_file_scan: {
+        Args: {
+          p_after_digest?: string;
+          p_error_digest?: string;
+          p_file_id: string;
+          p_retry_seconds?: number;
+          p_signature_database_version?: string;
+          p_status: string;
+        };
         Returns: boolean;
       };
       complete_intake_idempotency: {
@@ -1050,11 +1090,18 @@ export type Database = {
           encryption_key_version: string;
           id: string;
           media_type: string;
+          next_scan_at: string | null;
           object_path: string;
           original_size: number;
           project_intake_id: string | null;
+          scan_attempts: number;
+          scan_error_digest: string | null;
+          scan_started_at: string | null;
           scan_status: Database["public"]["Enums"]["intake_file_scan_status"];
           scanned_at: string | null;
+          scanner_provider: string | null;
+          scanner_version: string | null;
+          signature_database_version: string | null;
           talent_intake_id: string | null;
         };
         SetofOptions: {
@@ -1149,7 +1196,15 @@ export type Database = {
     };
     Enums: {
       cms_state: "draft" | "review" | "published" | "archived";
-      intake_file_scan_status: "quarantined" | "clean" | "rejected";
+      intake_file_scan_status:
+        | "quarantined"
+        | "clean"
+        | "rejected"
+        | "pending"
+        | "infected"
+        | "scan_failed"
+        | "unsupported"
+        | "archived";
       intake_status:
         "new" | "triage" | "in_review" | "contacted" | "accepted" | "closed" | "duplicate";
       membership_tier: "applicant" | "extended" | "core" | "lead";
@@ -1281,7 +1336,16 @@ export const Constants = {
   public: {
     Enums: {
       cms_state: ["draft", "review", "published", "archived"],
-      intake_file_scan_status: ["quarantined", "clean", "rejected"],
+      intake_file_scan_status: [
+        "quarantined",
+        "clean",
+        "rejected",
+        "pending",
+        "infected",
+        "scan_failed",
+        "unsupported",
+        "archived",
+      ],
       intake_status: ["new", "triage", "in_review", "contacted", "accepted", "closed", "duplicate"],
       membership_tier: ["applicant", "extended", "core", "lead"],
       profile_visibility: ["private", "public"],
