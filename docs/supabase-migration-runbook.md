@@ -50,10 +50,15 @@ Use synthetic development data. If any real user or applicant data exists, stop 
 Create one Supabase development project in an appropriate available region. Record the region and project reference without committing secrets. In the Supabase dashboard:
 
 - Keep public signup disabled or enforce invitation-only onboarding in the server flow.
-- Configure the exact development Auth callback URL: `APP_URL/api/supabase-auth/callback`.
-  The callback receives the one-time code server-side and then redirects only to the
-  locale-preserving clean routes `/en|fr/verify-email`, `/en|fr/accept-invite`, or
-  `/en|fr/recover-password`. Do not allow arbitrary redirect origins or destinations.
+- Set Site URL to the exact `APP_URL` origin. Add these six exact Redirect URLs, substituting the
+  same origin and changing nothing after it:
+  - `APP_URL/api/supabase-auth/confirm?locale=en&flow=verification`
+  - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=verification`
+  - `APP_URL/api/supabase-auth/confirm?locale=en&flow=invite`
+  - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=invite`
+  - `APP_URL/api/supabase-auth/confirm?locale=en&flow=recovery`
+  - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=recovery`
+  Keep `APP_URL/api/supabase-auth/callback` allow-listed only for genuine PKCE code exchange.
 - Set the global Storage upload limit no higher than 10 MB for the pilot, even though Free supports up to 50 MB.
 - Do not create permissive tables, buckets, or policies manually; migrations should remain the source of truth.
 - Do not add real applicant data.
@@ -165,6 +170,31 @@ Roles remain `admin`, `cms-editor`, `reviewer`, `core`, `extended`, and `project
 - Test grants as well as policies; a passing service-role query does not prove RLS works.
 
 ## 6. Auth migration
+
+### Canonical remote email templates
+
+The hosted project must use token-hash links so the application verifies each link server-side and
+sets HttpOnly SSR cookies before returning a token-free URL. Preserve the existing translated email
+copy and replace only the link target in each Dashboard template:
+
+```html
+<!-- Confirm signup / verification -->
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=signup">Confirm email</a>
+
+<!-- Invite user -->
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=invite">Accept invitation</a>
+
+<!-- Reset password -->
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
+```
+
+`RedirectTo` is generated only from `APP_URL` and the exact locale/flow pairs above. Successful
+verification ends at `/{locale}/verify-email?verified=1`, invitation at
+`/{locale}/accept-invite?accepted=1`, and recovery at
+`/{locale}/recover-password?recovery=1`. Invalid, expired, replayed, wrong-flow, or disabled-account
+links end in a neutral `state=invalid` page. Confirmation responses are no-store/no-referrer and no
+token or code remains in the final URL. Email-provider link tracking must be disabled; providers
+that prefetch one-time links require a separately reviewed user-confirmation/OTP design.
 
 Implement invitation-led Supabase Auth with email verification, recovery, sign-out, session refresh, account-state checks, and MFA-ready privileged access. Preserve the refined authenticated shell and all Prompt 9 policy behavior.
 

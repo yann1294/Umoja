@@ -26,6 +26,39 @@ export function supabaseAuthCallbackUrl(locale: "en" | "fr", flow: SupabaseAuthF
   return callback.toString();
 }
 
+/** Context URL used by token-hash email templates; Supabase appends no secret to application state. */
+export function supabaseAuthConfirmationUrl(locale: "en" | "fr", flow: SupabaseAuthFlow) {
+  const confirmation = new URL("/api/supabase-auth/confirm", getSupabaseEnvironment().APP_URL);
+  confirmation.searchParams.set("locale", localeSchema.parse(locale));
+  confirmation.searchParams.set("flow", flowSchema.parse(flow));
+  return confirmation.toString();
+}
+
+export function parseSupabaseAuthConfirmation(requestUrl: string) {
+  const appUrl = new URL(getSupabaseEnvironment().APP_URL);
+  const request = new URL(requestUrl);
+  if (request.origin !== appUrl.origin) return null;
+  const locale = localeSchema.safeParse(request.searchParams.get("locale"));
+  const flow = flowSchema.safeParse(request.searchParams.get("flow"));
+  const tokenHash = z.string().min(16).max(2048).safeParse(request.searchParams.get("token_hash"));
+  const suppliedType = z
+    .enum(["signup", "email", "invite", "recovery"])
+    .safeParse(request.searchParams.get("type"));
+  if (!locale.success || !flow.success || !tokenHash.success || !suppliedType.success) return null;
+  const validType =
+    (flow.data === "verification" && ["signup", "email"].includes(suppliedType.data)) ||
+    (flow.data === "invite" && suppliedType.data === "invite") ||
+    (flow.data === "recovery" && suppliedType.data === "recovery");
+  if (!validType) return null;
+  return {
+    locale: locale.data,
+    flow: flow.data,
+    tokenHash: tokenHash.data,
+    type: suppliedType.data,
+    target: new URL(finalPath(locale.data, flow.data), appUrl),
+  } as const;
+}
+
 /** Rejects attacker-controlled targets and returns a clean, token-free final route. */
 export function parseSupabaseAuthCallback(requestUrl: string): CallbackContext | null {
   const appUrl = new URL(getSupabaseEnvironment().APP_URL);
@@ -34,7 +67,11 @@ export function parseSupabaseAuthCallback(requestUrl: string): CallbackContext |
   const locale = localeSchema.safeParse(request.searchParams.get("locale"));
   const flow = flowSchema.safeParse(request.searchParams.get("flow"));
   if (!locale.success || !flow.success) return null;
-  return { locale: locale.data, flow: flow.data, target: new URL(finalPath(locale.data, flow.data), appUrl) };
+  return {
+    locale: locale.data,
+    flow: flow.data,
+    target: new URL(finalPath(locale.data, flow.data), appUrl),
+  };
 }
 
 export function resolveSupabaseAuthCallback(requestUrl: string) {

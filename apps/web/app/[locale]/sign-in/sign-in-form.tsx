@@ -4,7 +4,7 @@ import { Button, TextField } from "@umoja/ui";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
-export function SignInForm({ locale }: Readonly<{ locale: "en" | "fr" }>) {
+export function SignInForm({ locale, next }: Readonly<{ locale: "en" | "fr"; next: string }>) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -16,19 +16,13 @@ export function SignInForm({ locale }: Readonly<{ locale: "en" | "fr" }>) {
     setError("");
     const data = new FormData(event.currentTarget);
     try {
-      const response = await fetch("/api/auth/sign-in", {
+      const response = await fetch("/api/supabase-auth/sign-in", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: data.get("email"), password: data.get("password") }),
       });
       if (!response.ok) throw new Error("sign-in");
-      const result = (await response.json()) as { user?: { reason?: string } };
-      const reason = result.user?.reason;
-      router.replace(
-        reason && reason !== "allowed"
-          ? `/${locale}/account-state?reason=${encodeURIComponent(reason)}`
-          : `/${locale}/workspace`,
-      );
+      router.replace(next);
       router.refresh();
     } catch {
       setError(

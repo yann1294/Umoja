@@ -2,12 +2,18 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { rolesHaveCapability, type UmojaCapability, type UmojaRole } from "@umoja/appwrite";
 import type { ServerPrincipal } from "@/lib/auth/principal";
+import {
+  capabilityRequiresMfa,
+  rolesHaveCapability,
+  type UmojaCapability,
+  type UmojaRole,
+  type WorkspaceAccessReason,
+} from "@/lib/auth/policy";
 import { createSupabaseServerClient } from "./server";
 import { createSupabaseAdminClient } from "./admin";
 import { toSupabaseServerPrincipal } from "./principal";
-import { supabaseAuthCallbackUrl } from "./redirects";
+import { supabaseAuthConfirmationUrl } from "./redirects";
 
 export type SupabaseWorkspaceUser = Readonly<{
   id: string;
@@ -16,6 +22,11 @@ export type SupabaseWorkspaceUser = Readonly<{
   emailVerified: boolean;
   mfaEnabled: boolean;
   roles: readonly UmojaRole[];
+}>;
+
+export type SupabaseWorkspaceAccessState = Readonly<{
+  reason: WorkspaceAccessReason;
+  user: SupabaseWorkspaceUser | null;
 }>;
 
 export const supabaseSignInSchema = z.object({
@@ -58,10 +69,71 @@ export async function getSupabaseWorkspaceUser(): Promise<SupabaseWorkspaceUser 
   };
 }
 
+export async function getSupabaseWorkspaceAccessState(
+  capability: UmojaCapability = "workspace.access",
+): Promise<SupabaseWorkspaceAccessState> {
+  const client = await createSupabaseServerClient();
+  const { data: authData, error: authError } = await client.auth.getUser();
+  const user = authData.user;
+  if (authError || !user) return { reason: "sign-in", user: null };
+  const bannedUntil = user.banned_until ? new Date(user.banned_until) : null;
+  if (bannedUntil && Number.isFinite(bannedUntil.valueOf()) && bannedUntil > new Date()) {
+    return { reason: "account-disabled", user: null };
+  }
+  if (!user.email_confirmed_at) return { reason: "email-unverified", user: null };
+  const [{ data: assignments }, { data: memberships }, { data: factors }] = await Promise.all([
+    client
+      .from("user_roles")
+      .select("role, revoked_at")
+      .is("revoked_at", null)
+      .eq("user_id", user.id),
+    client
+      .from("membership_history")
+      .select("effective_from, effective_to")
+      .eq("user_id", user.id)
+      .is("effective_to", null),
+    client.auth.mfa.listFactors(),
+  ]);
+  const principal = toSupabaseServerPrincipal(user, assignments ?? [], memberships ?? [], factors);
+  if (!principal) return { reason: "membership-required", user: null };
+  const workspaceUser = {
+    id: principal.actorId,
+    email: principal.email,
+    name: "",
+    emailVerified: principal.emailVerified,
+    mfaEnabled: principal.mfaVerified,
+    roles: principal.roles,
+  } satisfies SupabaseWorkspaceUser;
+  if (capability === "governance.manage") {
+    return { reason: "governance-policy-required", user: workspaceUser };
+  }
+  if (!rolesHaveCapability(principal.roles, capability)) {
+    return { reason: "forbidden", user: workspaceUser };
+  }
+  if (
+    process.env.UMOJA_PRIVILEGED_MFA_MODE === "required" &&
+    capabilityRequiresMfa(capability) &&
+    !principal.mfaVerified
+  ) {
+    return { reason: "mfa-required", user: workspaceUser };
+  }
+  return { reason: "allowed", user: workspaceUser };
+}
+
+function accessStateUrl(locale: string, reason: WorkspaceAccessReason, next: string) {
+  if (reason === "sign-in" || reason === "session-expired") {
+    return `/${locale}/sign-in?next=${encodeURIComponent(next)}${reason === "session-expired" ? "&reason=session-expired" : ""}`;
+  }
+  return `/${locale}/account-state?reason=${reason}`;
+}
+
 export async function requireSupabaseWorkspaceUser(locale = "en") {
-  const user = await getSupabaseWorkspaceUser();
-  if (!user) redirect(`/${locale}/sign-in`);
-  return user;
+  const safeLocale = locale === "fr" ? "fr" : "en";
+  const state = await getSupabaseWorkspaceAccessState();
+  if (state.reason !== "allowed" || !state.user) {
+    redirect(accessStateUrl(safeLocale, state.reason, `/${safeLocale}/workspace`));
+  }
+  return state.user;
 }
 
 /** This boundary is used only by route groups that are fully Supabase-backed. */
@@ -70,20 +142,24 @@ export async function requireSupabaseWorkspaceCapability(
   locale: string = "en",
 ) {
   const safeLocale = locale === "fr" ? "fr" : "en";
-  const principal = await getSupabaseServerPrincipal();
-  if (!principal)
-    redirect(`/${safeLocale}/admin/content/sign-in?next=/${safeLocale}/admin/content`);
-  if (!rolesHaveCapability(principal.roles, capability) || !principal.membershipActive) {
-    redirect(`/${safeLocale}/account-state?reason=forbidden`);
+  const state = await getSupabaseWorkspaceAccessState(capability);
+  if (state.reason !== "allowed" || !state.user) {
+    const defaultPath =
+      capability === "cms.manage" || capability === "cms.publish"
+        ? `/${safeLocale}/admin/content`
+        : capability === "intake.review"
+          ? `/${safeLocale}/admin/intake`
+          : `/${safeLocale}/admin`;
+    redirect(accessStateUrl(safeLocale, state.reason, defaultPath));
   }
-  return {
-    id: principal.actorId,
-    name: "",
-    email: principal.email,
-    emailVerified: principal.emailVerified,
-    mfaEnabled: principal.mfaVerified,
-    roles: principal.roles,
-  } satisfies SupabaseWorkspaceUser;
+  return state.user;
+}
+
+export function canUseSupabaseWorkspaceCapability(
+  user: SupabaseWorkspaceUser,
+  capability: UmojaCapability,
+) {
+  return rolesHaveCapability(user.roles, capability);
 }
 
 export async function signInWithSupabase(input: unknown) {
@@ -103,7 +179,7 @@ export async function requestSupabaseRecovery(email: unknown, locale: "en" | "fr
   const value = z.email().parse(email);
   const client = await createSupabaseServerClient();
   await client.auth.resetPasswordForEmail(value, {
-    redirectTo: supabaseAuthCallbackUrl(locale, "recovery"),
+    redirectTo: supabaseAuthConfirmationUrl(locale, "recovery"),
   });
 }
 
@@ -128,11 +204,18 @@ export async function issueSupabaseInvite(
     .parse(roles);
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin.auth.admin.inviteUserByEmail(recipient, {
-    redirectTo: supabaseAuthCallbackUrl(locale, "invite"),
+    redirectTo: supabaseAuthConfirmationUrl(locale, "invite"),
   });
   if (error || !data.user) throw new Error("Invitation unavailable.");
   const { error: roleError } = await admin
     .from("user_roles")
     .insert(safeRoles.map((role) => ({ user_id: data.user.id, role, granted_by: issuer.id })));
   if (roleError) throw new Error("Invitation unavailable.");
+  const { error: membershipError } = await admin.from("membership_history").insert({
+    user_id: data.user.id,
+    tier: "core",
+    effective_from: new Date().toISOString(),
+    approved_by: issuer.id,
+  });
+  if (membershipError) throw new Error("Invitation unavailable.");
 }

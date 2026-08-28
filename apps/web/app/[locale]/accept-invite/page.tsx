@@ -2,7 +2,7 @@ import { Container } from "@umoja/ui";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
-import { TokenActionForm } from "../sign-in/auth-action-forms";
+import { InvitationPasswordForm } from "../sign-in/auth-action-forms";
 import "../sign-in/workspace-auth.css";
 
 export default async function AcceptInvitePage({
@@ -10,10 +10,10 @@ export default async function AcceptInvitePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ userId?: string; secret?: string; membershipId?: string }>;
+  searchParams: Promise<{ accepted?: string; state?: string }>;
 }) {
   const { locale } = await params;
-  const { userId = "", secret = "", membershipId = "" } = await searchParams;
+  const { accepted, state } = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
   const french = locale === "fr";
   return (
@@ -28,13 +28,8 @@ export default async function AcceptInvitePage({
               ? "Connectez-vous avec l’adresse invitée avant de confirmer l’adhésion."
               : "Sign in with the invited address before confirming membership."}
           </p>
-          {userId && secret && membershipId ? (
-            <TokenActionForm
-              endpoint="/api/auth/invite/accept"
-              locale={locale}
-              payload={{ userId, secret, membershipId }}
-              submitLabel={french ? "Accepter l’invitation" : "Accept invitation"}
-            />
+          {accepted === "1" && state !== "invalid" ? (
+            <InvitationPasswordForm locale={locale} />
           ) : (
             <div className="auth-error" role="alert">
               {french

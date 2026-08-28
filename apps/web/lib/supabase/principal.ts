@@ -1,6 +1,6 @@
 import type { User } from "@supabase/supabase-js";
-import type { UmojaRole } from "@umoja/appwrite/permissions";
 import type { ServerPrincipal } from "@/lib/auth/principal";
+import type { UmojaRole } from "@/lib/auth/policy";
 
 type RoleAssignment = Readonly<{ role: UmojaRole; revoked_at: string | null }>;
 type Membership = Readonly<{ effective_from: string; effective_to: string | null }>;
@@ -12,7 +12,7 @@ type Factors = Readonly<{
 function hasVerifiedFactor(factors: Factors | null | undefined) {
   return Boolean(
     factors?.totp?.some((factor) => factor.status === "verified") ||
-      factors?.webauthn?.some((factor) => factor.status === "verified"),
+    factors?.webauthn?.some((factor) => factor.status === "verified"),
   );
 }
 
@@ -31,8 +31,7 @@ export function toSupabaseServerPrincipal(
     .filter((assignment) => assignment.revoked_at === null)
     .map((assignment) => assignment.role);
   const membershipActive = memberships.some(
-    (membership) =>
-      membership.effective_to === null && new Date(membership.effective_from) <= now,
+    (membership) => membership.effective_to === null && new Date(membership.effective_from) <= now,
   );
   if (!user.email_confirmed_at || roles.length === 0 || !membershipActive) return null;
 

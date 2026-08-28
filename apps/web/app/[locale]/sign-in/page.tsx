@@ -2,6 +2,7 @@ import { Container } from "@umoja/ui";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
+import { safeAuthReturnPath } from "@/lib/supabase/auth-return-path";
 import { SignInForm } from "./sign-in-form";
 import "./workspace-auth.css";
 
@@ -10,11 +11,12 @@ export default async function SignInPage({
   searchParams,
 }: Readonly<{
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ reason?: string }>;
+  searchParams: Promise<{ reason?: string; next?: string }>;
 }>) {
   const { locale } = await params;
-  const { reason } = await searchParams;
+  const { reason, next } = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
+  const safeLocale = locale as "en" | "fr";
   const french = locale === "fr";
   return (
     <section className="auth-page" aria-labelledby="sign-in-title">
@@ -34,7 +36,7 @@ export default async function SignInPage({
                 : "Your session expired or was revoked. Sign in again to continue."}
             </div>
           ) : null}
-          <SignInForm locale={locale} />
+          <SignInForm locale={safeLocale} next={safeAuthReturnPath(next, safeLocale)} />
         </div>
       </Container>
     </section>

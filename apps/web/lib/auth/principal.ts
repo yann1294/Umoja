@@ -1,7 +1,6 @@
 import "server-only";
 
-import type { UmojaCapability } from "@umoja/appwrite/auth-policy";
-import type { UmojaRole } from "@umoja/appwrite/permissions";
+import type { UmojaCapability, UmojaRole } from "./policy";
 
 /** Provider-neutral request identity consumed by CMS/media mutations. */
 export type ServerPrincipal = Readonly<{
