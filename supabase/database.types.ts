@@ -241,6 +241,73 @@ export type Database = {
           },
         ];
       };
+      intake_claim_capabilities: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          expires_at: string;
+          id: string;
+          intake_kind: string;
+          intended_user_id: string;
+          project_intake_id: string | null;
+          replaced_by_id: string | null;
+          revoked_at: string | null;
+          talent_intake_id: string | null;
+          token_digest: string;
+          used_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          expires_at: string;
+          id?: string;
+          intake_kind: string;
+          intended_user_id: string;
+          project_intake_id?: string | null;
+          replaced_by_id?: string | null;
+          revoked_at?: string | null;
+          talent_intake_id?: string | null;
+          token_digest: string;
+          used_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          expires_at?: string;
+          id?: string;
+          intake_kind?: string;
+          intended_user_id?: string;
+          project_intake_id?: string | null;
+          replaced_by_id?: string | null;
+          revoked_at?: string | null;
+          talent_intake_id?: string | null;
+          token_digest?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "intake_claim_capabilities_project_intake_id_fkey";
+            columns: ["project_intake_id"];
+            isOneToOne: false;
+            referencedRelation: "project_intakes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "intake_claim_capabilities_replaced_by_id_fkey";
+            columns: ["replaced_by_id"];
+            isOneToOne: false;
+            referencedRelation: "intake_claim_capabilities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "intake_claim_capabilities_talent_intake_id_fkey";
+            columns: ["talent_intake_id"];
+            isOneToOne: false;
+            referencedRelation: "talent_intakes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       intake_files: {
         Row: {
           applicant_id: string | null;
@@ -722,6 +789,17 @@ export type Database = {
         Args: { p_after_digest: string; p_file_id: string };
         Returns: string;
       };
+      consume_intake_claim: {
+        Args: {
+          p_actor_id: string;
+          p_after_digest: string;
+          p_claim_id: string;
+          p_intake_id: string;
+          p_kind: string;
+          p_token_digest: string;
+        };
+        Returns: string;
+      };
       create_encrypted_project_intake: {
         Args: {
           p_after_digest: string;
@@ -849,6 +927,38 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      issue_intake_claim: {
+        Args: {
+          p_after_digest: string;
+          p_claim_id: string;
+          p_created_by: string;
+          p_expires_at: string;
+          p_intake_id: string;
+          p_intended_user_id: string;
+          p_kind: string;
+          p_token_digest: string;
+        };
+        Returns: {
+          created_at: string;
+          created_by: string | null;
+          expires_at: string;
+          id: string;
+          intake_kind: string;
+          intended_user_id: string;
+          project_intake_id: string | null;
+          replaced_by_id: string | null;
+          revoked_at: string | null;
+          talent_intake_id: string | null;
+          token_digest: string;
+          used_at: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "intake_claim_capabilities";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       publish_cms_page: {
         Args: { p_change_summary?: string; p_page_id: string };
         Returns: {
@@ -940,6 +1050,10 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      revoke_intake_claim: {
+        Args: { p_actor_id: string; p_after_digest: string; p_claim_id: string };
+        Returns: string;
       };
       rollback_cms_page: {
         Args: { p_page_id: string; p_revision_id: string };
