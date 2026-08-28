@@ -21,6 +21,19 @@ unique test identifiers, and removed with all dependent records and objects in `
 Never seed or directly insert into `auth.users` or another Auth schema using SQL. Appwrite remains
 untouched; its real-data state is unknown until a separately authorized read-only inventory works.
 
+Run `node scripts/appwrite-inventory.mjs` for the idempotent, metadata-only disposition gate. It
+prints aggregate counts, date ranges, and a conservative synthetic classification; it never prints
+identifiers, emails, row contents, filenames, or credentials. A 401 is a blocked inventory—not
+evidence that Appwrite is empty.
+
+If the existing key is rejected, an Appwrite Console owner may create a temporary key named
+`umoja-read-only-inventory`, store it only as `APPWRITE_INVENTORY_API_KEY`, and grant only the
+Console read scopes for Users, Teams, Databases, Tables, Rows, Buckets, and Files (shown by the API
+as `users.read`, `teams.read`, `databases.read`, `tables.read`, `rows.read`, `buckets.read`, and
+`files.read`). Grant no create, update, delete, session, function, project, platform, or key scopes.
+Run the inventory, record only its aggregate result, then revoke the temporary key. A data export or
+reconciliation remains a separately authorized operation even when metadata inventory succeeds.
+
 Start from the reviewed Prompt 11 baseline:
 
 ```bash
