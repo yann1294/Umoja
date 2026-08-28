@@ -7,6 +7,7 @@ import {
   randomBytes,
   timingSafeEqual,
 } from "node:crypto";
+import { getIntakeCryptographyEnvironment } from "@/lib/config/environment";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_BYTES = 12;
@@ -82,28 +83,11 @@ export function createIntakeEncryptionKeyring(input: KeyringInput): IntakeEncryp
 export function createIntakeEncryptionKeyringFromEnvironment(
   source: Readonly<Record<string, string | undefined>>,
 ) {
-  // The migration branch must preserve the existing key material and ciphertext compatibility.
-  // Neutral names take precedence; legacy names remain a server-only compatibility alias until
-  // the final backend environment cutover.
-  const activeVersion =
-    source.SUPABASE_ACTIVE_ENCRYPTION_KEY_VERSION ?? source.APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION;
-  if (!activeVersion) invalid();
-  const suffix = activeVersion.toUpperCase();
-  const data =
-    source[`SUPABASE_DATA_ENCRYPTION_KEY_${suffix}`] ??
-    source[`APPWRITE_DATA_ENCRYPTION_KEY_${suffix}`];
-  const file =
-    source[`SUPABASE_FILE_ENCRYPTION_KEY_${suffix}`] ??
-    source[`APPWRITE_FILE_ENCRYPTION_KEY_${suffix}`];
-  const lookup =
-    source[`SUPABASE_LOOKUP_HMAC_KEY_${suffix}`] ?? source[`APPWRITE_LOOKUP_HMAC_KEY_${suffix}`];
-  if (!data || !file || !lookup) invalid();
-  return createIntakeEncryptionKeyring({
-    activeVersion,
-    dataKeys: { [activeVersion]: data },
-    fileKeys: { [activeVersion]: file },
-    lookupKeys: { [activeVersion]: lookup },
-  });
+  try {
+    return createIntakeEncryptionKeyring(getIntakeCryptographyEnvironment(source));
+  } catch {
+    invalid();
+  }
 }
 
 function keyFor(keys: KeySet, version: string) {

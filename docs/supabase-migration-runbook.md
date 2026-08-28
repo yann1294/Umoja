@@ -66,6 +66,22 @@ NEXT_REVALIDATION_SECRET=
 
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
 
+Shared application configuration is provider-neutral. `APP_URL`, `NEXT_REVALIDATION_SECRET`, and
+the canonical `UMOJA_*` encryption key names are parsed outside either backend adapter. During the
+reversible migration, existing `SUPABASE_*` and `APPWRITE_*` key aliases remain accepted after the
+canonical names so existing AES-GCM envelopes, AAD contexts, and HMAC indexes remain readable.
+
+The deterministic remote type-drift check is:
+
+```sh
+node scripts/supabase-types.mjs
+```
+
+It generates from the linked development project in memory, applies the repository Prettier
+configuration, and compares normalized output without overwriting the committed type file. To
+intentionally update types after reviewing an applied migration, run the same command with
+`--write`, inspect the diff, and commit it with that migration.
+
 ## 3. Repository architecture
 
 Use the current maintained Supabase packages compatible with the repository's Next.js version. For cookie-based Next.js SSR, use the current official SSR package and PKCE flow. Centralize:

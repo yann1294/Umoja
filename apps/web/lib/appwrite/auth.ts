@@ -15,6 +15,7 @@ import { type UmojaRole, UMOJA_OPERATIONS_TEAM_ID, UMOJA_ROLES } from "@umoja/ap
 import { toSafeAppwriteError } from "@umoja/appwrite/errors";
 import { createSsrServices } from "./admin";
 import { getServerAppwriteEnvironment } from "./env";
+import { getApplicationEnvironment } from "@/lib/config/environment";
 import {
   clearAppwriteSessionCookie,
   createSessionServices,
@@ -225,7 +226,7 @@ export async function refreshWorkspaceSession() {
 
 export async function requestPasswordRecovery(input: unknown, locale: "en" | "fr" = "en") {
   const { email } = recoveryRequestSchema.parse(input);
-  const env = getServerAppwriteEnvironment();
+  const env = getApplicationEnvironment();
   try {
     await createSsrServices().account.createRecovery({
       email,
@@ -248,7 +249,7 @@ export async function confirmPasswordRecovery(input: unknown) {
 export async function requestEmailVerification(locale: "en" | "fr" = "en") {
   const services = await createSessionServices();
   if (!services) throw toSafeAppwriteError({ code: 401 });
-  const env = getServerAppwriteEnvironment();
+  const env = getApplicationEnvironment();
   await services.account.createVerification({ url: `${env.APP_URL}/${locale}/verify-email` });
 }
 
@@ -269,7 +270,7 @@ export async function inviteWorkspaceMember(email: string, roles: UmojaRole[], l
   await requireWorkspaceRole("admin", locale);
   const services = await createSessionServices();
   if (!services) throw toSafeAppwriteError({ code: 401 });
-  const env = getServerAppwriteEnvironment();
+  const env = getApplicationEnvironment();
   return services.teams.createMembership({
     teamId: UMOJA_OPERATIONS_TEAM_ID,
     email: z.email().parse(email.trim().toLowerCase()),
