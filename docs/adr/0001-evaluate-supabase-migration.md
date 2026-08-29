@@ -102,7 +102,7 @@ Accept Supabase only when the branch proves all of the following:
 9. No Supabase secret/service key enters browser bundles, logs, screenshots, fixtures, or Git.
 10. Local reset, remote migration status, generated TypeScript types, health checks, seed data, export, rollback, and free-plan quota/pausing procedures are documented and exercised.
 
-## Evidence checkpoint — 2026-08-29
+## Evidence checkpoint — 2026-08-30
 
 The `spike/supabase-migration` application runtime now uses Supabase Auth, Postgres, RLS, and
 Storage for public CMS, CMS administration, encrypted anonymous intake, intake review, workspace,
@@ -112,8 +112,11 @@ deployable rollback baseline and has not been modified or decommissioned.
 
 This evidence does **not** accept the ADR. The following gates remain open:
 
-- Appwrite's metadata-only inventory is blocked by a rejected credential (401), so its real-data
-  disposition is unknown. No Appwrite data has been copied.
+- Appwrite's metadata-only inventory completed after the temporary bootstrap key received the final
+  read scope. It found two Auth users, one Team membership, two CMS seed pages, one project intake,
+  two talent intakes, three audit rows, and no Storage objects. This is conservatively classified as
+  potentially non-synthetic development data: preserve it for separately approved reconciliation;
+  no Appwrite data has been copied, changed, or deleted.
 - English/French verification, invitation, and recovery email delivery/exchange have not completed
   their six manual tests. The earlier English verification homepage redirect remains unresolved
   manual evidence; the replacement token-hash confirmation architecture is automated but not a
@@ -122,10 +125,14 @@ This evidence does **not** accept the ADR. The following gates remain open:
   downloaded until an actual provider returns a clean verdict.
 - Export/checksum/readback was rehearsed, but restore into a second explicitly empty project was
   not authorized or performed.
-- The development project contains one pre-existing Auth identity and seven `cms-private` objects
-  whose disposition is not established. Tests did not inspect or delete them.
-- Real-browser 200% zoom, physical Android/iPhone testing, intermittent-network testing on devices,
-  and legal/production operational review remain manual launch gates.
+- The development project contains one enabled, unreferenced Auth identity whose administrator
+  status awaits owner confirmation. Six separately approved `cms-*@example.test` fixture users and
+  only their active synthetic role/membership rows were removed after reference checks; cleanup
+  readback found no remaining synthetic identities. Seven unreferenced unknown `cms-private` PNG
+  objects remain preserved and must not be inferred synthetic or deleted.
+- Chrome for Testing 151 completed real 100% to 200% browser zoom verification. Physical
+  Android/iPhone testing, intermittent-network testing on devices, and legal/production operational
+  review remain manual launch gates.
 
 Accordingly, Gate A remains open until the exact blockers recorded in the migration runbook are
 cleared. Gate B/C items do not independently block Prompt 12 development.

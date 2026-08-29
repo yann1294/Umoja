@@ -1,6 +1,7 @@
 # Supabase Migration Spike and Cutover Runbook
 
-Status: proposed remote-only canonical development candidate; Gate A open; production prohibited
+Status: proposed remote-only canonical development candidate; Gate A awaits administrator
+confirmation; production prohibited
 Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 
 ## 1. Safety boundary
@@ -8,8 +9,8 @@ Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 ### Current remote-only execution mode
 
 This spike uses only the configured development project from ignored `apps/web/.env.local`. It is
-no longer assumed empty: the 2026-08-29 aggregate readback found one pre-existing Auth identity and
-seven `cms-private` objects whose disposition remains unknown. Do not use Docker, `supabase start`, `supabase stop`, local database
+no longer assumed empty: the 2026-08-30 aggregate readback found one pre-existing Auth identity and
+seven unreferenced unknown `cms-private` objects. Do not use Docker, `supabase start`, `supabase stop`, local database
 resets, pgTAP, or `supabase db reset --linked`. The latter is prohibited in every environment.
 
 Before each additive remote migration, read the configured project identity without printing any
@@ -20,12 +21,16 @@ credential, run `supabase migration list --linked`, inspect every pending migrat
 Synthetic users must be created through the supported server-only Supabase Auth Admin API, given
 unique test identifiers, and removed with all dependent records and objects in `finally` blocks.
 Never seed or directly insert into `auth.users` or another Auth schema using SQL. Appwrite remains
-untouched; its real-data state is unknown until a separately authorized read-only inventory works.
+untouched; its metadata inventory is recorded below and potentially non-synthetic data must be
+preserved for separately approved reconciliation.
 
 Run `node scripts/appwrite-inventory.mjs` for the idempotent, metadata-only disposition gate. It
 prints aggregate counts, date ranges, and a conservative synthetic classification; it never prints
 identifiers, emails, row contents, filenames, or credentials. A 401 is a blocked inventory—not
-evidence that Appwrite is empty.
+evidence that Appwrite is empty. On 2026-08-30 the temporary bootstrap key completed this read-only
+check: two Auth users, one Team membership, two CMS seed pages, one project intake, two talent
+intakes, three audit rows, one bucket, and zero Storage objects. The conservative result is
+`non_synthetic_possible`; no data was copied or modified.
 
 If the existing key is rejected, an Appwrite Console owner may create a temporary key named
 `umoja-read-only-inventory`, store it only as `APPWRITE_INVENTORY_API_KEY`, and grant only the
@@ -328,13 +333,14 @@ target.
 
 ### Gate A — required before merge and Prompt 12
 
-- complete Appwrite metadata inventory (the temporary bootstrap key currently lacks `users.read`);
 - confirm whether the single enabled, unreferenced Supabase identity is the development
   administrator, then assign its protected relational `admin` role and active membership through an
   owner-authorized bootstrap operation; it currently has neither and has no MFA;
 - preserve the seven unreferenced unknown `cms-private` PNG objects. They are not referenced by a
   CMS media row, page, or revision and must not be deleted or inferred synthetic;
-- remove only separately approved, marker-proven synthetic residue and rerun cleanup inventory;
+- the six approved `cms-*@example.test` fixture identities and only their active synthetic role and
+  membership rows were deleted after reference checks; the cleanup inventory now reports zero
+  synthetic identities;
 - keep automated verification and real Chrome 200% evidence green.
 
 ### Gate B — required before real applicant files or real-user preview
