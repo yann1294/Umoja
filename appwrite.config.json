@@ -1,0 +1,286 @@
+{
+  "$schema": "./infrastructure/appwrite/schema.json",
+  "project": { "name": "umoja-development", "platforms": ["localhost", "127.0.0.1"] },
+  "team": {
+    "id": "umoja-operations",
+    "name": "umoja-operations",
+    "roles": ["admin", "cms-editor", "reviewer", "core", "extended", "project-manager"]
+  },
+  "database": {
+    "id": "umoja",
+    "name": "Umoja",
+    "tables": [
+      {
+        "id": "cms_pages",
+        "name": "CMS pages",
+        "rowSecurity": true,
+        "permissions": [
+          "read(\"team:umoja-operations/cms-editor\")",
+          "create(\"team:umoja-operations/cms-editor\")",
+          "update(\"team:umoja-operations/cms-editor\")",
+          "read(\"team:umoja-operations/admin\")",
+          "create(\"team:umoja-operations/admin\")",
+          "update(\"team:umoja-operations/admin\")",
+          "delete(\"team:umoja-operations/admin\")"
+        ],
+        "columns": [
+          { "key": "stableKey", "type": "string", "size": 128, "required": true },
+          { "key": "translationGroupId", "type": "string", "size": 64, "required": true },
+          { "key": "locale", "type": "enum", "elements": ["en", "fr"], "required": true },
+          { "key": "slug", "type": "string", "size": 512, "required": true },
+          {
+            "key": "state",
+            "type": "enum",
+            "elements": ["draft", "review", "published", "archived"],
+            "required": true
+          },
+          { "key": "title", "type": "string", "size": 256, "required": true },
+          { "key": "seoTitle", "type": "string", "size": 256, "required": false },
+          { "key": "seoDescription", "type": "string", "size": 512, "required": false },
+          { "key": "blocks", "type": "string", "size": 65535, "required": true },
+          { "key": "authorId", "type": "string", "size": 64, "required": true },
+          { "key": "updatedById", "type": "string", "size": 64, "required": true },
+          { "key": "currentRevisionId", "type": "string", "size": 64, "required": false },
+          {
+            "key": "previewTokenHash",
+            "type": "string",
+            "size": 128,
+            "required": false
+          },
+          { "key": "publishedAt", "type": "datetime", "required": false },
+          { "key": "createdAt", "type": "datetime", "required": true },
+          { "key": "updatedAt", "type": "datetime", "required": true }
+        ],
+        "indexes": [
+          {
+            "key": "published_locale_slug",
+            "type": "key",
+            "columns": ["state", "locale", "slug"],
+            "lengths": [9, 2, 180]
+          },
+          {
+            "key": "translation_locale",
+            "type": "unique",
+            "columns": ["translationGroupId", "locale"]
+          },
+          { "key": "stable_locale", "type": "unique", "columns": ["stableKey", "locale"] }
+        ]
+      },
+      {
+        "id": "cms_revisions",
+        "name": "CMS revisions",
+        "rowSecurity": true,
+        "permissions": [
+          "read(\"team:umoja-operations/cms-editor\")",
+          "create(\"team:umoja-operations/cms-editor\")",
+          "read(\"team:umoja-operations/admin\")",
+          "create(\"team:umoja-operations/admin\")"
+        ],
+        "columns": [
+          { "key": "pageId", "type": "string", "size": 64, "required": true },
+          { "key": "revisionNumber", "type": "integer", "required": true, "min": 1 },
+          { "key": "locale", "type": "enum", "elements": ["en", "fr"], "required": true },
+          {
+            "key": "state",
+            "type": "enum",
+            "elements": ["draft", "review", "published", "archived"],
+            "required": true
+          },
+          { "key": "title", "type": "string", "size": 256, "required": true },
+          { "key": "seoTitle", "type": "string", "size": 256, "required": false },
+          { "key": "seoDescription", "type": "string", "size": 512, "required": false },
+          { "key": "blocks", "type": "string", "size": 65535, "required": true },
+          { "key": "authorId", "type": "string", "size": 64, "required": true },
+          { "key": "changeSummary", "type": "string", "size": 1024, "required": false },
+          { "key": "createdAt", "type": "datetime", "required": true },
+          { "key": "publishedAt", "type": "datetime", "required": false }
+        ],
+        "indexes": [
+          { "key": "page_revision", "type": "unique", "columns": ["pageId", "revisionNumber"] },
+          {
+            "key": "page_created",
+            "type": "key",
+            "columns": ["pageId", "createdAt"],
+            "orders": ["ASC", "DESC"]
+          }
+        ]
+      },
+      {
+        "id": "project_intakes",
+        "name": "Project intakes",
+        "rowSecurity": true,
+        "permissions": [
+          "read(\"team:umoja-operations/reviewer\")",
+          "update(\"team:umoja-operations/reviewer\")",
+          "read(\"team:umoja-operations/admin\")",
+          "create(\"team:umoja-operations/admin\")",
+          "update(\"team:umoja-operations/admin\")",
+          "delete(\"team:umoja-operations/admin\")"
+        ],
+        "columns": [
+          { "key": "submissionId", "type": "string", "size": 64, "required": true },
+          { "key": "emailLookup", "type": "string", "size": 64, "required": true },
+          { "key": "encryptionKeyVersion", "type": "string", "size": 16, "required": true },
+          { "key": "encryptedPayload", "type": "string", "size": 65535, "required": true },
+          {
+            "key": "encryptedInternalNotes",
+            "type": "string",
+            "size": 65535,
+            "required": false
+          },
+          { "key": "serviceAreas", "type": "string", "size": 128, "required": true, "array": true },
+          { "key": "attachmentCount", "type": "integer", "required": true, "min": 0 },
+          { "key": "consentAt", "type": "datetime", "required": true },
+          { "key": "policyVersion", "type": "string", "size": 32, "required": true },
+          { "key": "locale", "type": "enum", "elements": ["en", "fr"], "required": true },
+          {
+            "key": "status",
+            "type": "enum",
+            "elements": ["new", "triage", "in_review", "contacted", "closed", "duplicate"],
+            "required": true
+          },
+          { "key": "assignedReviewerId", "type": "string", "size": 64, "required": false },
+          { "key": "idempotencyKeyHash", "type": "string", "size": 128, "required": true },
+          { "key": "createdAt", "type": "datetime", "required": true },
+          { "key": "updatedAt", "type": "datetime", "required": true }
+        ],
+        "indexes": [
+          { "key": "submission_id", "type": "unique", "columns": ["submissionId"] },
+          { "key": "email_lookup", "type": "key", "columns": ["emailLookup"] },
+          { "key": "idempotency", "type": "unique", "columns": ["idempotencyKeyHash"] },
+          {
+            "key": "workflow_created",
+            "type": "key",
+            "columns": ["status", "createdAt"],
+            "orders": ["ASC", "DESC"]
+          }
+        ]
+      },
+      {
+        "id": "talent_intakes",
+        "name": "Talent intakes",
+        "rowSecurity": true,
+        "permissions": [
+          "read(\"team:umoja-operations/reviewer\")",
+          "update(\"team:umoja-operations/reviewer\")",
+          "read(\"team:umoja-operations/admin\")",
+          "create(\"team:umoja-operations/admin\")",
+          "update(\"team:umoja-operations/admin\")",
+          "delete(\"team:umoja-operations/admin\")"
+        ],
+        "columns": [
+          { "key": "submissionId", "type": "string", "size": 64, "required": true },
+          { "key": "emailLookup", "type": "string", "size": 64, "required": true },
+          { "key": "encryptionKeyVersion", "type": "string", "size": 16, "required": true },
+          { "key": "encryptedPayload", "type": "string", "size": 65535, "required": true },
+          {
+            "key": "encryptedInternalNotes",
+            "type": "string",
+            "size": 65535,
+            "required": false
+          },
+          { "key": "skillAreas", "type": "string", "size": 128, "required": true, "array": true },
+          { "key": "experienceBand", "type": "string", "size": 128, "required": true },
+          { "key": "attachmentCount", "type": "integer", "required": true, "min": 0 },
+          { "key": "publicProfileConsent", "type": "boolean", "required": true },
+          { "key": "applicationConsentAt", "type": "datetime", "required": true },
+          { "key": "dataProcessingConsentAt", "type": "datetime", "required": true },
+          { "key": "policyVersion", "type": "string", "size": 32, "required": true },
+          { "key": "locale", "type": "enum", "elements": ["en", "fr"], "required": true },
+          {
+            "key": "status",
+            "type": "enum",
+            "elements": [
+              "new",
+              "screening",
+              "in_review",
+              "contacted",
+              "accepted",
+              "closed",
+              "duplicate"
+            ],
+            "required": true
+          },
+          { "key": "assignedReviewerId", "type": "string", "size": 64, "required": false },
+          { "key": "idempotencyKeyHash", "type": "string", "size": 128, "required": true },
+          { "key": "createdAt", "type": "datetime", "required": true },
+          { "key": "updatedAt", "type": "datetime", "required": true }
+        ],
+        "indexes": [
+          { "key": "submission_id", "type": "unique", "columns": ["submissionId"] },
+          { "key": "email_lookup", "type": "key", "columns": ["emailLookup"] },
+          { "key": "idempotency", "type": "unique", "columns": ["idempotencyKeyHash"] },
+          {
+            "key": "workflow_created",
+            "type": "key",
+            "columns": ["status", "createdAt"],
+            "orders": ["ASC", "DESC"]
+          }
+        ]
+      },
+      {
+        "id": "audit_logs",
+        "name": "Audit logs",
+        "rowSecurity": true,
+        "permissions": [
+          "read(\"team:umoja-operations/admin\")",
+          "create(\"team:umoja-operations/admin\")"
+        ],
+        "columns": [
+          { "key": "actorId", "type": "string", "size": 64, "required": true },
+          { "key": "action", "type": "string", "size": 128, "required": true },
+          { "key": "targetType", "type": "string", "size": 64, "required": true },
+          { "key": "targetId", "type": "string", "size": 64, "required": true },
+          { "key": "requestId", "type": "string", "size": 64, "required": false },
+          { "key": "beforeDigest", "type": "string", "size": 128, "required": false },
+          { "key": "afterDigest", "type": "string", "size": 128, "required": false },
+          { "key": "metadata", "type": "string", "size": 4096, "required": false },
+          { "key": "createdAt", "type": "datetime", "required": true }
+        ],
+        "indexes": [
+          {
+            "key": "target_created",
+            "type": "key",
+            "columns": ["targetType", "targetId", "createdAt"],
+            "orders": ["ASC", "ASC", "DESC"]
+          },
+          {
+            "key": "actor_created",
+            "type": "key",
+            "columns": ["actorId", "createdAt"],
+            "orders": ["ASC", "DESC"]
+          }
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "sharedFreePlanBucket": true,
+    "cmsMedia": "cms_media",
+    "intakeFiles": "cms_media"
+  },
+  "buckets": [
+    {
+      "id": "cms_media",
+      "name": "CMS media",
+      "fileSecurity": true,
+      "maximumFileSize": 10485760,
+      "allowedFileExtensions": [
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "svg",
+        "pdf",
+        "doc",
+        "docx",
+        "umojaenc"
+      ],
+      "encryption": true,
+      "antivirus": true,
+      "transformations": true,
+      "permissions": [],
+      "reconcileExisting": true
+    }
+  ]
+}

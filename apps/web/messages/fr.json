@@ -1,0 +1,258 @@
+{
+  "Metadata": {
+    "title": "Umoja",
+    "description": "L’expertise africaine. Une force unie."
+  },
+  "Shell": {
+    "skip": "Aller au contenu principal",
+    "menuOpen": "Ouvrir le menu",
+    "menuClose": "Fermer le menu",
+    "menuTitle": "Navigation principale",
+    "homeLabel": "Accueil Umoja",
+    "languageLabel": "Langue",
+    "switchLanguage": "English",
+    "footerExplore": "Explorer",
+    "footerAct": "Commencer",
+    "footerStatement": "L’expertise africaine. Une force unie.",
+    "footerLanguageNote": "Le français et l’anglais ont le même statut chez Umoja."
+  },
+  "Navigation": {
+    "services": "Services",
+    "work": "Réalisations",
+    "talent": "Talents",
+    "africit": "AfricIT",
+    "about": "À propos",
+    "startProject": "Démarrer un projet",
+    "join": "Rejoindre Umoja"
+  },
+  "Home": {
+    "eyebrow": "Plateforme Umoja",
+    "title": "L’expertise africaine. Une force unie.",
+    "metadataDescription": "Umoja réunit des spécialistes africains sélectionnés au sein d’équipes responsables de la réalisation numérique et du développement de capacités partagées.",
+    "introduction": "Umoja réunit des spécialistes sélectionnés au sein d’équipes responsables pour concevoir, construire et exploiter des produits numériques dans un réseau africain bilingue.",
+    "primaryAction": "Démarrer un projet",
+    "secondaryAction": "Rejoindre le réseau",
+    "trust": {
+      "eyebrow": "La confiance avant l’échelle",
+      "title": "Une seule équipe responsable, réunie autour du travail.",
+      "description": "Umoja est un collectif de réalisation sélectionné, pas un annuaire anonyme de freelances. Chaque projet est structuré avant la composition de l’équipe, puis réalisé avec des rôles, des interfaces et une responsabilité partagée clairement définis.",
+      "principlesLabel": "Principes de réalisation Umoja",
+      "managed": "Équipes encadrées",
+      "modular": "Réalisation modulaire",
+      "bilingual": "Français et anglais dès la conception"
+    },
+    "operating": {
+      "eyebrow": "Le fonctionnement d’Umoja",
+      "title": "D’un besoin réel à une capacité commune renforcée.",
+      "description": "Le modèle opérationnel relie les résultats du client, la progression des contributeurs et une documentation utile tout au long de la réalisation.",
+      "steps": [
+        {
+          "title": "Découvrir",
+          "description": "Comprendre le besoin, le contexte, les contraintes et les preuves nécessaires à une décision responsable."
+        },
+        {
+          "title": "Assembler",
+          "description": "Structurer le travail en modules clairs et réunir les bonnes expertises en produit, ingénierie, design et croissance."
+        },
+        {
+          "title": "Réaliser",
+          "description": "Travailler comme une seule équipe responsable, avec des interfaces, des critères d’acceptation et une documentation explicites."
+        },
+        {
+          "title": "Progresser",
+          "description": "Transformer la réalisation en apprentissage, en connaissances réutilisables et en capacité collective renforcée."
+        }
+      ]
+    },
+    "capabilities": {
+      "eyebrow": "Domaines de compétence",
+      "title": "Des disciplines reliées autour du produit, jamais vendues isolément.",
+      "description": "Umoja rassemble les compétences nécessaires pour passer de la découverte à une exploitation fiable.",
+      "action": "Explorer les services",
+      "items": [
+        {
+          "title": "Ingénierie produit",
+          "description": "Stratégie produit, architecture logicielle, réalisation web et applicative, et accompagnement durable du produit."
+        },
+        {
+          "title": "Données et IA",
+          "description": "Produits de données responsables, analyse appliquée, recherche et automatisation fondées sur un usage clair."
+        },
+        {
+          "title": "Modernisation des organisations",
+          "description": "Renouvellement concret des systèmes, des processus et des outils internes sans perdre le contexte opérationnel essentiel."
+        },
+        {
+          "title": "Cloud et opérations",
+          "description": "Plateformes fiables, infrastructure de livraison, observabilité et pratiques opérationnelles conçues pour la continuité."
+        },
+        {
+          "title": "Design et marque",
+          "description": "Recherche, design de services et de produits, interfaces accessibles et systèmes de marque cohérents."
+        },
+        {
+          "title": "Croissance numérique",
+          "description": "Contenus utiles, stratégie d’audience, expérimentation et parcours durables de l’attention à l’adoption."
+        }
+      ]
+    },
+    "work": {
+      "eyebrow": "Réalisations choisies",
+      "title": "Les preuves exigent consentement et contexte.",
+      "description": "Les études de cas présenteront le défi, la contribution d’Umoja, le résultat vérifié, le statut actuel et les enseignements, uniquement après l’accord du client et des contributeurs.",
+      "status": "Publication en attente",
+      "emptyTitle": "Aucun projet non vérifié ne tiendra lieu de preuve.",
+      "emptyDescription": "La sélection reste volontairement vide pendant la vérification des archives, des résultats et des autorisations de publication.",
+      "action": "Voir les réalisations"
+    },
+    "network": {
+      "eyebrow": "Le modèle de réseau",
+      "title": "Des rôles différents, une institution reliée.",
+      "description": "Umoja relie une réalisation de confiance, un réseau élargi de contributeurs, l’apprentissage et la recherche, ainsi que des organisations indépendantes qui proposent des travaux utiles.",
+      "caption": "L’accès aux projets reste limité aux rôles actifs et au contexte minimal nécessaire à une réalisation responsable.",
+      "parts": [
+        {
+          "name": "Umoja Core",
+          "description": "Des contributeurs sélectionnés assumant une large responsabilité de réalisation et capables de diriger, relire, accompagner et documenter."
+        },
+        {
+          "name": "Umoja Extended",
+          "description": "Des candidats et spécialistes qui contribuent par des modules et des interfaces clairement attribués."
+        },
+        {
+          "name": "AfricIT",
+          "description": "Apprentissage, ateliers, recherche et connaissances publiques au service de capacités concrètes."
+        },
+        {
+          "name": "Organisations partenaires",
+          "description": "Des organisations indépendantes vérifiées qui confient des travaux à une force commune réutilisable."
+        }
+      ]
+    },
+    "talent": {
+      "eyebrow": "Talents",
+      "title": "Une visibilité professionnelle, toujours choisie.",
+      "description": "Les profils publics peuvent présenter un nom professionnel choisi, une région, des compétences, un niveau d’expérience et une disponibilité. Les coordonnées et informations professionnelles privées restent confidentielles.",
+      "status": "Profils fondés sur le consentement",
+      "emptyTitle": "Les profils paraîtront après validation volontaire.",
+      "emptyDescription": "Umoja ne créera pas de faux spécialistes et n’exposera pas de données personnelles pour remplir cet espace.",
+      "action": "Comprendre les profils publics"
+    },
+    "africit": {
+      "eyebrow": "AfricIT par Umoja",
+      "title": "Chaque réalisation doit laisser davantage de capacités.",
+      "description": "AfricIT relie l’apprentissage pratique, les ressources publiques et les thèmes de recherche aux besoins révélés par les projets réels et les marchés technologiques africains.",
+      "workshops": "Ateliers",
+      "resources": "Ressources d’apprentissage",
+      "research": "Thèmes de recherche",
+      "action": "Explorer AfricIT"
+    },
+    "manifesto": {
+      "eyebrow": "Extrait du manifeste",
+      "title": "Construire en Afrique. Progresser avec le travail.",
+      "description": "Nous croyons qu’une réalisation numérique utile peut renforcer simultanément les personnes, les organisations et les institutions communes. Umoja est conçu pour que le travail de confiance crée de l’expérience, que l’expérience devienne connaissance et que cette connaissance ouvre une voie plus claire au prochain contributeur.",
+      "action": "Découvrir le modèle"
+    },
+    "final": {
+      "eyebrow": "Deux voies vers le réseau",
+      "title": "Apportez le travail. Apportez votre expertise.",
+      "buildTitle": "Construire avec Umoja",
+      "buildDescription": "Présentez-nous ce que votre organisation doit concevoir, construire ou exploiter. Nous commencerons par le contexte et la faisabilité.",
+      "buildAction": "Démarrer un projet",
+      "growTitle": "Progresser avec Umoja",
+      "growDescription": "Rejoignez un parcours fondé sur le consentement vers des projets utiles, l’apprentissage, le mentorat et une contribution de confiance.",
+      "growAction": "Rejoindre le réseau"
+    }
+  },
+  "PublicContent": {
+    "breadcrumbLabel": "Fil d’Ariane",
+    "home": "Accueil",
+    "servicesTitle": "Services",
+    "servicesSummary": "Cinq domaines de compétence reliés, assemblés autour du travail plutôt que vendus isolément.",
+    "servicesEyebrow": "Services Umoja",
+    "servicesSectionTitle": "Des compétences capables d’avancer ensemble.",
+    "servicesSectionDescription": "Chaque catégorie décrit un point de départ responsable. L’équipe et les modules finaux suivent le besoin réel.",
+    "exploreService": "Explorer ce service",
+    "capabilities": "Compétences",
+    "approach": "Notre approche",
+    "startProject": "Démarrer un projet",
+    "workTitle": "Réalisations choisies",
+    "workSummary": "Les études de cas vérifiées ne paraîtront qu’après validation des preuves et autorisation de publication.",
+    "workEyebrow": "Des preuves avec consentement",
+    "workEmptyTitle": "Aucune étude de cas vérifiée n’est encore publiée.",
+    "workEmptyDescription": "Cette collection reste volontairement vide jusqu’à la validation du contexte client, des résultats et des autorisations. Le gabarit illustratif montre la structure future sans formuler de revendication.",
+    "viewCaseTemplate": "Voir le gabarit illustratif d’étude de cas",
+    "challenge": "Défi",
+    "contribution": "Contribution d’Umoja",
+    "result": "Résultat",
+    "status": "Statut",
+    "lessons": "Enseignements",
+    "talentTitle": "Talents publics",
+    "talentSummary": "Les profils professionnels ne sont visibles qu’après consentement explicite et validation.",
+    "talentEyebrow": "Visibilité volontaire",
+    "talentEmptyTitle": "Aucun profil public volontaire n’est encore publié.",
+    "talentEmptyDescription": "Les candidatures privées, coordonnées, évaluations et informations d’emploi n’apparaissent jamais ici. Le profil illustratif montre la projection publique limitée.",
+    "viewProfileTemplate": "Voir le gabarit de profil illustratif",
+    "region": "Région",
+    "seniority": "Niveau",
+    "availability": "Disponibilité",
+    "skills": "Compétences",
+    "organizationsEmptyTitle": "Aucun annuaire d’organisations n’est encore publié.",
+    "organizationsEmptyDescription": "Les noms et relations des partenaires vérifiés ne paraîtront qu’après autorisation de publication par l’organisation.",
+    "africitEmptyTitle": "Des contenus d’apprentissage validés sont en préparation.",
+    "africitEmptyDescription": "Ateliers, ressources et recherches paraîtront après validation éditoriale. Aucun article provisoire n’est présenté comme un savoir établi.",
+    "africitExploreTitle": "Explorer AfricIT",
+    "africitExploreDescription": "Les espaces de publication sont prêts pendant la préparation des contenus validés.",
+    "workshops": "Ateliers",
+    "research": "Recherche",
+    "resources": "Ressources",
+    "aboutExploreTitle": "Explorer l’institution",
+    "aboutExploreDescription": "Découvrez le modèle, ses limites de gouvernance et le manifeste qui relie réalisation et capacités communes.",
+    "model": "Modèle",
+    "governance": "Gouvernance",
+    "manifesto": "Manifeste",
+    "readMore": "Lire la suite",
+    "loadingTitle": "Chargement du contenu",
+    "loadingDescription": "Le dossier public vérifié est en préparation.",
+    "errorTitle": "Impossible de charger le contenu",
+    "errorDescription": "Réessayez plus tard. Aucun contenu non vérifié ne sera utilisé en remplacement."
+  },
+  "NotFound": {
+    "title": "Cette page publique n’est pas disponible.",
+    "description": "L’adresse est peut-être incorrecte ou le contenu demandé n’a pas été autorisé à la publication.",
+    "action": "Retour à l’accueil"
+  },
+  "Pages": {
+    "services": {
+      "title": "Services",
+      "summary": "Une présentation claire des compétences qu’Umoja peut réunir au sein d’équipes responsables de la réalisation."
+    },
+    "work": {
+      "title": "Réalisations",
+      "summary": "Les études de cas vérifiées seront publiées ici uniquement après consentement et validation éditoriale."
+    },
+    "talent": {
+      "title": "Talents",
+      "summary": "Les profils publics volontaires présenteront l’expertise professionnelle sans exposer de coordonnées privées ni de données RH."
+    },
+    "africit": {
+      "title": "AfricIT",
+      "summary": "Un espace Umoja consacré à l’apprentissage, aux ateliers, à la recherche et au développement de compétences concrètes."
+    },
+    "about": {
+      "title": "À propos d’Umoja",
+      "summary": "Découvrez comment le collectif relie spécialistes de confiance, réalisation encadrée et croissance partagée."
+    },
+    "start-a-project": {
+      "title": "Démarrer un projet",
+      "summary": "Présentez-nous ce que vous souhaitez construire. Un parcours structuré de dépôt de projet arrive prochainement."
+    },
+    "join": {
+      "title": "Rejoindre Umoja",
+      "summary": "Un parcours de candidature privé, fondé sur le consentement, pour les spécialistes qui souhaitent contribuer et progresser."
+    },
+    "eyebrow": "Fondation du site public",
+    "status": "Cette page est prête à accueillir un contenu bilingue vérifié.",
+    "backHome": "Retour à l’accueil"
+  }
+}

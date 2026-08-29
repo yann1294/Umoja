@@ -1,0 +1,258 @@
+{
+  "Metadata": {
+    "title": "Umoja",
+    "description": "African expertise. One trusted force."
+  },
+  "Shell": {
+    "skip": "Skip to main content",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "menuTitle": "Main navigation",
+    "homeLabel": "Umoja home",
+    "languageLabel": "Language",
+    "switchLanguage": "Français",
+    "footerExplore": "Explore",
+    "footerAct": "Get started",
+    "footerStatement": "African expertise. One trusted force.",
+    "footerLanguageNote": "English and French have equal status at Umoja."
+  },
+  "Navigation": {
+    "services": "Services",
+    "work": "Work",
+    "talent": "Talent",
+    "africit": "AfricIT",
+    "about": "About",
+    "startProject": "Start a project",
+    "join": "Join"
+  },
+  "Home": {
+    "eyebrow": "Umoja Platform",
+    "title": "African expertise. One trusted force.",
+    "metadataDescription": "Umoja assembles vetted African specialists into accountable teams for digital delivery and shared capability building.",
+    "introduction": "Umoja assembles vetted specialists into accountable teams to design, build, and operate digital products across a bilingual African network.",
+    "primaryAction": "Start a project",
+    "secondaryAction": "Join the network",
+    "trust": {
+      "eyebrow": "Trust before scale",
+      "title": "One accountable team, assembled around the work.",
+      "description": "Umoja is a curated delivery collective, not an anonymous freelancer directory. Each project is shaped before staffing, then delivered through clear roles, interfaces, and shared responsibility.",
+      "principlesLabel": "Umoja delivery principles",
+      "managed": "Managed teams",
+      "modular": "Modular delivery",
+      "bilingual": "English and French by design"
+    },
+    "operating": {
+      "eyebrow": "How Umoja works",
+      "title": "From a real need to a stronger shared capability.",
+      "description": "The operating model keeps client outcomes, contributor growth, and useful documentation connected throughout delivery.",
+      "steps": [
+        {
+          "title": "Discover",
+          "description": "Understand the need, context, constraints, and evidence required for a responsible project decision."
+        },
+        {
+          "title": "Assemble",
+          "description": "Shape the work into clear modules and bring together the right product, engineering, design, and growth expertise."
+        },
+        {
+          "title": "Deliver",
+          "description": "Work as one accountable team with explicit interfaces, acceptance criteria, and documentation."
+        },
+        {
+          "title": "Grow",
+          "description": "Turn delivery into learning, reusable knowledge, contributor progression, and stronger collective capability."
+        }
+      ]
+    },
+    "capabilities": {
+      "eyebrow": "Capability areas",
+      "title": "Disciplines connected around the product, not sold in isolation.",
+      "description": "Umoja brings together the capabilities needed to move from discovery through dependable operation.",
+      "action": "Explore services",
+      "items": [
+        {
+          "title": "Product engineering",
+          "description": "Product strategy, software architecture, web and application delivery, and long-term product stewardship."
+        },
+        {
+          "title": "Data and AI",
+          "description": "Responsible data products, applied analysis, research, and automation grounded in a clear use case."
+        },
+        {
+          "title": "Enterprise modernization",
+          "description": "Practical renewal of systems, workflows, and internal tools without losing essential operational context."
+        },
+        {
+          "title": "Cloud and operations",
+          "description": "Reliable platforms, delivery infrastructure, observability, and operational practices built for continuity."
+        },
+        {
+          "title": "Design and brand",
+          "description": "Research, service and product design, accessible interfaces, and coherent brand systems."
+        },
+        {
+          "title": "Digital growth",
+          "description": "Useful content, audience strategy, experimentation, and sustainable paths from attention to adoption."
+        }
+      ]
+    },
+    "work": {
+      "eyebrow": "Selected work",
+      "title": "Evidence deserves consent and context.",
+      "description": "Case studies will explain the challenge, Umoja’s contribution, the verified result, current status, and lessons—only after client and contributor approval.",
+      "status": "Publication pending",
+      "emptyTitle": "No unverified project will stand in for proof.",
+      "emptyDescription": "The selected-work collection remains intentionally empty while historical records, outcomes, and publication permissions are reviewed.",
+      "action": "Visit selected work"
+    },
+    "network": {
+      "eyebrow": "The network model",
+      "title": "Different roles, one connected institution.",
+      "description": "Umoja links trusted delivery, a wider contributor network, learning and research, and independent organizations that originate meaningful work.",
+      "caption": "Project access remains scoped to active roles and the least context needed for responsible delivery.",
+      "parts": [
+        {
+          "name": "Umoja Core",
+          "description": "Vetted contributors with broad delivery responsibility who can lead, review, mentor, and document."
+        },
+        {
+          "name": "Umoja Extended",
+          "description": "Candidates and specialists contributing through clearly assigned modules and interfaces."
+        },
+        {
+          "name": "AfricIT",
+          "description": "Learning, workshops, research, and public knowledge that strengthen practical capability."
+        },
+        {
+          "name": "Partner organizations",
+          "description": "Verified independent organizations that bring work to a reusable shared workforce."
+        }
+      ]
+    },
+    "talent": {
+      "eyebrow": "Talent",
+      "title": "Professional visibility, always by choice.",
+      "description": "Public profiles can show a chosen professional name, region, skills, seniority, and availability. Contact details and private employment information stay private.",
+      "status": "Consent-led profiles",
+      "emptyTitle": "Profiles will appear after opt-in review.",
+      "emptyDescription": "Umoja will not create fictional specialists or expose contributor data to fill this space.",
+      "action": "Understand public talent"
+    },
+    "africit": {
+      "eyebrow": "AfricIT by Umoja",
+      "title": "Delivery should leave more capability behind.",
+      "description": "AfricIT connects practical learning, public resources, and research themes to the needs revealed through real projects and African technology markets.",
+      "workshops": "Workshops",
+      "resources": "Learning resources",
+      "research": "Research themes",
+      "action": "Explore AfricIT"
+    },
+    "manifesto": {
+      "eyebrow": "Manifesto excerpt",
+      "title": "Build in Africa. Grow with the work.",
+      "description": "We believe meaningful digital delivery can strengthen people, organizations, and shared institutions at the same time. Umoja is being built so trusted work creates experience, experience becomes knowledge, and knowledge opens a clearer path for the next contributor.",
+      "action": "Read about the model"
+    },
+    "final": {
+      "eyebrow": "Two ways into the network",
+      "title": "Bring the work. Bring your expertise.",
+      "buildTitle": "Build with Umoja",
+      "buildDescription": "Tell us what your organization needs to design, build, or operate. We’ll begin with context and feasibility.",
+      "buildAction": "Start a project",
+      "growTitle": "Grow with Umoja",
+      "growDescription": "Join a consent-led path toward meaningful projects, learning, mentorship, and trusted contribution.",
+      "growAction": "Join the network"
+    }
+  },
+  "PublicContent": {
+    "breadcrumbLabel": "Breadcrumb",
+    "home": "Home",
+    "servicesTitle": "Services",
+    "servicesSummary": "Five connected capability areas, assembled around the work rather than sold in isolation.",
+    "servicesEyebrow": "Umoja services",
+    "servicesSectionTitle": "Capability that can move together.",
+    "servicesSectionDescription": "Each category describes a responsible starting point. The final team and modules follow the actual need.",
+    "exploreService": "Explore this service",
+    "capabilities": "Capabilities",
+    "approach": "How we approach it",
+    "startProject": "Start a project",
+    "workTitle": "Selected work",
+    "workSummary": "Verified case studies will appear only after evidence review and publication approval.",
+    "workEyebrow": "Evidence with consent",
+    "workEmptyTitle": "No verified case studies are published yet.",
+    "workEmptyDescription": "This collection stays deliberately empty until client context, outcomes, and permissions have been reviewed. The illustrative template shows the future structure without making a claim.",
+    "viewCaseTemplate": "View the illustrative case-study template",
+    "challenge": "Challenge",
+    "contribution": "Umoja contribution",
+    "result": "Result",
+    "status": "Status",
+    "lessons": "Lessons",
+    "talentTitle": "Public talent",
+    "talentSummary": "Professional profiles are visible only after explicit opt-in and review.",
+    "talentEyebrow": "Consent-led visibility",
+    "talentEmptyTitle": "No opt-in public profiles are published yet.",
+    "talentEmptyDescription": "Private applications, contact details, assessments, and employment information never appear here. The illustrative profile demonstrates the limited public projection.",
+    "viewProfileTemplate": "View the illustrative profile template",
+    "region": "Region",
+    "seniority": "Seniority",
+    "availability": "Availability",
+    "skills": "Skills",
+    "organizationsEmptyTitle": "No organization directory is published yet.",
+    "organizationsEmptyDescription": "Verified partner names and relationships will appear only after the organization approves publication.",
+    "africitEmptyTitle": "Reviewed learning material is being prepared.",
+    "africitEmptyDescription": "Workshops, resources, and research will appear after editorial review. No placeholder article is presented as established knowledge.",
+    "africitExploreTitle": "Explore AfricIT",
+    "africitExploreDescription": "The publication spaces are ready while reviewed material is prepared.",
+    "workshops": "Workshops",
+    "research": "Research",
+    "resources": "Resources",
+    "aboutExploreTitle": "Explore the institution",
+    "aboutExploreDescription": "Read the model, its governance boundaries, and the manifesto that connects delivery to shared capability.",
+    "model": "Model",
+    "governance": "Governance",
+    "manifesto": "Manifesto",
+    "readMore": "Read more",
+    "loadingTitle": "Content is loading",
+    "loadingDescription": "The verified public record is being prepared.",
+    "errorTitle": "Content could not be loaded",
+    "errorDescription": "Try again later. No unverified fallback content will be substituted."
+  },
+  "NotFound": {
+    "title": "This public page is not available.",
+    "description": "The address may be incorrect, or the requested content has not been approved for publication.",
+    "action": "Return home"
+  },
+  "Pages": {
+    "services": {
+      "title": "Services",
+      "summary": "A clear view of the capabilities Umoja can assemble into accountable delivery teams."
+    },
+    "work": {
+      "title": "Work",
+      "summary": "Verified case studies will appear here only after publication consent and editorial review."
+    },
+    "talent": {
+      "title": "Talent",
+      "summary": "Opt-in public profiles will present professional expertise without exposing private contact or HR data."
+    },
+    "africit": {
+      "title": "AfricIT",
+      "summary": "A home for learning, workshops, research, and practical capability building by Umoja."
+    },
+    "about": {
+      "title": "About Umoja",
+      "summary": "Learn how the collective connects trusted specialists, managed delivery, and shared growth."
+    },
+    "start-a-project": {
+      "title": "Start a project",
+      "summary": "Tell us what you need to build. A structured project-intake experience is coming next."
+    },
+    "join": {
+      "title": "Join Umoja",
+      "summary": "A private, consent-led application path for specialists who want to contribute and grow."
+    },
+    "eyebrow": "Public site foundation",
+    "status": "This page is ready for verified bilingual content.",
+    "backHome": "Back to home"
+  }
+}

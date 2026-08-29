@@ -1,6 +1,6 @@
 # Umoja Freelance Platform — Product and Platform Blueprint
 
-Status: proposed foundation  
+Status: proposed foundation with a provisioned development baseline  
 Working name: Umoja Freelance Platform (UFP)  
 Product promise: **African expertise. One trusted force.**
 
@@ -341,14 +341,46 @@ For example, “completed, contract broken, client not satisfied” is three fac
 
 ### Appwrite responsibilities
 
-- **Auth:** email/passwordless or magic-link sign-in initially; optional OAuth later; MFA required for admins.
-- **Databases:** operational records with collection/document permissions and server-enforced authorization.
-- **Storage:** CVs, identity evidence, contracts, portfolio media, deliverables, and project documents in separate buckets by sensitivity.
+- **Auth:** invite-only email/password sign-in with verification and recovery initially; optional passwordless, magic-link, or OAuth sign-in later; MFA is required operationally for privileged roles.
+- **Databases:** operational records with table/row permissions, server-enforced authorization, and application-layer encryption for classified sensitive fields that cannot use Appwrite native encrypted columns on the current plan.
+- **Storage:** the current free-plan development architecture uses one encrypted, deny-by-default bucket with File Security and per-file permissions. Public CMS media and application-encrypted private files share the bucket but never share access rules or delivery paths. Separate buckets by sensitivity remain the target migration when the chosen plan or hosting architecture supports them.
 - **Functions:** notifications, stale-availability reminders, document processing, audit enrichment, scheduled checks, and future webhooks.
 - **Realtime:** selective notification and project-status updates, not as the sole source of truth.
 - **Teams/labels:** coarse tenancy and role grouping only; combine with explicit project membership records.
 
 Appwrite currently provides authentication, database, storage, and function primitives suitable for this scope. Keep domain authorization in a tested server-side policy layer instead of scattering permission checks throughout components.
+
+### Current development Appwrite baseline
+
+The provisioned development environment is `umoja-development` in the Appwrite `syd` region. This is an implementation baseline, not a claim that Sydney is the final production region or that it satisfies every future residency requirement.
+
+```text
+umoja-development
+├── Team: umoja-operations
+│   └── Roles: admin, cms-editor, reviewer, core, extended, project-manager
+├── Database: umoja
+│   ├── cms_pages
+│   ├── cms_revisions
+│   ├── project_intakes
+│   ├── talent_intakes
+│   └── audit_logs
+└── Storage bucket: cms_media
+    ├── Intentionally public published CMS files — explicit per-file public read only
+    ├── Private CMS drafts — authorized per-file access only
+    └── Intake/portfolio files — application-encrypted and authorized server delivery only
+```
+
+All tables use row security and deny-by-default permissions. The bucket has empty bucket-wide permissions, File Security enabled, and native bucket encryption enabled. Both `APPWRITE_CMS_MEDIA_BUCKET_ID` and `APPWRITE_INTAKE_FILES_BUCKET_ID` resolve to `cms_media` in the free-plan environment. Code must treat those aliases as different sensitivity classes even though they currently resolve to the same physical bucket. No implementation may infer public access from the bucket ID alone.
+
+The `umoja-operations` Team currently has no memberships. Inviting at least one minimum-privilege administrator, verifying administrator MFA, and retaining a recovery owner are manual gates before the private operations preview. Applicants are record owners and do not automatically become Team members. The current `admin` role represents approved operations capabilities only; it must not silently become governance authority. Legal/governance publication and other governance-only actions remain blocked until Umoja approves and implements a distinct policy or role.
+
+The current schema persists project and talent intake only. The general `/contact` journey must remain an honest mock or route through a separately approved additive model; it must not overload unrelated project-intake fields merely to avoid a migration.
+
+Appwrite native encrypted database columns are unavailable on the current free plan. Sensitive intake/profile fields therefore use versioned AES-256-GCM envelopes created in the trusted Next.js server before Appwrite receives them. Data and file encryption use independent 32-byte keys, random IVs, authentication tags, contextual authenticated data, and explicit key versions. Exact-match lookup and idempotency use a third independent key with context-separated HMAC-SHA-256 values such as `emailLookup` and `idempotencyKeyHash`; ciphertext is never indexed. Audit rows contain identifiers, actions, and non-reversible digests rather than duplicated personal data.
+
+Public CMS content and approved operational metadata remain queryable plaintext because they are not classified secrets. Decryption of sensitive fields or files occurs only after server-side authentication and authorization. Private files are application-encrypted even when provider-native bucket encryption is enabled, and are delivered only through authorized server download/decryption routes—never public Appwrite URLs or previews.
+
+Infrastructure is defined in version-controlled Appwrite configuration and provisioned additively with validation, drift, health, integration, read-back, and permission-filtered checks. Long-lived runtime and SSR keys are least-privilege server secrets. Schema changes use a separately scoped, short-lived bootstrap key that is removed after verified provisioning. Future profile/workspace tables require a new approved additive migration; `talent_intakes` must not become a permanent profile database merely to avoid a schema change.
 
 ### Deployment
 
@@ -366,7 +398,7 @@ Next.js application
 Appwrite
 ├── Auth
 ├── Databases
-├── Storage
+├── Storage (one shared free-plan bucket today; sensitivity enforced per file)
 ├── Functions / scheduled jobs
 └── Realtime events
 
@@ -421,15 +453,20 @@ A monorepo is justified because the public site, workspace, policy layer, UI tok
 - Enforce authorization server-side and test every role/resource/action combination.
 - MFA for admin, governance, finance, and project-lead roles.
 - Short-lived sessions; revoke sessions when membership or project access ends.
-- Private storage buckets with signed, short-lived file access.
+- In the current free-plan environment, keep bucket-wide permissions empty and enforce sensitivity with File Security and explicit per-file permissions inside the shared `cms_media` bucket. Public CMS publication must never broaden access to private CMS, intake, portfolio, or future project files.
+- Return private files only through authorized server download/decryption routes. Do not expose direct public Appwrite URLs or previews for encrypted private files.
 - Malware scanning and type/size validation for uploads before making files available.
-- Encryption in transit and provider-managed encryption at rest; apply additional field encryption to highly sensitive data if threat modelling requires it.
+- Encryption in transit and provider-managed bucket encryption at rest, plus mandatory application AES-256-GCM for classified sensitive database values and private files in the current free-plan architecture.
+- Use independent versioned keys for data encryption, file encryption, and HMAC blind indexes. Keep keys server-only, back them up securely, document rotation, and test authenticated-decryption failure. Key loss makes protected data unrecoverable.
+- Keep public and approved operational fields queryable; never index ciphertext. Use context-separated HMAC-SHA-256 only for justified exact-match lookup and idempotency.
 - Immutable audit events for permission, membership, finance, and approval changes.
-- No secrets, contracts, CVs, legal names, or client documents in logs or analytics.
+- Audit events store identifiers, actions, and non-reversible digests rather than duplicated personal data. No secrets, plaintext private fields, contracts, CVs, legal names, or client documents may enter logs, analytics, screenshots, fixtures, cache keys, or error messages.
 - Defined retention schedule and user data export/deletion process.
 - Backups with documented restoration tests.
 - Consent records for publishing profiles, case studies, testimonials, and images.
 - Rate limits, anti-bot protection, and abuse review for public forms.
+- Version-control all Appwrite resources and verify schema drift. Use a short-lived bootstrap key only for approved additive schema operations, then remove it from Appwrite and every local/deployment environment after read-back verification.
+- Before production scale or storage of higher-risk evidence, review whether the hosting plan must migrate from the shared-bucket exception to separate buckets by sensitivity.
 
 ### Specific threat to prevent
 
@@ -522,7 +559,7 @@ Exit: signed product vocabulary, approved MVP scope, named policy owners, and pu
 
 - Bilingual public site, services, model, selected work, AfricIT, contact.
 - Project-intake and talent-application flows.
-- Appwrite auth, private submissions, storage, admin review queue.
+- Invite-only Appwrite auth, application-encrypted private submissions/files, shared-bucket per-file isolation for the free-plan pilot, and an admin review queue.
 - Content editing, SEO, analytics, accessibility, security baseline.
 - Seed only verified projects and opt-in profiles.
 
@@ -530,7 +567,8 @@ Exit: Umoja can credibly explain itself, receive work, receive candidates, and p
 
 ### Phase 2 — Delivery workspace pilot (6–8 weeks)
 
-- Profiles, skills, availability, organizations, opportunities, feasibility reviews.
+- Additively provision dedicated public/private profiles, skills, portfolio, availability, and membership-history records; do not overload talent-intake rows as permanent profiles.
+- Organizations, opportunities, and feasibility reviews.
 - Projects, hierarchical modules, staffing, assignments, milestones, deliverables, documentation.
 - Core versus Extended access rules and audit trail.
 - Notifications and weekly availability reminders.
@@ -574,14 +612,16 @@ Exit: repeatable commercial operations across approved jurisdictions.
 
 - Initialize monorepo, checks, preview deployments, environment validation, and architecture decisions.
 - Implement design tokens, typography, responsive shell, bilingual routing, metadata, and accessibility checks.
-- Configure Appwrite environments via repeatable scripts; never configure production only by clicking in a console.
-- Build server-only Appwrite clients, session handling, authorization policies, audit event helpers, and test fixtures.
+- Configure Appwrite environments via repeatable additive scripts with validation, drift, health, integration, read-back, and permission-filtered checks; never configure production only by clicking in a console.
+- Build separate browser, per-request session, SSR, runtime-admin, and temporary-bootstrap Appwrite clients; keep every privileged key server-only and remove bootstrap keys after verified schema operations.
+- Maintain the free-plan `cms_media` shared-bucket aliases and strict per-file sensitivity boundaries until an approved migration to separate buckets is available.
+- Build versioned AES-256-GCM data/file encryption, independent HMAC blind indexes, authorization policies, digest-only audit helpers, key-rotation documentation, and deterministic test fixtures.
 
 ### Public release
 
 - Home, services, model, work index/detail, AfricIT, about/manifesto, contact.
-- Start-a-project multi-step form with drafts and protected uploads.
-- Join multi-step form with profile visibility consent and protected portfolio/CV uploads.
+- Start-a-project multi-step form with drafts and server-validated, application-encrypted protected uploads.
+- Join multi-step form with profile visibility consent and server-validated, application-encrypted protected portfolio/CV uploads; do not collect identity evidence in the initial release.
 - Admin intake queues with status, notes, ownership, and activity history.
 
 ### Pilot workspace
@@ -606,6 +646,9 @@ These are organizational decisions, not software questions:
 8. Which two service categories and countries are the launch focus?
 9. Which historical projects have client permission to appear publicly?
 10. Who owns English/French content quality and operational data quality?
+11. Which production Appwrite region and plan satisfy the approved latency, residency, backup, quota, and support requirements? The current `syd` project is a development baseline only.
+12. At what risk or scale threshold must Umoja replace the shared free-plan bucket with separate buckets by sensitivity?
+13. Who is accountable for encryption-key generation, independent backup, access review, rotation, incident response, and recovery testing?
 
 ## 18. Recommendation in one sentence
 

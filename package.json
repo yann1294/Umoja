@@ -9,11 +9,28 @@
   "scripts": {
     "dev": "pnpm --filter @umoja/web dev",
     "build": "pnpm --filter @umoja/web build",
-    "lint": "pnpm -r --if-present lint",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && pnpm -r --if-present typecheck",
+    "test": "pnpm test:unit",
+    "test:unit": "pnpm -r --if-present test:unit",
+    "test:e2e": "playwright test",
+    "appwrite:validate": "pnpm --filter @umoja/appwrite appwrite:validate",
+    "appwrite:provision": "pnpm --filter @umoja/appwrite appwrite:provision",
+    "appwrite:drift": "pnpm --filter @umoja/appwrite appwrite:drift",
+    "appwrite:health": "pnpm --filter @umoja/appwrite appwrite:health",
+    "appwrite:seed": "pnpm --filter @umoja/appwrite appwrite:seed",
+    "appwrite:integration": "pnpm --filter @umoja/appwrite appwrite:integration",
+    "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:e2e && pnpm build"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "axe-core": "^4.13.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.2",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3"
   }
 }

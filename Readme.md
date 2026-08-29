@@ -38,8 +38,44 @@ Then open `http://localhost:3000`.
 ## Quality checks
 
 ```sh
+pnpm format:check
 pnpm lint
 pnpm typecheck
-pnpm test
+pnpm test:unit
+pnpm exec playwright install chromium
+pnpm test:e2e
 pnpm build
 ```
+
+Run all pull-request checks in sequence with `pnpm quality`. Use `pnpm format` to apply the
+workspace formatting rules. Intentional visual changes require reviewing the browser output and
+then running `pnpm test:e2e --update-snapshots`; never update screenshot baselines blindly.
+
+## Appwrite development foundation
+
+The repository can build and test without Appwrite secrets. To configure the development project,
+copy the placeholder-only contract and follow the runbook:
+
+```sh
+cp .env.example apps/web/.env.local
+pnpm appwrite:validate
+pnpm appwrite:provision
+pnpm appwrite:drift
+pnpm appwrite:health
+pnpm appwrite:integration
+pnpm appwrite:seed
+```
+
+Provisioning requires a separately scoped bootstrap key and refuses a project whose verified name
+is not `umoja-development`. See [the Appwrite operations runbook](docs/appwrite-runbook.md) before
+creating keys or changing Cloud resources.
+
+## Manual launch gates
+
+Automated responsive tests cover the required width matrix, a 2560px sanity width, and phone and
+tablet landscape variants. They deliberately do not use `deviceScaleFactor` as a substitute for
+browser zoom.
+
+Before launch, verify the supported interface at 200% zoom in a real browser and record successful
+physical-device checks on at least one supported Android phone and one supported iPhone. These are
+manual launch gates and cannot be satisfied by Playwright emulation.
