@@ -19,7 +19,15 @@ describe("Supabase Auth redirect boundary", () => {
   });
 
   it("rejects foreign origins and unrecognised destinations", () => {
-    expect(resolveSupabaseAuthCallback("https://attacker.example/api/supabase-auth/callback?locale=en&flow=verification")).toBeNull();
-    expect(resolveSupabaseAuthCallback("https://umoja.example.test/api/supabase-auth/callback?locale=en&flow=workspace")).toBeNull();
+    expect(
+      resolveSupabaseAuthCallback(
+        "https://attacker.example/api/supabase-auth/callback?locale=en&flow=verification",
+      ),
+    ).toBeNull();
+    expect(
+      resolveSupabaseAuthCallback(
+        "https://umoja.example.test/api/supabase-auth/callback?locale=en&flow=workspace",
+      ),
+    ).toBeNull();
   });
 });

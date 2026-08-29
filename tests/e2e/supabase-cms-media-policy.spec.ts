@@ -62,6 +62,8 @@ async function createUser(role: Role): Promise<SyntheticUser> {
     `create-${role}`,
   );
   const id = (await created.json()).id as string;
+  const user = { id, email, headers: {} as HeadersInit };
+  users.push(user);
   await expectOk(
     await request("/rest/v1/user_roles", {
       method: "POST",
@@ -91,8 +93,7 @@ async function createUser(role: Role): Promise<SyntheticUser> {
     authorization: `Bearer ${(await signedIn.json()).access_token as string}`,
     "content-type": "application/json",
   };
-  const user = { id, email, headers };
-  users.push(user);
+  user.headers = headers;
   return user;
 }
 
@@ -102,7 +103,7 @@ async function signInCms(
   next = "/en/admin/content",
 ) {
   await page.context().clearCookies();
-  await page.goto(`/en/admin/content/sign-in?next=${encodeURIComponent(next)}`);
+  await page.goto(`/en/sign-in?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Email address").fill(user.email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -355,7 +356,7 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
   expect(auditRows[0]).toMatchObject({ action: "cms.publish" });
   expect(auditRows[0]).not.toHaveProperty("payload");
 
-  const objectPath = randomUUID();
+  const objectPath = `test/${run.slice(0, 8)}/${randomUUID()}`;
   storagePaths.push(objectPath);
   const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   await expectOk(
@@ -518,7 +519,7 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
   expect(delivered.status()).toBe(200);
   expect(new Uint8Array(await delivered.body())).toEqual(png);
 
-  const replacementPath = randomUUID();
+  const replacementPath = `test/${run.slice(0, 8)}/${randomUUID()}`;
   storagePaths.push(replacementPath);
   const replacement = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00, 0x00, 0x00]);
   await expectOk(
@@ -631,7 +632,7 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
     "revoke-editor-role",
   );
   await page.goto("/en/admin/content");
-  await expect(page).toHaveURL(/\/en\/admin\/content\/sign-in|\/en\/account-state/);
+  await expect(page).toHaveURL(/\/en\/sign-in|\/en\/account-state/);
   await expectOk(
     await request(`/rest/v1/user_roles?user_id=eq.${editor.id}&role=eq.cms-editor`, {
       method: "PATCH",
@@ -650,7 +651,7 @@ test("enforces the CMS and media RLS lifecycle with disposable roles", async ({ 
   );
   await signInCms(page, editor);
   await page.goto("/en/admin/content");
-  await expect(page).toHaveURL(/\/en\/admin\/content\/sign-in|\/en\/account-state/);
+  await expect(page).toHaveURL(/\/en\/sign-in|\/en\/account-state/);
   await expectOk(
     await request(`/rest/v1/membership_history?user_id=eq.${editor.id}`, {
       method: "PATCH",

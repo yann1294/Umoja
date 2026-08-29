@@ -55,6 +55,8 @@ async function createUser(role: Role) {
     `user-${role}`,
   );
   const id = (await created.json()).id as string;
+  const user = { id, email, headers: {} as HeadersInit };
+  users.push(user);
   await ok(
     await request("/rest/v1/user_roles", {
       method: "POST",
@@ -79,16 +81,11 @@ async function createUser(role: Role) {
     }),
     `token-${role}`,
   );
-  const user = {
-    id,
-    email,
-    headers: {
-      apikey: publishable,
-      authorization: `Bearer ${(await token.json()).access_token as string}`,
-      "content-type": "application/json",
-    },
+  user.headers = {
+    apikey: publishable,
+    authorization: `Bearer ${(await token.json()).access_token as string}`,
+    "content-type": "application/json",
   };
-  users.push(user);
   return user;
 }
 
@@ -131,7 +128,7 @@ function lookup(value: string, context: string) {
 
 async function signIn(page: Page, user: User, next = "/en/admin/intake") {
   await page.context().clearCookies();
-  await page.goto(`/en/admin/intake/sign-in?next=${encodeURIComponent(next)}`);
+  await page.goto(`/en/sign-in?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Email address").fill(user.email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -313,9 +310,9 @@ test("denies unrelated and disabled principals without entering Appwrite lifecyc
   page,
 }) => {
   await signIn(page, unrelated);
-  await expect(page).toHaveURL(/\/en\/admin\/intake\/account-state\?reason=forbidden/);
+  await expect(page).toHaveURL(/\/en\/account-state\?reason=forbidden/);
   await signIn(page, disabled);
-  await expect(page).toHaveURL(/\/en\/admin\/intake\/sign-in/);
+  await expect(page).toHaveURL(/\/en\/sign-in/);
   await expect(page.getByRole("alert")).toBeVisible();
 });
 

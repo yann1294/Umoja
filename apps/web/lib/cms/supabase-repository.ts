@@ -214,7 +214,7 @@ export class SupabaseCmsRepository implements CmsRepository {
       throw new Error("Content must be in review before publication.");
     // The RPC creates the immutable revision, moves the public pointer, and writes a digest-only
     // audit row in one transaction. The user-scoped client supplies auth.uid(); actorId remains a
-    // domain-interface parameter for parity with the temporary Appwrite adapter.
+    // Retained as part of the provider-neutral domain interface.
     const { data, error } = await this.client.rpc("publish_cms_page", {
       p_page_id: id,
       p_change_summary: "Published complete revision",

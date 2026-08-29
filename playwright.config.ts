@@ -25,6 +25,16 @@ export default defineConfig({
   projects: RESPONSIVE_VIEWPORTS.map(({ name, viewport }) => ({
     name,
     use: { viewport },
+    // Remote authorization fixtures create disposable Auth users and mutate shared synthetic rows.
+    // Run them once; the non-mutating route suites retain the complete responsive matrix.
+    testIgnore:
+      name === "width-1280"
+        ? undefined
+        : [
+            "**/supabase-cms-auth.spec.ts",
+            "**/supabase-cms-media-policy.spec.ts",
+            "**/supabase-intake-runtime.spec.ts",
+          ],
   })),
   webServer: {
     command: `pnpm build && pnpm --filter @umoja/web start --hostname 127.0.0.1 --port ${port}`,

@@ -52,7 +52,7 @@ test("CMS index and editor inherit the authenticated shell across the viewport m
 test("CMS route remains protected by direct URL", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "width-1280", "One project verifies server protection.");
   await page.goto("/en/admin/content");
-  await expect(page).toHaveURL(/\/en\/sign-in$/);
+  await expect(page).toHaveURL(/\/en\/sign-in\?next=%2Fen%2Fadmin%2Fcontent$/);
 });
 
 test("CMS fixture has no serious accessibility violations", async ({ page }, testInfo) => {

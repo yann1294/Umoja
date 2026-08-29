@@ -241,6 +241,8 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   if (pageId) await cleanupPage(pageId);
   if (frenchPageId) await cleanupPage(frenchPageId);
+  await revalidateModel("en");
+  await revalidateModel("fr");
   if (userId) {
     await cleanupResponse(
       await api(`/rest/v1/user_roles?user_id=eq.${userId}`, { method: "DELETE", headers: service }),
@@ -322,7 +324,7 @@ test("admin signs in through scoped Supabase CMS route", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Public content" })).toBeVisible();
 });
 async function signInCmsAdmin(page: import("@playwright/test").Page) {
-  await page.goto(`/en/admin/content/sign-in?next=/en/admin/content`);
+  await page.goto(`/en/sign-in?next=/en/admin/content`);
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
   const signedIn = page.waitForResponse((response) =>

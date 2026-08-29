@@ -13,7 +13,7 @@ export type WorkspaceNavigationItem = Readonly<{
 
 type CandidateNavigationItem = WorkspaceNavigationItem & Readonly<{ capability: UmojaCapability }>;
 
-/** Canonical shell shape shared by the temporary Appwrite and Supabase route groups. */
+/** Canonical shell shape shared by protected Umoja route groups. */
 export type WorkspaceShellUser = Readonly<{
   id: string;
   name: string;

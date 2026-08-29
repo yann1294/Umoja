@@ -21,7 +21,9 @@ export default async function ContentIndex({
   const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
   const query = await searchParams;
   const pages = (
-    await (await createSupabaseCmsEditorRepository()).list({
+    await (
+      await createSupabaseCmsEditorRepository()
+    ).list({
       query: query.q,
       locale:
         query.contentLocale === "en" || query.contentLocale === "fr"

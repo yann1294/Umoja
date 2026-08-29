@@ -63,11 +63,14 @@ try {
     `${url}/rest/v1/membership_history?select=effective_from,effective_to&user_id=eq.${id}&effective_to=is.null`,
     { headers: userHeaders },
   );
-  const revoked = await fetch(`${url}/rest/v1/user_roles?user_id=eq.${id}&role=eq.cms-editor&revoked_at=is.null`, {
-    method: "PATCH",
-    headers: { ...adminHeaders, prefer: "return=minimal" },
-    body: JSON.stringify({ revoked_at: new Date().toISOString() }),
-  });
+  const revoked = await fetch(
+    `${url}/rest/v1/user_roles?user_id=eq.${id}&role=eq.cms-editor&revoked_at=is.null`,
+    {
+      method: "PATCH",
+      headers: { ...adminHeaders, prefer: "return=minimal" },
+      body: JSON.stringify({ revoked_at: new Date().toISOString() }),
+    },
+  );
   const rolesAfterRevocation = await fetch(
     `${url}/rest/v1/user_roles?select=role&user_id=eq.${id}&revoked_at=is.null`,
     { headers: userHeaders },

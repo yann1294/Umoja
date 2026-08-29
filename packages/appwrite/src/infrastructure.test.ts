@@ -56,27 +56,22 @@ describe("versioned infrastructure", () => {
     }
   });
 
-  it("keeps server SDKs out of the browser boundary", () => {
+  it("keeps the rollback SDK isolated from the canonical web runtime", () => {
     const browser = fs.readFileSync(path.join(root, "packages/appwrite/src/browser.ts"), "utf8");
-    const admin = fs.readFileSync(path.join(root, "apps/web/lib/appwrite/admin.ts"), "utf8");
-    const encryption = fs.readFileSync(
-      path.join(root, "apps/web/lib/appwrite/encryption.ts"),
-      "utf8",
-    );
-    const auth = fs.readFileSync(path.join(root, "apps/web/lib/appwrite/auth.ts"), "utf8");
-    const session = fs.readFileSync(path.join(root, "apps/web/lib/appwrite/session.ts"), "utf8");
     expect(browser).not.toContain("node-appwrite");
     expect(browser).not.toMatch(/APPWRITE_(?:SSR|SERVER|BOOTSTRAP)_API_KEY/);
     expect(browser).not.toContain("encryption");
-    expect(admin).toMatch(/^import "server-only";/);
-    expect(encryption).toMatch(/^import "server-only";/);
-    expect(auth).toMatch(/^import "server-only";/);
-    expect(session).toMatch(/^import "server-only";/);
-    expect(encryption).not.toMatch(/console\.(?:log|error|warn)/);
+    const formerRuntimeDirectory = path.join(root, "apps/web/lib/appwrite");
+    expect(
+      fs.existsSync(formerRuntimeDirectory) ? fs.readdirSync(formerRuntimeDirectory) : [],
+    ).toEqual([]);
   });
 
   it("does not expose a public signup handler", () => {
     expect(fs.existsSync(path.join(root, "apps/web/app/api/auth/sign-up/route.ts"))).toBe(false);
-    expect(fs.existsSync(path.join(root, "apps/web/app/api/auth/sign-in/route.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(root, "apps/web/app/api/auth/sign-in/route.ts"))).toBe(false);
+    expect(fs.existsSync(path.join(root, "apps/web/app/api/supabase-auth/sign-in/route.ts"))).toBe(
+      true,
+    );
   });
 });

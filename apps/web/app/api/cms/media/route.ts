@@ -49,9 +49,15 @@ export async function POST(request: Request) {
 
   const assetKey = randomUUID();
   const client = await createSupabaseServerClient();
-  const fileId = await uploadPrivateCmsMedia(client, bytes, file.type as "image/png" | "image/jpeg" | "image/webp");
+  const fileId = await uploadPrivateCmsMedia(
+    client,
+    bytes,
+    file.type as "image/png" | "image/jpeg" | "image/webp",
+  );
   try {
-    const page = await (await createSupabaseCmsEditorRepository()).createDraft(
+    const page = await (
+      await createSupabaseCmsEditorRepository()
+    ).createDraft(
       {
         stableKey: `media:${assetKey}`,
         translationGroupId: assetKey,
@@ -80,7 +86,10 @@ export async function POST(request: Request) {
     );
     return Response.json({ id: page.id, assetKey }, { status: 201 });
   } catch {
-    await createSupabaseAdminClient().storage.from("cms-private").remove([fileId]).catch(() => undefined);
+    await createSupabaseAdminClient()
+      .storage.from("cms-private")
+      .remove([fileId])
+      .catch(() => undefined);
     return Response.json(
       {
         error:
@@ -158,7 +167,10 @@ export async function PUT(request: Request) {
     );
     return Response.json({ replaced: true });
   } catch {
-    await createSupabaseAdminClient().storage.from("cms-private").remove([fileId]).catch(() => undefined);
+    await createSupabaseAdminClient()
+      .storage.from("cms-private")
+      .remove([fileId])
+      .catch(() => undefined);
     return Response.json(
       {
         error:

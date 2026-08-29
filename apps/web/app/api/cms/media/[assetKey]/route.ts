@@ -29,8 +29,7 @@ export async function GET(
   // The service client is a deliberately narrow privileged boundary: publication is proven above
   // through anonymous RLS before it reads the otherwise private Storage bucket.
   const { data, error } = await createSupabaseAdminClient()
-    .storage
-    .from("cms-public")
+    .storage.from("cms-public")
     .download(metadata.fileId);
   if (error) return new Response("Not found", { status: 404 });
   return new Response(data, {

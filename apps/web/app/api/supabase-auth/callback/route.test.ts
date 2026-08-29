@@ -30,7 +30,9 @@ describe("Supabase Auth callback", () => {
     );
     expect(exchangeCodeForSession).toHaveBeenCalledWith("one-time-code");
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("https://umoja.example.test/en/verify-email?verified=1");
+    expect(response.headers.get("location")).toBe(
+      "https://umoja.example.test/en/verify-email?verified=1",
+    );
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
     expect(info).toHaveBeenCalledWith(

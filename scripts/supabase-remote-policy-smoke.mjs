@@ -23,59 +23,68 @@ const serviceRequest = (path, options = {}) =>
     headers: { apikey: secret, authorization: `Bearer ${secret}`, ...(options.headers ?? {}) },
   });
 const probe = "policy-probe/00000000-0000-0000-0000-000000000000.txt";
-for (const bucket of ["cms-private", "applicant-private"]) {
-  const upload = await serviceRequest(`/storage/v1/object/${bucket}/${probe}`, {
+const buckets = [
+  { id: "cms-private", contentType: "application/pdf", body: "%PDF-1.4\n% synthetic probe\n" },
+  { id: "applicant-private", contentType: "application/octet-stream", body: "encrypted-probe" },
+];
+
+try {
+  for (const bucket of buckets) {
+    const upload = await serviceRequest(`/storage/v1/object/${bucket.id}/${probe}`, {
+      method: "POST",
+      headers: { "content-type": bucket.contentType, "x-upsert": "true" },
+      body: bucket.body,
+    });
+    if (!upload.ok)
+      throw new Error(`Unable to create synthetic ${bucket.id} probe: ${upload.status}`);
+  }
+  const profiles = await request("/rest/v1/profiles?select=user_id,public_slug");
+  const intakes = await request("/rest/v1/project_intakes?select=id");
+  const directIntake = await request("/rest/v1/project_intakes", {
     method: "POST",
-    headers: { "content-type": "application/pdf", "x-upsert": "true" },
-    body: "%PDF-1.4\n% synthetic policy probe\n",
+    headers: { "content-type": "application/json", prefer: "return=minimal" },
+    body: JSON.stringify({}),
   });
-  if (!upload.ok) throw new Error(`Unable to create synthetic ${bucket} probe: ${upload.status}`);
+  const privateCms = await request("/storage/v1/object/list/cms-private", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ prefix: "policy-probe/", limit: 10 }),
+  });
+  const privateApplicant = await request("/storage/v1/object/list/applicant-private", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ prefix: "policy-probe/", limit: 10 }),
+  });
+  const publicCms = await request("/storage/v1/object/list/cms-public", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ prefix: "", limit: 1 }),
+  });
+  const privateCmsRows = privateCms.ok ? await privateCms.json() : [];
+  const privateApplicantRows = privateApplicant.ok ? await privateApplicant.json() : [];
+  const report = {
+    publicProfiles: profiles.status,
+    privateIntakes: intakes.status,
+    directIntakeInsert: directIntake.status,
+    privateCmsVisibleObjects: privateCmsRows.length,
+    privateApplicantVisibleObjects: privateApplicantRows.length,
+    publicCmsList: publicCms.status,
+  };
+  const expected =
+    report.publicProfiles === 200 &&
+    report.privateIntakes === 401 &&
+    report.directIntakeInsert >= 400 &&
+    report.privateCmsVisibleObjects === 0 &&
+    report.privateApplicantVisibleObjects === 0 &&
+    report.publicCmsList === 200;
+  console.log(JSON.stringify({ ...report, passed: expected }));
+  if (!expected) process.exitCode = 1;
+} finally {
+  const cleanup = await Promise.all(
+    buckets.map((bucket) =>
+      serviceRequest(`/storage/v1/object/${bucket.id}/${probe}`, { method: "DELETE" }),
+    ),
+  );
+  if (cleanup.some((response) => !response.ok))
+    throw new Error("Synthetic policy probe cleanup failed.");
 }
-const profiles = await request("/rest/v1/profiles?select=user_id,public_slug");
-const intakes = await request("/rest/v1/project_intakes?select=id");
-const directIntake = await request("/rest/v1/project_intakes", {
-  method: "POST",
-  headers: { "content-type": "application/json", prefer: "return=minimal" },
-  body: JSON.stringify({}),
-});
-const privateCms = await request("/storage/v1/object/list/cms-private", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ prefix: "policy-probe/", limit: 10 }),
-});
-const privateApplicant = await request("/storage/v1/object/list/applicant-private", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ prefix: "policy-probe/", limit: 10 }),
-});
-const publicCms = await request("/storage/v1/object/list/cms-public", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ prefix: "", limit: 1 }),
-});
-const privateCmsRows = privateCms.ok ? await privateCms.json() : [];
-const privateApplicantRows = privateApplicant.ok ? await privateApplicant.json() : [];
-const cleanup = await Promise.all(
-  ["cms-private", "applicant-private"].map((bucket) =>
-    serviceRequest(`/storage/v1/object/${bucket}/${probe}`, { method: "DELETE" }),
-  ),
-);
-if (cleanup.some((response) => !response.ok))
-  throw new Error("Synthetic policy probe cleanup failed.");
-const report = {
-  publicProfiles: profiles.status,
-  privateIntakes: intakes.status,
-  directIntakeInsert: directIntake.status,
-  privateCmsVisibleObjects: privateCmsRows.length,
-  privateApplicantVisibleObjects: privateApplicantRows.length,
-  publicCmsList: publicCms.status,
-};
-const expected =
-  report.publicProfiles === 200 &&
-  report.privateIntakes === 401 &&
-  report.directIntakeInsert >= 400 &&
-  report.privateCmsVisibleObjects === 0 &&
-  report.privateApplicantVisibleObjects === 0 &&
-  report.publicCmsList === 200;
-console.log(JSON.stringify({ ...report, passed: expected }));
-if (!expected) process.exit(1);
