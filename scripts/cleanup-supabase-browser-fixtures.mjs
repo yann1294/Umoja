@@ -125,7 +125,11 @@ for (const { id } of targets) {
     });
     if (!removed.ok) throw new Error(`Synthetic ${table} cleanup failed: ${removed.status}`);
   }
-  const removed = await request(`/auth/v1/admin/users/${id}`, { method: "DELETE", headers });
+  const removed = await request(`/auth/v1/admin/users/${id}`, {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ should_soft_delete: false }),
+  });
   if (!removed.ok && removed.status !== 404)
     throw new Error(`Synthetic Auth cleanup failed: ${removed.status}`);
 }

@@ -112,5 +112,9 @@ try {
   if (!passed) process.exitCode = 1;
 } finally {
   if (id)
-    await fetch(`${url}/auth/v1/admin/users/${id}`, { method: "DELETE", headers: adminHeaders });
+    await fetch(`${url}/auth/v1/admin/users/${id}`, {
+      method: "DELETE",
+      headers: adminHeaders,
+      body: JSON.stringify({ should_soft_delete: false }),
+    });
 }

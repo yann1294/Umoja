@@ -180,7 +180,11 @@ test.afterAll(async () => {
       "delete-memberships",
     );
     await expectOk(
-      await request(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", headers: service }),
+      await request(`/auth/v1/admin/users/${user.id}`, {
+        method: "DELETE",
+        headers: service,
+        body: JSON.stringify({ should_soft_delete: false }),
+      }),
       "delete-auth-user",
     );
   }

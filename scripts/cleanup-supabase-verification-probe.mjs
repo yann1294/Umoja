@@ -29,7 +29,12 @@ if (!url || !secret || typeof id !== "string")
   throw new Error("Verification probe cleanup configuration is unavailable.");
 const response = await fetch(`${url}/auth/v1/admin/users/${id}`, {
   method: "DELETE",
-  headers: { apikey: secret, authorization: `Bearer ${secret}` },
+  headers: {
+    apikey: secret,
+    authorization: `Bearer ${secret}`,
+    "content-type": "application/json",
+  },
+  body: JSON.stringify({ should_soft_delete: false }),
 });
 if (!response.ok && response.status !== 404)
   throw new Error(`Synthetic verification user cleanup failed: ${response.status}`);

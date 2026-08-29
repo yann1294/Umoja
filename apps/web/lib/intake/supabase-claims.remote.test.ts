@@ -305,7 +305,8 @@ remote("dormant Supabase intake claim boundary", () => {
     const audit = await service
       .from("audit_logs")
       .select("action,before_digest,after_digest")
-      .eq("target_id", capability.claimId);
+      .eq("target_id", capability.claimId)
+      .order("created_at", { ascending: true });
     expect(audit.data?.map((value) => value.action)).toEqual([
       "intake.claim.issued",
       "intake.claim.consumed",

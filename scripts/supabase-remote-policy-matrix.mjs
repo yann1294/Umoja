@@ -90,6 +90,7 @@ try {
     const removed = await request(`/auth/v1/admin/users/${userId}`, {
       method: "DELETE",
       headers: serviceHeaders,
+      body: JSON.stringify({ should_soft_delete: false }),
     });
     if (!removed.ok) {
       console.error(JSON.stringify({ cleanup: "failed", status: removed.status }));

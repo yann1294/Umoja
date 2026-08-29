@@ -256,7 +256,11 @@ test.afterAll(async () => {
       "delete-memberships",
     );
     await cleanupResponse(
-      await api(`/auth/v1/admin/users/${userId}`, { method: "DELETE", headers: service }),
+      await api(`/auth/v1/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: service,
+        body: JSON.stringify({ should_soft_delete: false }),
+      }),
       "delete-auth-user",
     );
   }

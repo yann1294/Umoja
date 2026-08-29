@@ -82,7 +82,11 @@ try {
 } finally {
   const cleanup = await Promise.all(
     buckets.map((bucket) =>
-      serviceRequest(`/storage/v1/object/${bucket.id}/${probe}`, { method: "DELETE" }),
+      serviceRequest(`/storage/v1/object/${bucket.id}`, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prefixes: [probe] }),
+      }),
     ),
   );
   if (cleanup.some((response) => !response.ok))

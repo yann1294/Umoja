@@ -57,7 +57,11 @@ const resend = await fetch(`${url}/auth/v1/resend`, {
   }),
 });
 if (!resend.ok) {
-  await fetch(`${url}/auth/v1/admin/users/${user.id}`, { method: "DELETE", headers });
+  await fetch(`${url}/auth/v1/admin/users/${user.id}`, {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ should_soft_delete: false }),
+  });
   throw new Error(`Verification email request failed: ${resend.status}`);
 }
 fs.mkdirSync("supabase/.temp", { recursive: true });

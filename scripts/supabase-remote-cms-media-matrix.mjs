@@ -26,7 +26,8 @@ if (!url || !key || !secret) throw new Error("Supabase development configuration
 const id = randomUUID(),
   password = `Umoja-${randomUUID()}-A9!`,
   users = [],
-  paths = [];
+  paths = [],
+  pages = [];
 const service = {
   apikey: secret,
   authorization: `Bearer ${secret}`,
@@ -90,6 +91,7 @@ try {
   });
   if (!page.ok) throw new Error(`draft:${page.status}`);
   const created = (await page.json())[0];
+  pages.push(created.id);
   const revision = await req("/rest/v1/cms_revisions", {
     method: "POST",
     headers: { ...editor.headers, prefer: "return=representation" },
@@ -175,8 +177,47 @@ try {
   );
   if (!Object.values(checks).every(Boolean)) process.exitCode = 1;
 } finally {
-  for (const path of paths)
-    await req(`/storage/v1/object/cms-private/${path}`, { method: "DELETE", headers: service });
-  for (const user of users)
-    await req(`/auth/v1/admin/users/${user}`, { method: "DELETE", headers: service });
+  for (const path of paths) {
+    const removed = await req("/storage/v1/object/cms-private", {
+      method: "DELETE",
+      headers: service,
+      body: JSON.stringify({ prefixes: [path] }),
+    });
+    if (!removed.ok && removed.status !== 404) throw new Error(`cleanup-storage:${removed.status}`);
+  }
+  for (const pageId of pages) {
+    const cleared = await req(`/rest/v1/cms_pages?id=eq.${pageId}`, {
+      method: "PATCH",
+      headers: service,
+      body: JSON.stringify({
+        current_revision_id: null,
+        published_at: null,
+        state: "draft",
+      }),
+    });
+    if (!cleared.ok) throw new Error(`cleanup-page-pointer:${cleared.status}`);
+    for (const [table, column] of [
+      ["audit_logs", "target_id"],
+      ["cms_revisions", "page_id"],
+    ]) {
+      const removed = await req(`/rest/v1/${table}?${column}=eq.${pageId}`, {
+        method: "DELETE",
+        headers: service,
+      });
+      if (!removed.ok) throw new Error(`cleanup-${table}:${removed.status}`);
+    }
+    const removed = await req(`/rest/v1/cms_pages?id=eq.${pageId}`, {
+      method: "DELETE",
+      headers: service,
+    });
+    if (!removed.ok) throw new Error(`cleanup-page:${removed.status}`);
+  }
+  for (const user of users) {
+    const removed = await req(`/auth/v1/admin/users/${user}`, {
+      method: "DELETE",
+      headers: service,
+      body: JSON.stringify({ should_soft_delete: false }),
+    });
+    if (!removed.ok && removed.status !== 404) throw new Error(`cleanup-user:${removed.status}`);
+  }
 }
