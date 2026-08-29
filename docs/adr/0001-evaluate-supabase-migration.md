@@ -1,6 +1,6 @@
 # ADR 0001 — Evaluate Supabase before the Phase 12 backend expansion
 
-- Status: Proposed — spike in progress; Appwrite remains the active runtime; no production cutover is approved.
+- Status: Proposed — the migration branch is a canonical Supabase runtime candidate; owner acceptance and production cutover remain pending.
 - Date: 2026-08-26
 - Owners: Umoja product and engineering leads
 - Decision scope: Authentication, relational data, CMS persistence, intake persistence, private storage, authorization, and future workspace data
@@ -71,6 +71,33 @@ Accept Supabase only when the branch proves all of the following:
 8. Existing public, authentication, workspace, admin, CMS, and intake UI behavior and responsive screenshots do not regress.
 9. No Supabase secret/service key enters browser bundles, logs, screenshots, fixtures, or Git.
 10. Local reset, remote migration status, generated TypeScript types, health checks, seed data, export, rollback, and free-plan quota/pausing procedures are documented and exercised.
+
+## Evidence checkpoint — 2026-08-29
+
+The `spike/supabase-migration` application runtime now uses Supabase Auth, Postgres, RLS, and
+Storage for public CMS, CMS administration, encrypted anonymous intake, intake review, workspace,
+and non-CMS administration. Production source under `apps/web` has no Appwrite SDK, session,
+repository, environment-parser, or provider-switching path. Appwrite remains the separately
+deployable rollback baseline and has not been modified or decommissioned.
+
+This evidence does **not** accept the ADR. The following gates remain open:
+
+- Appwrite's metadata-only inventory is blocked by a rejected credential (401), so its real-data
+  disposition is unknown. No Appwrite data has been copied.
+- English/French verification, invitation, and recovery email delivery/exchange have not completed
+  their six manual tests. The earlier English verification homepage redirect remains unresolved
+  manual evidence; the replacement token-hash confirmation architecture is automated but not a
+  substitute for inbox testing.
+- No real malware-scanner provider is configured. Applicant files remain quarantined and cannot be
+  downloaded until an actual provider returns a clean verdict.
+- Export/checksum/readback was rehearsed, but restore into a second explicitly empty project was
+  not authorized or performed.
+- The development project contains one pre-existing Auth identity and seven `cms-private` objects
+  whose disposition is not established. Tests did not inspect or delete them.
+- Real-browser 200% zoom, physical Android/iPhone testing, intermittent-network testing on devices,
+  and legal/production operational review remain manual launch gates.
+
+Accordingly, the candidate is not currently safe to merge or propose for owner acceptance.
 
 ## Rejection conditions
 

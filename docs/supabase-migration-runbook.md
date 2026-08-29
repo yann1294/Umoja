@@ -1,14 +1,15 @@
 # Supabase Migration Spike and Cutover Runbook
 
-Status: proposed remote-only development-project spike after Prompt 11  
+Status: proposed remote-only canonical runtime candidate; not accepted or approved for production
 Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 
 ## 1. Safety boundary
 
 ### Current remote-only execution mode
 
-This spike uses only the newly configured empty development project from ignored
-`apps/web/.env.local`. Do not use Docker, `supabase start`, `supabase stop`, local database
+This spike uses only the configured development project from ignored `apps/web/.env.local`. It is
+no longer assumed empty: the 2026-08-29 aggregate readback found one pre-existing Auth identity and
+seven `cms-private` objects whose disposition remains unknown. Do not use Docker, `supabase start`, `supabase stop`, local database
 resets, pgTAP, or `supabase db reset --linked`. The latter is prohibited in every environment.
 
 Before each additive remote migration, read the configured project identity without printing any
@@ -74,10 +75,10 @@ SUPABASE_CMS_PUBLIC_BUCKET=cms-public
 SUPABASE_CMS_PRIVATE_BUCKET=cms-private
 SUPABASE_APPLICANT_PRIVATE_BUCKET=applicant-private
 
-APPWRITE_DATA_ENCRYPTION_KEY_V1=
-APPWRITE_FILE_ENCRYPTION_KEY_V1=
-APPWRITE_LOOKUP_HMAC_KEY_V1=
-APPWRITE_ACTIVE_ENCRYPTION_KEY_VERSION=v1
+UMOJA_DATA_ENCRYPTION_KEY_V1=
+UMOJA_FILE_ENCRYPTION_KEY_V1=
+UMOJA_LOOKUP_HMAC_KEY_V1=
+UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION=v1
 
 NEXT_REVALIDATION_SECRET=
 ```
@@ -267,7 +268,7 @@ Produce counts and deterministic digests before and after migration. Never print
 
 ## 9. Cutover sequence
 
-1. Make the full test suite green against local Supabase.
+1. Make the full test suite green against the remote development project using disposable users.
 2. Apply migrations to the empty Supabase development project with `supabase db push` only after reviewing the SQL and linked project.
 3. Generate and commit TypeScript database types.
 4. Seed synthetic bilingual CMS drafts and test accounts safely.
@@ -290,9 +291,8 @@ identity, tables, Storage, environment parsing, or crypto adapters with Supabase
 Before merge, rollback is deployment of the reviewed Prompt 11 Appwrite baseline. Stop development
 Supabase intake writes first and remove only synthetic spike records through their marker-scoped
 cleanup. Do not copy or reconcile real records without a separately approved inventory and legal
-plan. After the intake switch, remaining workspace and non-CMS administration may stay Appwrite-only
-temporarily, but that route-group split is migration-only and cannot be accepted as the final
-runtime.
+plan. Workspace and non-CMS administration now also use the canonical Supabase identity and
+authorization boundary; no migration-only provider split remains in the running application.
 
 ## 10. Rollback
 
@@ -312,7 +312,37 @@ Before merge, rollback means switching back to the reviewed Appwrite branch. Aft
 - Add usage checks, a manual wake/restore procedure, and regular logical exports.
 - Recheck pricing, region, backups, SMTP, log retention, and support before launch.
 
-## 12. Required commits
+## 12. Canonical candidate evidence and outstanding gates
+
+As of 2026-08-29, all rendered route groups use the canonical Supabase SSR principal. Appwrite code
+is confined to rollback infrastructure, metadata inventory/provisioning utilities, historical
+tests, and documentation; no production request can select it through an environment flag or
+request parameter.
+
+Remote schema history contains 17 applied migrations through `20260828201500`; linked database
+lint and normalized generated-type checks pass. Remote anonymous/authenticated policy probes,
+CMS/media parity, encrypted intake/claim parity, and malware workflow contract tests pass with
+marker-scoped cleanup. The recovery rehearsal verified checksums and aggregate readback while
+removing its temporary export artifact. A real restore remains blocked on an authorized empty
+target.
+
+Operational blockers before acceptance or preview deployment:
+
+- obtain a least-privilege Appwrite metadata inventory or explicit owner confirmation that no real
+  data exists;
+- reconcile the one pre-existing Supabase Auth identity and seven private CMS objects without
+  inspecting or deleting them by assumption;
+- configure and validate a real malware scanner before any quarantined applicant file is released;
+- manually complete all six English/French verification, invitation, and recovery inbox flows;
+- complete real 200% browser zoom and physical Android/iPhone tests, including high-latency,
+  intermittent connectivity, interrupted upload, retry, and session expiry;
+- rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;
+- recheck current plan quotas, SMTP, backup retention, region/residency, legal terms, and support.
+
+Rollback remains deployment of the reviewed Prompt 11 Appwrite baseline after stopping development
+Supabase writes. No automatic provider flag, dual write, or real-data reconciliation is available.
+
+## 13. Required commits
 
 Keep commits focused and independently buildable:
 
@@ -330,7 +360,7 @@ docs(supabase): update operations and rollback guidance
 
 Do not combine the schema/RLS implementation with UI redesigns or Phase 12 feature work. Complete and review the backend migration before implementing new workspace functionality.
 
-## 13. Codex migration prompt
+## 14. Codex migration prompt
 
 Run this only after reviewing ADR 0001 and choosing to execute the Supabase spike:
 
