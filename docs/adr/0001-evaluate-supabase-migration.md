@@ -1,6 +1,6 @@
 # ADR 0001 — Evaluate Supabase before the Phase 12 backend expansion
 
-- Status: Proposed — the migration branch is a canonical Supabase runtime candidate; owner acceptance and production cutover remain pending.
+- Status: Proposed — Gate A remains open; production cutover is not approved.
 - Date: 2026-08-26
 - Owners: Umoja product and engineering leads
 - Decision scope: Authentication, relational data, CMS persistence, intake persistence, private storage, authorization, and future workspace data
@@ -51,13 +51,43 @@ explicitly non-persistent mock.
 - Supabase's relational model is promising for future phases, but it should be demonstrated with tests rather than assumed.
 - There is little or no real applicant data, so this is the least expensive time to evaluate or migrate.
 
-## Supabase acceptance gates
+## Acceptance gate levels
+
+### Gate A — merge, canonical development runtime, and Prompt 12
+
+- One canonical Supabase runtime with no active Appwrite production coupling or provider switch.
+- Appwrite metadata disposition is known; the development administrator and pre-existing Supabase
+  Storage objects are reconciled without assuming ownership or deleting unknown data.
+- Canonical bilingual Auth/session behavior, relevant automated verification, production build,
+  generated types, linked history, database lint, source/bundle scans, and real Chrome 200% zoom
+  are green.
+- The working tree and decision record contain no unexplained changes.
+
+### Gate B — real applicant files or real-user preview
+
+- A real malware scanner proves clean-only release. Until then every applicant/profile/portfolio
+  upload remains disabled or quarantined and unavailable.
+- Production SMTP and all six English/French verification, invitation, and recovery inbox flows.
+- Restore rehearsal into an explicitly authorized empty project, plus manual low-bandwidth and
+  intermittent-network testing.
+
+### Gate C — production launch
+
+- Physical Android and iPhone QA; legal, privacy, residency, real-data migration, production plan,
+  backups, monitoring, retention, support, incident response, and owner launch approval.
+
+A safely disabled feature is not a Gate A blocker. Passing Gate A does not claim production or
+real-user-preview readiness.
+
+## Supabase technical criteria
 
 Accept Supabase only when the branch proves all of the following:
 
 1. Invite-only Auth, verification, recovery, secure Next.js SSR cookies, session refresh, account disablement, and MFA-ready privileged access work without public signup.
 
-   Manual delivery/exchange verification for English/French verification, invitation, and recovery is currently deferred. The observed English verification homepage redirect is unresolved. This gate cannot pass for development/private preview or production until all six flows are manually verified; automated disposable-user tests do not replace that evidence.
+   Manual delivery/exchange verification remains Gate B; automated disposable-user tests do not
+   replace it. Prompt 12 may use a Dashboard-created development administrator without sending real
+   invitation/recovery email.
 2. The role vocabulary `admin`, `cms-editor`, `reviewer`, `core`, `extended`, and `project-manager` is represented in trusted database records, not user-editable metadata.
 3. RLS is enabled on every exposed table and tested separately for `anon`, record owner, every role, missing membership, disabled account, and service-role paths.
 4. Public CMS queries expose only complete published revisions; draft, review, audit, intake, private profile, and membership rows remain private.
@@ -97,7 +127,8 @@ This evidence does **not** accept the ADR. The following gates remain open:
 - Real-browser 200% zoom, physical Android/iPhone testing, intermittent-network testing on devices,
   and legal/production operational review remain manual launch gates.
 
-Accordingly, the candidate is not currently safe to merge or propose for owner acceptance.
+Accordingly, Gate A remains open until the exact blockers recorded in the migration runbook are
+cleared. Gate B/C items do not independently block Prompt 12 development.
 
 ## Rejection conditions
 

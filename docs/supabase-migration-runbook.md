@@ -1,6 +1,6 @@
 # Supabase Migration Spike and Cutover Runbook
 
-Status: proposed remote-only canonical runtime candidate; not accepted or approved for production
+Status: proposed remote-only canonical development candidate; Gate A open; production prohibited
 Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 
 ## 1. Safety boundary
@@ -326,18 +326,42 @@ marker-scoped cleanup. The recovery rehearsal verified checksums and aggregate r
 removing its temporary export artifact. A real restore remains blocked on an authorized empty
 target.
 
-Operational blockers before acceptance or preview deployment:
+### Gate A — required before merge and Prompt 12
 
-- obtain a least-privilege Appwrite metadata inventory or explicit owner confirmation that no real
-  data exists;
-- reconcile the one pre-existing Supabase Auth identity and seven private CMS objects without
-  inspecting or deleting them by assumption;
+- complete Appwrite metadata inventory (the temporary bootstrap key currently lacks `users.read`);
+- confirm whether the single enabled, unreferenced Supabase identity is the development
+  administrator, then assign its protected relational `admin` role and active membership through an
+  owner-authorized bootstrap operation; it currently has neither and has no MFA;
+- preserve the seven unreferenced unknown `cms-private` PNG objects. They are not referenced by a
+  CMS media row, page, or revision and must not be deleted or inferred synthetic;
+- remove only separately approved, marker-proven synthetic residue and rerun cleanup inventory;
+- keep automated verification and real Chrome 200% evidence green.
+
+### Gate B — required before real applicant files or real-user preview
+
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
-- complete real 200% browser zoom and physical Android/iPhone tests, including high-latency,
-  intermittent connectivity, interrupted upload, retry, and session expiry;
 - rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;
-- recheck current plan quotas, SMTP, backup retention, region/residency, legal terms, and support.
+- configure production SMTP and manually test high-latency/intermittent connectivity, interrupted
+  upload, retry, and session expiry.
+
+### Gate C — required before production launch
+
+- physical Android/iPhone QA;
+- legal, privacy, data-residency, real-data migration/reconciliation, quotas, backup retention,
+  monitoring, SMTP, retention, support, incident response, and owner launch approval.
+
+Only synthetic data may be used while Gate B/C remain open. Appwrite remains rollback-only and no
+production deployment, real applicant-file release, or real-data migration is authorized.
+
+### Manual checklists
+
+- Gate B email: verify Site URL/allow-list/template format; run EN/FR verification, invitation, and
+  recovery serially; confirm localized token-free final URLs and record the final success state.
+- Gate B restore/network: authorize an empty target, restore, rerun policy/Storage checks, then test
+  slow/intermittent sessions and interrupted uploads without real files.
+- Gate C devices/launch: record one supported Android and iPhone, complete legal/operations review,
+  reconcile authorized real data, and obtain explicit launch approval.
 
 Rollback remains deployment of the reviewed Prompt 11 Appwrite baseline after stopping development
 Supabase writes. No automatic provider flag, dual write, or real-data reconciliation is available.
