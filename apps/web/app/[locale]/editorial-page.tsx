@@ -1,5 +1,6 @@
 import { Container, LinkButton, Section } from "@umoja/ui";
 import type { EditorialPage } from "@umoja/validation";
+import type { CmsPage } from "@umoja/appwrite/cms";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import {
@@ -10,12 +11,14 @@ import {
   SectionHeading,
 } from "./public-content";
 export async function EditorialRoute({
+  cms,
   locale,
   page,
   emptyState,
   showAboutLinks = false,
   showAfricITLinks = false,
 }: Readonly<{
+  cms?: CmsPage | null;
   locale: AppLocale;
   page: EditorialPage;
   emptyState?: "organizations" | "africit";
@@ -23,13 +26,14 @@ export async function EditorialRoute({
   showAfricITLinks?: boolean;
 }>) {
   const t = await getTranslations({ locale, namespace: "PublicContent" });
+  const publishedPage = cms ? applyCmsPage(page, cms, locale) : page;
   return (
     <>
       <Breadcrumbs
         ariaLabel={t("breadcrumbLabel")}
-        items={[{ label: t("home"), href: `/${locale}` }, { label: page.title[locale] }]}
+        items={[{ label: t("home"), href: `/${locale}` }, { label: publishedPage.title[locale] }]}
       />
-      <EditorialPageView locale={locale} page={page} />
+      <EditorialPageView locale={locale} page={publishedPage} />
       {emptyState ? (
         <Section aria-label={t(`${emptyState}EmptyTitle`)}>
           <Container>
@@ -76,4 +80,23 @@ export async function EditorialRoute({
       ) : null}
     </>
   );
+}
+
+/** CMS keeps prose structured while the page layout remains code-controlled. */
+function applyCmsPage(page: EditorialPage, cms: CmsPage, locale: AppLocale): EditorialPage {
+  const paragraphs = cms.blocks
+    .filter((block) => block.type === "paragraph")
+    .map((block) => block.text);
+  if (!paragraphs.length) return page;
+  const localized = (value: string) => ({ ...page.title, [locale]: value });
+  const sections = page.sections.map((section, index) => ({
+    ...section,
+    body: { ...section.body, [locale]: paragraphs[index] ?? section.body[locale] },
+  }));
+  return {
+    ...page,
+    title: localized(cms.title),
+    summary: localized(paragraphs[0] ?? page.summary[locale]),
+    sections,
+  };
 }

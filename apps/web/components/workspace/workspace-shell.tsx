@@ -6,7 +6,7 @@ import { AuthenticatedShell } from "./authenticated-shell";
 import "./workspace-shell.css";
 
 export type WorkspaceNavigationItem = Readonly<{
-  href: "/workspace" | "/admin" | "/admin/content";
+  href: "/workspace" | "/admin" | "/admin/content" | "/admin/intake";
   label: string;
   section: "workspace" | "administration";
 }>;
@@ -32,6 +32,12 @@ export function getWorkspaceNavigation(
       capability: "admin.operations",
     },
     {
+      href: "/admin/intake",
+      label: french ? "Demandes" : "Intakes",
+      section: "administration",
+      capability: "intake.review",
+    },
+    {
       href: "/admin/content",
       label: french ? "Contenu public" : "Public content",
       section: "administration",
@@ -52,7 +58,7 @@ export function WorkspaceShell({
   user,
 }: Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content";
+  current: "workspace" | "admin" | "content" | "intake";
   locale: "en" | "fr";
   sessionState?: "active" | "stale";
   user: WorkspaceUser;

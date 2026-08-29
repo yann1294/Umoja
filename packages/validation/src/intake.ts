@@ -96,8 +96,8 @@ export const IntakeSchemas = {
 export type IntakePayload = ProjectIntake | TalentIntake | ContactIntake;
 
 export type IntakeSubmissionResult =
-  | Readonly<{ status: "success"; reference: string; persisted: false }>
-  | Readonly<{ status: "duplicate"; persisted: false }>
+  | Readonly<{ status: "success"; reference: string; persisted: boolean }>
+  | Readonly<{ status: "duplicate"; persisted: boolean }>
   | Readonly<{
       status: "validation_error";
       fieldErrors: Record<string, string[]>;

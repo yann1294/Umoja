@@ -71,12 +71,12 @@ export function IntakeJourney({ copy, kind }: Readonly<{ copy: IntakeCopy; kind:
               <h1 id="intake-title">{section.title}</h1>
               <p className={styles.heroDescription}>{section.intro}</p>
             </div>
-            <div className={styles.mockNotice} role="status">
+            {kind === "contact" ? <div className={styles.mockNotice} role="status">
               <span className={styles.noticeIcon} aria-hidden="true">
                 i
               </span>
               <p>{copy.common.mock}</p>
-            </div>
+            </div> : null}
           </div>
         </Container>
       </section>
@@ -385,7 +385,7 @@ function ReviewSections({
 async function send(kind: IntakeKind, payload: unknown): Promise<IntakeSubmissionResult> {
   const response = await fetch(`/api/intake/${kind}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-umoja-locale": document.documentElement.lang === "fr" ? "fr" : "en" },
     body: JSON.stringify(payload),
   });
   const result = (await response.json()) as IntakeSubmissionResult;
@@ -433,7 +433,6 @@ function Success({ copy, reference }: Readonly<{ copy: IntakeCopy["common"]; ref
           <p>
             <strong>{copy.reference}:</strong> {reference}
           </p>
-          <p>{copy.mock}</p>
         </div>
       </Container>
     </section>
