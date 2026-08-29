@@ -1,7 +1,7 @@
 # Supabase Migration Spike and Cutover Runbook
 
-Status: proposed remote-only canonical development candidate; Gate A awaits administrator
-confirmation; production prohibited
+Status: accepted remote-only canonical development runtime; Gate A complete; Prompt 12 permitted
+with synthetic/test data; production prohibited
 Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 
 ## 1. Safety boundary
@@ -331,17 +331,24 @@ marker-scoped cleanup. The recovery rehearsal verified checksums and aggregate r
 removing its temporary export artifact. A real restore remains blocked on an authorized empty
 target.
 
-### Gate A — required before merge and Prompt 12
+### Gate A — completed for merge and Prompt 12
 
-- confirm whether the single enabled, unreferenced Supabase identity is the development
-  administrator, then assign its protected relational `admin` role and active membership through an
-  owner-authorized bootstrap operation; it currently has neither and has no MFA;
-- preserve the seven unreferenced unknown `cms-private` PNG objects. They are not referenced by a
-  CMS media row, page, or revision and must not be deleted or inferred synthetic;
+- the owner confirmed the single enabled, unreferenced Supabase identity as the development
+  administrator; a trusted server operation assigned one protected relational `admin` role and one
+  active `core` membership, and readback recognizes it as the intended administrator;
+- the seven unreferenced unknown `cms-private` PNG objects remain preserved. They are not referenced
+  by a CMS media row, page, or revision and must not be deleted or inferred synthetic;
 - the six approved `cms-*@example.test` fixture identities and only their active synthetic role and
-  membership rows were deleted after reference checks; the cleanup inventory now reports zero
-  synthetic identities;
-- keep automated verification and real Chrome 200% evidence green.
+  membership rows were deleted after reference checks; cleanup inventory reports zero synthetic
+  identities;
+- Appwrite's metadata-only inventory completed and conservatively identified potentially
+  non-synthetic development data, which remains untouched for later reconciliation;
+- automated verification, the production build, remote schema/policy checks, source/bundle scans,
+  and Chrome for Testing 151 real 200% zoom evidence are green.
+
+The temporary Appwrite bootstrap key is no longer required. Revoke it in Appwrite Console and
+remove `APPWRITE_BOOTSTRAP_API_KEY` from ignored local configuration. Appwrite resources remain
+preserved as rollback and reconciliation evidence.
 
 ### Gate B — required before real applicant files or real-user preview
 

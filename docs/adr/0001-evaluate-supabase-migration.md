@@ -1,6 +1,7 @@
 # ADR 0001 — Evaluate Supabase before the Phase 12 backend expansion
 
-- Status: Proposed — Gate A remains open; production cutover is not approved.
+- Status: Accepted — Supabase is the canonical Umoja development runtime; production cutover is
+  not approved.
 - Date: 2026-08-26
 - Owners: Umoja product and engineering leads
 - Decision scope: Authentication, relational data, CMS persistence, intake persistence, private storage, authorization, and future workspace data
@@ -110,7 +111,8 @@ and non-CMS administration. Production source under `apps/web` has no Appwrite S
 repository, environment-parser, or provider-switching path. Appwrite remains the separately
 deployable rollback baseline and has not been modified or decommissioned.
 
-This evidence does **not** accept the ADR. The following gates remain open:
+This evidence accepts Supabase as the canonical development runtime. Gate A is complete; the
+following Gate B/C restrictions remain open:
 
 - Appwrite's metadata-only inventory completed after the temporary bootstrap key received the final
   read scope. It found two Auth users, one Team membership, two CMS seed pages, one project intake,
@@ -125,17 +127,22 @@ This evidence does **not** accept the ADR. The following gates remain open:
   downloaded until an actual provider returns a clean verdict.
 - Export/checksum/readback was rehearsed, but restore into a second explicitly empty project was
   not authorized or performed.
-- The development project contains one enabled, unreferenced Auth identity whose administrator
-  status awaits owner confirmation. Six separately approved `cms-*@example.test` fixture users and
-  only their active synthetic role/membership rows were removed after reference checks; cleanup
-  readback found no remaining synthetic identities. Seven unreferenced unknown `cms-private` PNG
-  objects remain preserved and must not be inferred synthetic or deleted.
+- The owner confirmed the single enabled, unreferenced Auth identity as the development
+  administrator. A trusted server operation assigned one protected relational `admin` role and one
+  active `core` membership; readback recognizes the identity as the intended administrator. MFA is
+  not enrolled, so real-user/private-preview access remains blocked. Six separately approved
+  `cms-*@example.test` fixture users and only their active synthetic role/membership rows were
+  removed after reference checks; cleanup readback found no remaining synthetic identities. Seven
+  unreferenced unknown `cms-private` PNG objects remain preserved and must not be inferred synthetic
+  or deleted.
 - Chrome for Testing 151 completed real 100% to 200% browser zoom verification. Physical
   Android/iPhone testing, intermittent-network testing on devices, and legal/production operational
   review remain manual launch gates.
 
-Accordingly, Gate A remains open until the exact blockers recorded in the migration runbook are
-cleared. Gate B/C items do not independently block Prompt 12 development.
+Accordingly, Gate A is complete and Prompt 12 may proceed with synthetic/test data. This decision
+does not approve production deployment, real-user preview, release of quarantined applicant files,
+real-data migration, or Appwrite decommissioning. Gate B/C items remain mandatory at their recorded
+boundaries.
 
 ## Rejection conditions
 
