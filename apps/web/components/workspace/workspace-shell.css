@@ -244,6 +244,18 @@
   cursor: pointer;
 }
 
+.workspace-panel button {
+  min-height: 2.75rem;
+  padding-inline: var(--u-space-3);
+}
+
+.workspace-panel input:not([type="radio"]):not([type="checkbox"]),
+.workspace-panel textarea,
+.workspace-panel select {
+  min-height: 2.75rem;
+  padding: var(--u-space-2);
+}
+
 .workspace-notice {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
