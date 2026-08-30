@@ -6,7 +6,16 @@ import { AuthenticatedShell } from "./authenticated-shell";
 import "./workspace-shell.css";
 
 export type WorkspaceNavigationItem = Readonly<{
-  href: "/workspace" | "/admin" | "/admin/content" | "/admin/intake";
+  href:
+    | "/workspace"
+    | "/workspace/profile"
+    | "/workspace/skills"
+    | "/workspace/portfolio"
+    | "/workspace/availability"
+    | "/admin"
+    | "/admin/content"
+    | "/admin/intake"
+    | "/admin/profiles";
   label: string;
   section: "workspace" | "administration";
 }>;
@@ -36,6 +45,30 @@ export function getWorkspaceNavigation(
       capability: "workspace.access",
     },
     {
+      href: "/workspace/profile",
+      label: french ? "Profil" : "Profile",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/skills",
+      label: french ? "Compétences" : "Skills",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/portfolio",
+      label: french ? "Portfolio" : "Portfolio",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/availability",
+      label: french ? "Disponibilité" : "Availability",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
       href: "/admin",
       label: french ? "Opérations" : "Operations",
       section: "administration",
@@ -46,6 +79,12 @@ export function getWorkspaceNavigation(
       label: french ? "Demandes" : "Intakes",
       section: "administration",
       capability: "intake.review",
+    },
+    {
+      href: "/admin/profiles",
+      label: french ? "Profils publics" : "Public profiles",
+      section: "administration",
+      capability: "admin.operations",
     },
     {
       href: "/admin/content",
@@ -68,7 +107,15 @@ export function WorkspaceShell({
   user,
 }: Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "content"
+    | "intake";
   locale: "en" | "fr";
   sessionState?: "active" | "stale";
   user: WorkspaceShellUser;

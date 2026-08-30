@@ -10,7 +10,15 @@ import type { WorkspaceNavigationItem } from "./workspace-shell";
 
 type Props = Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "content"
+    | "intake";
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
   sessionState: "active" | "stale";
@@ -39,13 +47,27 @@ export function AuthenticatedShell({
         ? french
           ? "Contenu public"
           : "Public content"
-        : current === "admin"
+        : current === "profile"
           ? french
-            ? "Opérations"
-            : "Operations"
-          : french
-            ? "Vue d’ensemble"
-            : "Overview";
+            ? "Profil"
+            : "Profile"
+          : current === "skills"
+            ? french
+              ? "Compétences"
+              : "Skills"
+            : current === "portfolio"
+              ? "Portfolio"
+              : current === "availability"
+                ? french
+                  ? "Disponibilité"
+                  : "Availability"
+                : current === "admin"
+                  ? french
+                    ? "Opérations"
+                    : "Operations"
+                  : french
+                    ? "Vue d’ensemble"
+                    : "Overview";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -206,7 +228,15 @@ function WorkspaceNavigation({
   navigation,
   onNavigate,
 }: Readonly<{
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "content"
+    | "intake";
   idPrefix: string;
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];

@@ -3,14 +3,69 @@ import {
   type SupabaseWorkspaceUser as WorkspaceUser,
 } from "@/lib/supabase/auth";
 import { displayName, roleLabels } from "./workspace-copy";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { availabilityState, getProfileBundle } from "@/lib/profile/service";
 
-export function WorkspaceOverview({
+export async function WorkspaceOverview({
   locale,
   user,
 }: Readonly<{ locale: "en" | "fr"; user: WorkspaceUser }>) {
   const french = locale === "fr";
   const name = displayName(user.name, locale);
+  const bundle = await getProfileBundle(await createSupabaseServerClient(), user.id);
+  const nextTask = !bundle.profile
+    ? french
+      ? "Commencer votre profil"
+      : "Start your profile"
+    : !bundle.skills.length
+      ? french
+        ? "Ajouter des compétences"
+        : "Add skills"
+      : !bundle.availability || availabilityState(bundle.availability.expires_at) !== "fresh"
+        ? french
+          ? "Confirmer votre disponibilité"
+          : "Confirm your availability"
+        : french
+          ? "Profil prêt pour votre prochaine action"
+          : "Profile ready for your next task";
   const cards = [
+    {
+      title: french ? "Votre profil" : "Your profile",
+      description: nextTask,
+      status: french ? "Ouvrir le profil" : "Open profile",
+      href: `/${locale}/workspace/profile`,
+    },
+    {
+      title: french ? "Compétences et langues" : "Skills and languages",
+      description: bundle.skills.length
+        ? `${bundle.skills.length} ${french ? "compétence(s) enregistrée(s)" : "skill(s) recorded"}`
+        : french
+          ? "Aucune compétence ajoutée"
+          : "No skills added yet",
+      status: french ? "Gérer" : "Manage",
+      href: `/${locale}/workspace/skills`,
+    },
+    {
+      title: french ? "Disponibilité" : "Availability",
+      description:
+        availabilityState(bundle.availability?.expires_at) === "fresh"
+          ? french
+            ? "Confirmation à jour"
+            : "Confirmation is fresh"
+          : french
+            ? "Confirmation requise"
+            : "Confirmation needed",
+      status: french ? "Actualiser" : "Refresh",
+      href: `/${locale}/workspace/availability`,
+    },
+    {
+      title: french ? "Portfolio" : "Portfolio",
+      description: french
+        ? "Ajoutez des métadonnées et des liens sûrs."
+        : "Add safe metadata and external links.",
+      status: french ? "Gérer" : "Manage",
+      href: `/${locale}/workspace/portfolio`,
+    },
     canUseWorkspaceCapability(user, "admin.operations")
       ? {
           title: french ? "Opérations Umoja" : "Umoja operations",
