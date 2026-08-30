@@ -360,6 +360,13 @@ and normalized type generation are green. Static checks, 62 unit tests (7 skippe
 The disposable-user lifecycle, controlled transaction-failure tests, and real-browser applicant-to-public-withdrawal
 evidence remain open; Prompt 12 must not be marked complete until those checks pass.
 
+#### Latest lifecycle evidence (2026-08-30)
+
+`scripts/supabase-remote-profile-lifecycle.mjs` completed successfully with run-scoped owner, unrelated owner,
+and active administrator fixtures. Owner creation, cross-owner denial, skill/language/portfolio/availability writes,
+admin approval, anonymous approved projection, anonymous base-table privacy, and post-withdrawal removal all passed.
+The complete role matrix, audit-failure rollback injection, and rendered browser lifecycle remain NOT RUN.
+
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
 - rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;
