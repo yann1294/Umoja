@@ -370,6 +370,14 @@ The complete role matrix, audit-failure rollback injection, and rendered browser
 The moderation-feedback migration `20260830173000_profile_moderation_feedback.sql` is applied and the scoped
 lifecycle harness now verifies applicant-safe feedback persistence alongside approval and withdrawal.
 
+| Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
+| --- | --- | --- | --- |
+| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, run `3603e5aa-cbf1-4ab1-810f-ee58d0c05411` | Expanded role matrix still pending |
+| Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
+| Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
+| Authenticated rendered lifecycle | NOT RUN | `tests/e2e/supabase-profile-lifecycle.spec.ts` added | Local listener permission prevented Playwright server startup |
+| Responsive/Axe/real 200% zoom | NOT RUN | Existing Gate A evidence covers prior routes only | New-route browser inspection required |
+
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
 - rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;
