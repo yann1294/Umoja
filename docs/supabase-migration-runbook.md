@@ -352,6 +352,14 @@ preserved as rollback and reconciliation evidence.
 
 ### Gate B — required before real applicant files or real-user preview
 
+#### Prompt 12 lifecycle implementation evidence (2026-08-30)
+
+Additive profile authorization, transition-guard, transactional-RPC, and public-projection migrations are applied:
+`20260830113000`, `20260830120000`, `20260830133000`, and `20260830143000`. Linked dry-run, apply, database lint,
+and normalized type generation are green. Static checks, 62 unit tests (7 skipped), and production build are green.
+The disposable-user lifecycle, controlled transaction-failure tests, and real-browser applicant-to-public-withdrawal
+evidence remain open; Prompt 12 must not be marked complete until those checks pass.
+
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
 - rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;
