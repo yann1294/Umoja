@@ -114,13 +114,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["user_id"];
           },
-          {
-            foreignKeyName: "availability_snapshots_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "public_profiles";
-            referencedColumns: ["user_id"];
-          },
         ];
       };
       cms_pages: {
@@ -525,13 +518,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["user_id"];
           },
-          {
-            foreignKeyName: "portfolio_items_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "public_profiles";
-            referencedColumns: ["user_id"];
-          },
         ];
       };
       private_profile_details: {
@@ -568,13 +554,6 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: true;
             referencedRelation: "profiles";
-            referencedColumns: ["user_id"];
-          },
-          {
-            foreignKeyName: "private_profile_details_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: true;
-            referencedRelation: "public_profiles";
             referencedColumns: ["user_id"];
           },
         ];
@@ -622,13 +601,6 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["user_id"];
           },
-          {
-            foreignKeyName: "profile_languages_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "public_profiles";
-            referencedColumns: ["user_id"];
-          },
         ];
       };
       profile_skills: {
@@ -668,13 +640,6 @@ export type Database = {
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["user_id"];
-          },
-          {
-            foreignKeyName: "profile_skills_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "public_profiles";
             referencedColumns: ["user_id"];
           },
           {
@@ -947,7 +912,6 @@ export type Database = {
           professional_name: string | null;
           public_bio: string | null;
           public_slug: string | null;
-          user_id: string | null;
         };
         Insert: {
           country_code?: string | null;
@@ -955,7 +919,6 @@ export type Database = {
           professional_name?: string | null;
           public_bio?: string | null;
           public_slug?: string | null;
-          user_id?: string | null;
         };
         Update: {
           country_code?: string | null;
@@ -963,7 +926,6 @@ export type Database = {
           professional_name?: string | null;
           public_bio?: string | null;
           public_slug?: string | null;
-          user_id?: string | null;
         };
         Relationships: [];
       };
