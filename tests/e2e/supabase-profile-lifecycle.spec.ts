@@ -125,6 +125,7 @@ test("applicant can create, submit, receive review, and withdraw a public profil
       ? {
           email: "Adresse courriel",
           password: "Mot de passe",
+          signIn: "Se connecter",
           name: "Nom professionnel",
           slug: "Slug public",
           country: "Pays ou région",
@@ -141,6 +142,7 @@ test("applicant can create, submit, receive review, and withdraw a public profil
       : {
           email: "Email address",
           password: "Password",
+          signIn: "Sign in",
           name: "Professional name",
           slug: "Public slug",
           country: "Country or region",
@@ -158,7 +160,7 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await page.goto(`/${locale}/sign-in?next=%2F${locale}%2Fworkspace%2Fprofile`);
     await page.getByLabel(labels.email).fill(applicantEmail);
     await page.getByLabel(labels.password).fill(password);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("button", { name: labels.signIn }).click();
     await page.waitForURL(`**/${locale}/workspace/profile`);
     await page.getByLabel(labels.name).fill("Synthetic UI Applicant");
     await page.getByLabel(labels.slug).fill(slug);
@@ -178,14 +180,14 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await adminPage.goto(`/${locale}/sign-in?next=%2F${locale}%2Fadmin%2Fprofiles`);
     await adminPage.getByLabel(labels.email).fill(adminEmail);
     await adminPage.getByLabel(labels.password).fill(password);
-    await adminPage.getByRole("button", { name: "Sign in" }).click();
+    await adminPage.getByRole("button", { name: labels.signIn }).click();
     await adminPage.waitForURL(`**/${locale}/admin/profiles`);
     const requestChanges = adminPage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
     await requestChanges
       .getByRole("textbox", { name: /Applicant feedback|Retour pour le candidat/ })
       .fill("Please keep your public biography concise.");
     await requestChanges.getByRole("button", { name: labels.requestChanges }).click();
-    await expect(adminPage.getByText(labels.empty)).toBeVisible();
+    await expect(requestChanges).toHaveCount(0, { timeout: 10000 });
     await adminContext.close();
   });
   await test.step("applicant feedback and resubmission", async () => {
@@ -206,11 +208,11 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await approvePage.goto(`/${locale}/sign-in?next=%2F${locale}%2Fadmin%2Fprofiles`);
     await approvePage.getByLabel(labels.email).fill(adminEmail);
     await approvePage.getByLabel(labels.password).fill(password);
-    await approvePage.getByRole("button", { name: "Sign in" }).click();
+    await approvePage.getByRole("button", { name: labels.signIn }).click();
     await approvePage.waitForURL(`**/${locale}/admin/profiles`);
     const approveRequest = approvePage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
     await approveRequest.getByRole("button", { name: labels.approve }).click();
-    await expect(approvePage.getByText(labels.empty)).toBeVisible();
+    await expect(approveRequest).toHaveCount(0, { timeout: 10000 });
     await approveContext.close();
     const publicPage = await request.get(`/${locale}/talent/${slug}`);
     expect(publicPage.status()).toBe(200);
