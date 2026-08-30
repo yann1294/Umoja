@@ -30,6 +30,7 @@ export const profileInputSchema = z.object({
     .or(z.literal("")),
   visibility: z.enum(["private", "public"]),
   requestReview: z.boolean().default(false),
+  expectedUpdatedAt: z.string().datetime().optional(),
 });
 export const availabilityInputSchema = z.object({
   weeklyHours: z.coerce.number().int().min(0).max(80),
@@ -108,6 +109,7 @@ export async function saveProfile(
     profile_visibility: input.visibility,
     requested_state: review,
     consent_given: input.visibility === "public",
+    expected_updated_at: input.expectedUpdatedAt ?? undefined,
   });
   if (error) throw error;
 }
@@ -142,6 +144,7 @@ export async function saveProfileWithPrivateDetails(
     profile_visibility: input.visibility,
     requested_state: requestedState,
     consent_given: input.visibility === "public",
+    expected_updated_at: input.expectedUpdatedAt ?? undefined,
     private_envelope: encrypted,
     private_key_version: keyring.activeVersion,
   });

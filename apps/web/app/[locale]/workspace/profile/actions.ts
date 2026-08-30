@@ -18,6 +18,7 @@ export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
       publicSlug: String(form.get("publicSlug") ?? ""),
       visibility: form.get("visibility") === "public" ? "public" : "private",
       requestReview: form.get("requestReview") === "on",
+      expectedUpdatedAt: String(form.get("expectedUpdatedAt") ?? "") || undefined,
     },
     String(form.get("timezone") ?? ""),
   );

@@ -30,6 +30,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
         </div>
       </header>
       <form className="workspace-form" action={saveProfileAction.bind(null, locale as "en" | "fr")}>
+        <input type="hidden" name="expectedUpdatedAt" value={bundle.profile?.updated_at ?? ""} />
         <section className="workspace-panel">
           <h2>{french ? "Identité publique" : "Public professional identity"}</h2>
           <label>
