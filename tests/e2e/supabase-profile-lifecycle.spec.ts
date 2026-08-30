@@ -99,6 +99,7 @@ test.afterAll(async () => {
 test("applicant can create, submit, receive review, and withdraw a public profile", async ({
   page,
   request,
+  browser,
 }) => {
   await page.goto("/en/sign-in?next=%2Fen%2Fworkspace%2Fprofile");
   await page.getByLabel("Email address").fill(applicantEmail);
@@ -113,17 +114,38 @@ test("applicant can create, submit, receive review, and withdraw a public profil
   await page.getByLabel("Submit for public review").check();
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByText("submitted")).toBeVisible();
-  const moderation = await api("/rest/v1/rpc/moderate_profile", {
-    method: "POST",
-    headers: adminHeaders,
-    body: JSON.stringify({
-      profile_user_id: applicantId,
-      decision: "approved",
-      expected_state: "submitted",
-      feedback: "Please keep your public biography concise.",
-    }),
-  });
-  expect(moderation.ok).toBeTruthy();
+  const adminContext = await browser.newContext({ viewport: { width: 1024, height: 900 } });
+  const adminPage = await adminContext.newPage();
+  await adminPage.goto("/en/sign-in?next=%2Fen%2Fadmin%2Fprofiles");
+  await adminPage.getByLabel("Email address").fill(adminEmail);
+  await adminPage.getByLabel("Password").fill(password);
+  await adminPage.getByRole("button", { name: "Sign in" }).click();
+  await adminPage.waitForURL("**/en/admin/profiles");
+  const requestChanges = adminPage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
+  await requestChanges
+    .getByRole("textbox", { name: /Applicant feedback/ })
+    .fill("Please keep your public biography concise.");
+  await requestChanges.getByRole("button", { name: "Request changes" }).click();
+  await expect(adminPage.getByText("No profile requests are waiting for review.")).toBeVisible();
+  await adminContext.close();
+  await page.goto("/en/workspace/profile");
+  await expect(page.getByText("Please keep your public biography concise.")).toBeVisible();
+  await page.getByLabel("Public biography").fill("Synthetic browser biography revised");
+  await page.getByLabel("I consent to request publication").check();
+  await page.getByLabel("Submit for public review").check();
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByText("submitted")).toBeVisible();
+  const approveContext = await browser.newContext({ viewport: { width: 1024, height: 900 } });
+  const approvePage = await approveContext.newPage();
+  await approvePage.goto("/en/sign-in?next=%2Fen%2Fadmin%2Fprofiles");
+  await approvePage.getByLabel("Email address").fill(adminEmail);
+  await approvePage.getByLabel("Password").fill(password);
+  await approvePage.getByRole("button", { name: "Sign in" }).click();
+  await approvePage.waitForURL("**/en/admin/profiles");
+  const approveRequest = approvePage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
+  await approveRequest.getByRole("button", { name: "Approve" }).click();
+  await expect(approvePage.getByText("No profile requests are waiting for review.")).toBeVisible();
+  await approveContext.close();
   const publicPage = await request.get(`/en/talent/${slug}`);
   expect(publicPage.status()).toBe(200);
   expect(await publicPage.text()).toContain("Synthetic UI Applicant");
