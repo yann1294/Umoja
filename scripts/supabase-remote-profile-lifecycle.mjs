@@ -169,6 +169,53 @@ try {
     admin.headers,
   );
   out.checks.adminApprove = approve.ok;
+  const selfApprove = await rpc(
+    "moderate_profile",
+    { profile_user_id: owner.id, decision: "approved", expected_state: "approved", feedback: "x" },
+    owner.headers,
+  );
+  out.checks.selfApprovalDenied = !selfApprove.ok;
+  const otherModerate = await rpc(
+    "moderate_profile",
+    { profile_user_id: owner.id, decision: "revoked", expected_state: "approved", feedback: "x" },
+    other.headers,
+  );
+  out.checks.unauthorizedModerationDenied = !otherModerate.ok;
+  const crossChild = await req("/rest/v1/portfolio_items", {
+    method: "POST",
+    headers: { ...other.headers, prefer: "return=representation" },
+    body: JSON.stringify({
+      profile_id: owner.id,
+      title: "Tamper",
+      role_summary: "x",
+      publication_state: "private",
+    }),
+  });
+  out.checks.crossOwnerChildDenied = !crossChild.ok;
+  const ownerAudit = await req(`/rest/v1/audit_logs?select=id&target_id=eq.${owner.id}`, {
+    headers: owner.headers,
+  });
+  out.checks.ownerAuditHidden = ownerAudit.ok && (await ownerAudit.json()).length === 0;
+  const anonPrivate = await req(
+    `/rest/v1/profiles?select=public_slug,public_consent_at&user_id=eq.${owner.id}`,
+    { headers: { apikey: key } },
+  );
+  out.checks.anonymousPrivateHidden = anonPrivate.ok && (await anonPrivate.json()).length === 0;
+  const availabilityId = (
+    await (
+      await req(`/rest/v1/availability_snapshots?select=id&profile_id=eq.${owner.id}`, {
+        headers: owner.headers,
+      })
+    ).json()
+  )[0]?.id;
+  const availabilityTamper = availabilityId
+    ? await req(`/rest/v1/availability_snapshots?id=eq.${availabilityId}`, {
+        method: "PATCH",
+        headers: owner.headers,
+        body: JSON.stringify({ weekly_hours: 80 }),
+      })
+    : new Response(null, { status: 404 });
+  out.checks.availabilityImmutable = !availabilityTamper.ok;
   const pub = await (
     await req(
       `/rest/v1/public_profiles?select=public_slug,professional_name&public_slug=eq.${slug}`,
