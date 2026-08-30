@@ -248,18 +248,18 @@ At the end of this checkpoint the repository must name exactly one active runtim
 
 ## Prompt 12 — Deliver the first workspace vertical slice
 
-Target commits: one backend-specific schema commit—`chore(appwrite): add profile and availability schema` or `chore(supabase): add profile and availability schema`, never both—then `feat: add profiles and availability workspace`
+Target commits: `chore(supabase): add profile and availability schema`, then `feat: add profiles and availability workspace`. Supabase is the accepted canonical development runtime; Appwrite remains rollback/reconciliation evidence only.
 
 ```text
 Build the first useful authenticated Umoja workspace slice: applicant profile completion, skills, portfolio evidence metadata, languages, weekly availability, next available date, and application status.
 
 Build every screen inside the refined authenticated workspace shell from Prompt 9. Reuse its navigation, mobile drawer, account menu, page headings, cards, notices, controls, spacing, typography, and privacy patterns. Do not create a second workspace layout, expose the applicant's full email persistently, or reduce the experience to generic dashboard cards containing explanatory prose.
 
-The Prompt 8 schema does not yet contain dedicated profile, skills, portfolio, availability, or membership-history tables. Do not overload `talent_intakes` as a long-lived profile store. First read the accepted backend decision and design the smallest domain-correct additive schema aligned with section 9 of docs/product-blueprint.md. At minimum, keep public profile fields structurally separate from private profile/contact details and model skills, portfolio metadata, availability snapshots, and membership/application history without one unvalidated JSON blob.
+The existing Supabase foundation already contains dedicated `profiles`, `private_profile_details`, `skills`, `profile_skills`, `portfolio_items`, `availability_snapshots`, and `membership_history` tables. Do not recreate them or overload `talent_intakes` as a long-lived profile store. Extend the accepted schema additively with the smallest domain-correct changes aligned with section 9 of docs/product-blueprint.md. Keep public profile fields structurally separate from private profile/contact details and model skills, languages, portfolio metadata, availability, and membership/application history without one unvalidated JSON blob.
 
 If Appwrite remains the accepted backend, update its version-controlled configuration and drift checks, provision with a newly created short-lived bootstrap key, and preserve the existing row-security/shared-bucket architecture. Check actual Storage usage and table/index quotas with a real API response; do not repeat the disproven blanket claim that Free disables all uploads.
 
-If Supabase is accepted, create additive timestamped SQL migrations for `profiles`, `private_profile_details`, `skills`, `profile_skills`, `portfolio_items`, `availability_snapshots`, and `membership_history`; add foreign keys, constraints, query indexes, grants, and operation-specific RLS policies; regenerate TypeScript database types; and verify a clean local `supabase db reset` plus remote migration status. Reuse the accepted Supabase Auth role model and separate private Storage buckets. Do not retain Appwrite runtime calls or a provider-switching UI path after cutover.
+For Supabase, create additive timestamped SQL migrations only; never run Docker, a local Supabase stack, pgTAP, `supabase db reset --linked`, or any linked reset. Preview and apply the reviewed migration remotely, read back migration history, lint the linked database, regenerate TypeScript types, and verify drift. Reuse the accepted Supabase Auth role model and separate private Storage buckets. Do not create Appwrite schema/adapters, retain Appwrite runtime calls, or add a provider-switching UI path.
 
 For either backend, check current free-plan database, Storage, pausing, and backup limits before provisioning. If the plan blocks the domain-correct model, stop and report the exact request/limit evidence rather than collapsing privacy boundaries.
 

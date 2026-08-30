@@ -72,6 +72,7 @@ export type Database = {
       availability_snapshots: {
         Row: {
           archived_at: string | null;
+          confirmed_at: string;
           created_at: string;
           expires_at: string;
           id: string;
@@ -83,6 +84,7 @@ export type Database = {
         };
         Insert: {
           archived_at?: string | null;
+          confirmed_at: string;
           created_at?: string;
           expires_at: string;
           id?: string;
@@ -94,6 +96,7 @@ export type Database = {
         };
         Update: {
           archived_at?: string | null;
+          confirmed_at?: string;
           created_at?: string;
           expires_at?: string;
           id?: string;
@@ -401,6 +404,27 @@ export type Database = {
           },
         ];
       };
+      languages: {
+        Row: {
+          code: string;
+          created_at: string;
+          display_label_en: string;
+          display_label_fr: string;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          display_label_en: string;
+          display_label_fr: string;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          display_label_en?: string;
+          display_label_fr?: string;
+        };
+        Relationships: [];
+      };
       membership_history: {
         Row: {
           approved_by: string | null;
@@ -437,34 +461,52 @@ export type Database = {
       portfolio_items: {
         Row: {
           archived_at: string | null;
+          category: string | null;
           created_at: string;
+          encrypted_private_notes: string | null;
+          encryption_key_version: string | null;
+          ended_on: string | null;
           external_url: string | null;
           id: string;
           profile_id: string;
           public_consent_at: string | null;
+          publication_state: Database["public"]["Enums"]["portfolio_publication_state"];
           role_summary: string;
+          started_on: string | null;
           title: string;
           updated_at: string;
         };
         Insert: {
           archived_at?: string | null;
+          category?: string | null;
           created_at?: string;
+          encrypted_private_notes?: string | null;
+          encryption_key_version?: string | null;
+          ended_on?: string | null;
           external_url?: string | null;
           id?: string;
           profile_id: string;
           public_consent_at?: string | null;
+          publication_state?: Database["public"]["Enums"]["portfolio_publication_state"];
           role_summary: string;
+          started_on?: string | null;
           title: string;
           updated_at?: string;
         };
         Update: {
           archived_at?: string | null;
+          category?: string | null;
           created_at?: string;
+          encrypted_private_notes?: string | null;
+          encryption_key_version?: string | null;
+          ended_on?: string | null;
           external_url?: string | null;
           id?: string;
           profile_id?: string;
           public_consent_at?: string | null;
+          publication_state?: Database["public"]["Enums"]["portfolio_publication_state"];
           role_summary?: string;
+          started_on?: string | null;
           title?: string;
           updated_at?: string;
         };
@@ -511,6 +553,51 @@ export type Database = {
             foreignKeyName: "private_profile_details_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      profile_languages: {
+        Row: {
+          created_at: string;
+          language_code: string;
+          proficiency: string;
+          profile_id: string;
+          public_consent_at: string | null;
+          updated_at: string;
+          verification: Database["public"]["Enums"]["language_verification"];
+        };
+        Insert: {
+          created_at?: string;
+          language_code: string;
+          proficiency: string;
+          profile_id: string;
+          public_consent_at?: string | null;
+          updated_at?: string;
+          verification?: Database["public"]["Enums"]["language_verification"];
+        };
+        Update: {
+          created_at?: string;
+          language_code?: string;
+          proficiency?: string;
+          profile_id?: string;
+          public_consent_at?: string | null;
+          updated_at?: string;
+          verification?: Database["public"]["Enums"]["language_verification"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_languages_language_code_fkey";
+            columns: ["language_code"];
+            isOneToOne: false;
+            referencedRelation: "languages";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "profile_languages_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["user_id"];
           },
@@ -575,6 +662,7 @@ export type Database = {
           public_bio: string | null;
           public_consent_at: string | null;
           public_slug: string | null;
+          publication_state: Database["public"]["Enums"]["profile_publication_state"];
           timezone: string | null;
           updated_at: string;
           user_id: string;
@@ -590,6 +678,7 @@ export type Database = {
           public_bio?: string | null;
           public_consent_at?: string | null;
           public_slug?: string | null;
+          publication_state?: Database["public"]["Enums"]["profile_publication_state"];
           timezone?: string | null;
           updated_at?: string;
           user_id: string;
@@ -605,6 +694,7 @@ export type Database = {
           public_bio?: string | null;
           public_consent_at?: string | null;
           public_slug?: string | null;
+          publication_state?: Database["public"]["Enums"]["profile_publication_state"];
           timezone?: string | null;
           updated_at?: string;
           user_id?: string;
@@ -1207,7 +1297,12 @@ export type Database = {
         | "archived";
       intake_status:
         "new" | "triage" | "in_review" | "contacted" | "accepted" | "closed" | "duplicate";
+      language_verification: "self_reported" | "verified";
       membership_tier: "applicant" | "extended" | "core" | "lead";
+      portfolio_publication_state:
+        "private" | "submitted" | "approved" | "changes_requested" | "revoked";
+      profile_publication_state:
+        "private" | "draft" | "submitted" | "approved" | "changes_requested" | "revoked";
       profile_visibility: "private" | "public";
       skill_verification: "self_reported" | "verified";
       umoja_role: "admin" | "cms-editor" | "reviewer" | "core" | "extended" | "project-manager";
@@ -1347,7 +1442,23 @@ export const Constants = {
         "archived",
       ],
       intake_status: ["new", "triage", "in_review", "contacted", "accepted", "closed", "duplicate"],
+      language_verification: ["self_reported", "verified"],
       membership_tier: ["applicant", "extended", "core", "lead"],
+      portfolio_publication_state: [
+        "private",
+        "submitted",
+        "approved",
+        "changes_requested",
+        "revoked",
+      ],
+      profile_publication_state: [
+        "private",
+        "draft",
+        "submitted",
+        "approved",
+        "changes_requested",
+        "revoked",
+      ],
       profile_visibility: ["private", "public"],
       skill_verification: ["self_reported", "verified"],
       umoja_role: ["admin", "cms-editor", "reviewer", "core", "extended", "project-manager"],
