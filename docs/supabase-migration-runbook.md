@@ -363,19 +363,21 @@ evidence remain open; Prompt 12 must not be marked complete until those checks p
 #### Latest lifecycle evidence (2026-08-30)
 
 `scripts/supabase-remote-profile-lifecycle.mjs` completed successfully with run-scoped owner, unrelated owner,
-and active administrator fixtures. Owner creation, cross-owner denial, skill/language/portfolio/availability writes,
-admin approval, anonymous approved projection, anonymous base-table privacy, and post-withdrawal removal all passed.
-The complete role matrix, audit-failure rollback injection, and rendered browser lifecycle remain NOT RUN.
+and active administrator fixtures (latest run `8e103a64-3f61-45d9-a8a1-1ffe29438fb2`; all 11 checks passed).
+Owner creation, cross-owner denial, skill/language/portfolio/availability writes, admin approval, anonymous approved
+projection, anonymous base-table privacy, and post-withdrawal removal all passed. The complete role matrix,
+audit-failure rollback injection, and rendered browser lifecycle remain NOT RUN; a 1024px run currently fails because
+withdrawal still serves the identifying profile content, so no cache-invalidation PASS is claimed.
 
 The moderation-feedback migration `20260830173000_profile_moderation_feedback.sql` is applied and the scoped
 lifecycle harness now verifies applicant-safe feedback persistence alongside approval and withdrawal.
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
-| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, run `3603e5aa-cbf1-4ab1-810f-ee58d0c05411` | Expanded role matrix still pending |
+| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, run `8e103a64-3f61-45d9-a8a1-1ffe29438fb2` (11/11) | Expanded role matrix still pending |
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
-| Authenticated rendered lifecycle | NOT RUN | `tests/e2e/supabase-profile-lifecycle.spec.ts` added | Local listener permission prevented Playwright server startup |
+| Authenticated rendered lifecycle | FAIL | `tests/e2e/supabase-profile-lifecycle.spec.ts --project=width-1024 --workers=1`; sign-in reached nested workspace route, but post-withdrawal HTML still contained the synthetic profile | Investigate persisted withdrawal/public projection or server action failure; rerun twice after fix |
 | Responsive/Axe/real 200% zoom | NOT RUN | Existing Gate A evidence covers prior routes only | New-route browser inspection required |
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
