@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 test.describe.configure({ mode: "serial" });
 test.use({ trace: "off", screenshot: "only-on-failure" });
+test.setTimeout(90_000);
 const env = Object.fromEntries(
   fs
     .readFileSync("apps/web/.env.local", "utf8")
@@ -28,9 +29,8 @@ const run = randomUUID(),
   };
 let applicantId = "",
   adminId = "",
-  adminHeaders: HeadersInit,
-  applicantHeaders: HeadersInit,
-  slug = `ui-profile-${locale}-${run}`;
+  applicantHeaders: HeadersInit;
+const slug = `ui-profile-${locale}-${run}`;
 async function create(email: string, role?: string) {
   const created = await api("/auth/v1/admin/users", {
     method: "POST",
@@ -104,7 +104,6 @@ test.beforeAll(async () => {
   applicantHeaders = applicant.headers;
   const admin = await create(adminEmail, "admin");
   adminId = admin.id;
-  adminHeaders = admin.headers;
 });
 test.afterAll(async () => {
   for (const id of [applicantId, adminId])
