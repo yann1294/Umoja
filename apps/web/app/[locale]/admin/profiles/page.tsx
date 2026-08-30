@@ -4,6 +4,7 @@ import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { routing } from "@/i18n/routing";
+import { moderateProfile } from "./actions";
 
 export const dynamic = "force-dynamic";
 export default async function AdminProfilesPage({
@@ -55,6 +56,19 @@ export default async function AdminProfilesPage({
                       ? "Consentement manquant"
                       : "Consent missing"}
                 </small>
+                <form action={moderateProfile.bind(null, locale as "en" | "fr")}>
+                  <input type="hidden" name="userId" value={profile.user_id} />
+                  <input type="hidden" name="slug" value={profile.user_id} />
+                  <button name="state" value="approved" type="submit">
+                    {french ? "Approuver" : "Approve"}
+                  </button>
+                  <button name="state" value="changes_requested" type="submit">
+                    {french ? "Demander des changements" : "Request changes"}
+                  </button>
+                  <button name="state" value="revoked" type="submit">
+                    {french ? "Révoquer" : "Revoke"}
+                  </button>
+                </form>
               </li>
             ))}
           </ul>
