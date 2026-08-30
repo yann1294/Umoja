@@ -20,7 +20,7 @@ export default async function TalentPage({ params }: Props) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "PublicContent" });
-  const { data: profiles } = await createSupabasePublicClient()
+  const { data: profiles } = await createSupabasePublicClient({ noStore: true })
     .from("public_profiles")
     .select("public_slug,professional_name,public_bio,country_code")
     .order("professional_name");

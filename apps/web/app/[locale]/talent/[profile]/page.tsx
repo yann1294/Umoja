@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, profile } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const item = getPublicProfile(profile);
-  const { data: published } = await createSupabasePublicClient()
+  const { data: published } = await createSupabasePublicClient({ noStore: true })
     .from("public_profiles")
     .select("public_slug,professional_name,public_bio")
     .eq("public_slug", profile)
@@ -81,7 +81,7 @@ export default async function ProfilePage({ params }: Props) {
   if (!hasLocale(routing.locales, locale)) notFound();
   const item = getPublicProfile(profile);
   const t = await getTranslations({ locale, namespace: "PublicContent" });
-  const { data: published } = await createSupabasePublicClient()
+  const { data: published } = await createSupabasePublicClient({ noStore: true })
     .from("public_profiles")
     .select("public_slug,professional_name,locale,country_code,public_bio")
     .eq("public_slug", profile)
