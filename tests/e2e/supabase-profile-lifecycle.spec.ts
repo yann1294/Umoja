@@ -101,72 +101,84 @@ test("applicant can create, submit, receive review, and withdraw a public profil
   request,
   browser,
 }) => {
-  await page.goto("/en/sign-in?next=%2Fen%2Fworkspace%2Fprofile");
-  await page.getByLabel("Email address").fill(applicantEmail);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("**/en/workspace/profile");
-  await page.getByLabel("Professional name").fill("Synthetic UI Applicant");
-  await page.getByLabel("Public slug").fill(slug);
-  await page.getByLabel("Country or region").fill("KE");
-  await page.getByLabel("Public biography").fill("Synthetic browser biography");
-  await page.getByLabel("I consent to request publication").check();
-  await page.getByLabel("Submit for public review").check();
-  await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.getByText("submitted")).toBeVisible();
-  const adminContext = await browser.newContext({ viewport: { width: 1024, height: 900 } });
-  const adminPage = await adminContext.newPage();
-  await adminPage.goto("/en/sign-in?next=%2Fen%2Fadmin%2Fprofiles");
-  await adminPage.getByLabel("Email address").fill(adminEmail);
-  await adminPage.getByLabel("Password").fill(password);
-  await adminPage.getByRole("button", { name: "Sign in" }).click();
-  await adminPage.waitForURL("**/en/admin/profiles");
-  const requestChanges = adminPage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
-  await requestChanges
-    .getByRole("textbox", { name: /Applicant feedback/ })
-    .fill("Please keep your public biography concise.");
-  await requestChanges.getByRole("button", { name: "Request changes" }).click();
-  await expect(adminPage.getByText("No profile requests are waiting for review.")).toBeVisible();
-  await adminContext.close();
-  await page.goto("/en/workspace/profile");
-  await expect(page.getByText("Please keep your public biography concise.")).toBeVisible();
-  await page.getByLabel("Public biography").fill("Synthetic browser biography revised");
-  await page.getByLabel("I consent to request publication").check();
-  await page.getByLabel("Submit for public review").check();
-  await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.getByText("submitted")).toBeVisible();
-  const approveContext = await browser.newContext({ viewport: { width: 1024, height: 900 } });
-  const approvePage = await approveContext.newPage();
-  await approvePage.goto("/en/sign-in?next=%2Fen%2Fadmin%2Fprofiles");
-  await approvePage.getByLabel("Email address").fill(adminEmail);
-  await approvePage.getByLabel("Password").fill(password);
-  await approvePage.getByRole("button", { name: "Sign in" }).click();
-  await approvePage.waitForURL("**/en/admin/profiles");
-  const approveRequest = approvePage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
-  await approveRequest.getByRole("button", { name: "Approve" }).click();
-  await expect(approvePage.getByText("No profile requests are waiting for review.")).toBeVisible();
-  await approveContext.close();
-  const publicPage = await request.get(`/en/talent/${slug}`);
-  expect(publicPage.status()).toBe(200);
-  expect(await publicPage.text()).toContain("Synthetic UI Applicant");
-  await page.goto("/en/workspace/profile");
-  await page.getByLabel("Private draft").check();
-  await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.getByLabel("Private draft")).toBeChecked();
-  await expect
-    .poll(async () => (await readOwnerProfile())?.visibility, { timeout: 5000 })
-    .toBe("private");
-  const ownerState = await readOwnerProfile();
-  expect(ownerState?.public_consent_at).toBeNull();
-  const projection = await api(
-    `/rest/v1/public_profiles?public_slug=eq.${slug}&select=public_slug`,
-    {
-      headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
-    },
-  );
-  expect(projection.ok).toBeTruthy();
-  expect(await projection.json()).toEqual([]);
-  const withdrawn = await request.get(`/en/talent/${slug}`);
-  const withdrawnBody = await withdrawn.text();
-  expect(withdrawnBody).not.toContain("Synthetic UI Applicant");
+  await test.step("submission", async () => {
+    await page.goto("/en/sign-in?next=%2Fen%2Fworkspace%2Fprofile");
+    await page.getByLabel("Email address").fill(applicantEmail);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL("**/en/workspace/profile");
+    await page.getByLabel("Professional name").fill("Synthetic UI Applicant");
+    await page.getByLabel("Public slug").fill(slug);
+    await page.getByLabel("Country or region").fill("KE");
+    await page.getByLabel("Public biography").fill("Synthetic browser biography");
+    await page.getByLabel("I consent to request publication").check();
+    await page.getByLabel("Submit for public review").check();
+    await page.getByRole("button", { name: "Save profile" }).click();
+    await expect(page.getByText("submitted")).toBeVisible();
+  });
+  await test.step("administrator sign-in and request changes", async () => {
+    const adminContext = await browser.newContext({ viewport: { width: 1024, height: 900 } });
+    const adminPage = await adminContext.newPage();
+    await adminPage.goto("/en/sign-in?next=%2Fen%2Fadmin%2Fprofiles");
+    await adminPage.getByLabel("Email address").fill(adminEmail);
+    await adminPage.getByLabel("Password").fill(password);
+    await adminPage.getByRole("button", { name: "Sign in" }).click();
+    await adminPage.waitForURL("**/en/admin/profiles");
+    const requestChanges = adminPage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
+    await requestChanges
+      .getByRole("textbox", { name: /Applicant feedback/ })
+      .fill("Please keep your public biography concise.");
+    await requestChanges.getByRole("button", { name: "Request changes" }).click();
+    await expect(adminPage.getByText("No profile requests are waiting for review.")).toBeVisible();
+    await adminContext.close();
+  });
+  await test.step("applicant feedback and resubmission", async () => {
+    await page.goto("/en/workspace/profile");
+    await expect(page.getByText("Please keep your public biography concise.")).toBeVisible();
+    await page.getByLabel("Public biography").fill("Synthetic browser biography revised");
+    await page.getByLabel("I consent to request publication").check();
+    await page.getByLabel("Submit for public review").check();
+    await page.getByRole("button", { name: "Save profile" }).click();
+    await expect(page.getByText("submitted")).toBeVisible();
+  });
+  await test.step("administrator approval and anonymous publication", async () => {
+    const approveContext = await browser.newContext({ viewport: { width: 1024, height: 900 } });
+    const approvePage = await approveContext.newPage();
+    await approvePage.goto("/en/sign-in?next=%2Fen%2Fadmin%2Fprofiles");
+    await approvePage.getByLabel("Email address").fill(adminEmail);
+    await approvePage.getByLabel("Password").fill(password);
+    await approvePage.getByRole("button", { name: "Sign in" }).click();
+    await approvePage.waitForURL("**/en/admin/profiles");
+    const approveRequest = approvePage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
+    await approveRequest.getByRole("button", { name: "Approve" }).click();
+    await expect(
+      approvePage.getByText("No profile requests are waiting for review."),
+    ).toBeVisible();
+    await approveContext.close();
+    const publicPage = await request.get(`/en/talent/${slug}`);
+    expect(publicPage.status()).toBe(200);
+    expect(await publicPage.text()).toContain("Synthetic UI Applicant");
+  });
+  await test.step("withdrawal and anonymous removal", async () => {
+    await page.goto("/en/workspace/profile");
+    await page.getByLabel("Private draft").check();
+    await page.getByRole("button", { name: "Save profile" }).click();
+    await expect(page.getByLabel("Private draft")).toBeChecked();
+    await expect
+      .poll(async () => (await readOwnerProfile())?.visibility, { timeout: 5000 })
+      .toBe("private");
+    const ownerState = await readOwnerProfile();
+    expect(ownerState?.public_consent_at).toBeNull();
+    const projection = await api(
+      `/rest/v1/public_profiles?public_slug=eq.${slug}&select=public_slug`,
+      {
+        headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+      },
+    );
+    expect(projection.ok).toBeTruthy();
+    expect(await projection.json()).toEqual([]);
+    const withdrawn = await request.get(`/en/talent/${slug}`);
+    const withdrawnBody = await withdrawn.text();
+    expect(withdrawnBody).not.toContain("Synthetic UI Applicant");
+  });
 });
