@@ -374,7 +374,7 @@ lifecycle harness now verifies applicant-safe feedback persistence alongside app
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
-| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, run `4b8d3344-5d94-431b-bd18-18a6a97732d1` (18/18) covering cross-owner, self-approval, anonymous privacy, audit visibility and immutable availability | Fault-injection rollback and full role matrix still pending |
+| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, run `ec46daa3-1de8-48d8-abb1-b04ade29cc1c` (22/22) covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility and immutable availability | Fault-injection rollback and true concurrency proof still pending |
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
 | Authenticated rendered lifecycle | PASS | `tests/e2e/supabase-profile-lifecycle.spec.ts --project=width-1024 --workers=1`, two consecutive runs; separate applicant/admin browser contexts, request-changes/resubmission/approval, owner state, anonymous projection exclusion, independent HTTP completion and rendered privacy asserted | EN/FR and visual matrix still pending |
