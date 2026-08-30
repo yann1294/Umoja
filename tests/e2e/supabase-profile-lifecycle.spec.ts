@@ -133,6 +133,9 @@ test("applicant can create, submit, receive review, and withdraw a public profil
           submit: "Soumettre pour revue publique",
           save: "Enregistrer le profil",
           draft: "Brouillon privé",
+          approve: "Approuver",
+          requestChanges: "Demander des changements",
+          empty: "Aucune demande à examiner.",
           submitted: "submitted",
         }
       : {
@@ -146,6 +149,9 @@ test("applicant can create, submit, receive review, and withdraw a public profil
           submit: "Submit for public review",
           save: "Save profile",
           draft: "Private draft",
+          approve: "Approve",
+          requestChanges: "Request changes",
+          empty: "No profile requests are waiting for review.",
           submitted: "submitted",
         };
   await test.step("submission", async () => {
@@ -160,8 +166,10 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await page.getByLabel(labels.bio).fill("Synthetic browser biography");
     await page.getByLabel(labels.consent).check();
     await page.getByLabel(labels.submit).check();
-    await page.getByRole("button", { name: labels.save }).click();
-    await expect(page.getByRole("button", { name: labels.save })).toBeEnabled({ timeout: 15000 });
+    const profileSubmit = page.locator("form.workspace-form button[type=submit]");
+    await expect(profileSubmit).toHaveAccessibleName(labels.save);
+    await profileSubmit.click();
+    await expect(profileSubmit).toBeEnabled({ timeout: 15000 });
     await expect(page.getByText(labels.submitted)).toBeVisible({ timeout: 5000 });
   });
   await test.step("administrator sign-in and request changes", async () => {
@@ -176,8 +184,8 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await requestChanges
       .getByRole("textbox", { name: /Applicant feedback|Retour pour le candidat/ })
       .fill("Please keep your public biography concise.");
-    await requestChanges.getByRole("button", { name: "Request changes" }).click();
-    await expect(adminPage.getByText("No profile requests are waiting for review.")).toBeVisible();
+    await requestChanges.getByRole("button", { name: labels.requestChanges }).click();
+    await expect(adminPage.getByText(labels.empty)).toBeVisible();
     await adminContext.close();
   });
   await test.step("applicant feedback and resubmission", async () => {
@@ -186,8 +194,10 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await page.getByLabel(labels.bio).fill("Synthetic browser biography revised");
     await page.getByLabel(labels.consent).check();
     await page.getByLabel(labels.submit).check();
-    await page.getByRole("button", { name: labels.save }).click();
-    await expect(page.getByRole("button", { name: labels.save })).toBeEnabled({ timeout: 15000 });
+    const resubmit = page.locator("form.workspace-form button[type=submit]");
+    await expect(resubmit).toHaveAccessibleName(labels.save);
+    await resubmit.click();
+    await expect(resubmit).toBeEnabled({ timeout: 15000 });
     await expect(page.getByText(labels.submitted)).toBeVisible({ timeout: 5000 });
   });
   await test.step("administrator approval and anonymous publication", async () => {
@@ -199,10 +209,8 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     await approvePage.getByRole("button", { name: "Sign in" }).click();
     await approvePage.waitForURL(`**/${locale}/admin/profiles`);
     const approveRequest = approvePage.locator("li").filter({ hasText: "Synthetic UI Applicant" });
-    await approveRequest.getByRole("button", { name: "Approve" }).click();
-    await expect(
-      approvePage.getByText("No profile requests are waiting for review."),
-    ).toBeVisible();
+    await approveRequest.getByRole("button", { name: labels.approve }).click();
+    await expect(approvePage.getByText(labels.empty)).toBeVisible();
     await approveContext.close();
     const publicPage = await request.get(`/${locale}/talent/${slug}`);
     expect(publicPage.status()).toBe(200);
@@ -211,7 +219,9 @@ test("applicant can create, submit, receive review, and withdraw a public profil
   await test.step("withdrawal and anonymous removal", async () => {
     await page.goto(`/${locale}/workspace/profile`);
     await page.getByLabel(labels.draft).check();
-    await page.getByRole("button", { name: labels.save }).click();
+    const withdrawalSubmit = page.locator("form.workspace-form button[type=submit]");
+    await expect(withdrawalSubmit).toHaveAccessibleName(labels.save);
+    await withdrawalSubmit.click();
     await expect(page.getByLabel(labels.draft)).toBeChecked();
     await expect
       .poll(async () => (await readOwnerProfile())?.visibility, { timeout: 5000 })
