@@ -136,6 +136,32 @@ export async function requireSupabaseWorkspaceUser(locale = "en") {
   return state.user;
 }
 
+/** Applicant boundary: verified, active Supabase identity only; no operations membership is implied. */
+export async function requireSupabaseApplicant(locale = "en") {
+  const safeLocale = locale === "fr" ? "fr" : "en";
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.auth.getUser();
+  const user = data.user;
+  const bannedUntil = user?.banned_until ? new Date(user.banned_until) : null;
+  if (error || !user || !user.email_confirmed_at || (bannedUntil && bannedUntil > new Date())) {
+    redirect(
+      accessStateUrl(
+        safeLocale,
+        !user ? "sign-in" : "account-disabled",
+        `/${safeLocale}/workspace`,
+      ),
+    );
+  }
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    name: String(user.user_metadata?.preferred_name ?? ""),
+    emailVerified: true,
+    mfaEnabled: false,
+    roles: [] as const,
+  } satisfies SupabaseWorkspaceUser;
+}
+
 /** This boundary is used only by route groups that are fully Supabase-backed. */
 export async function requireSupabaseWorkspaceCapability(
   capability: UmojaCapability,

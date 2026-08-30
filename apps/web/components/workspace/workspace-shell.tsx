@@ -95,7 +95,9 @@ export function getWorkspaceNavigation(
   ];
 
   return candidates
-    .filter((item) => rolesHaveCapability(user.roles, item.capability))
+    .filter(
+      (item) => item.section === "workspace" || rolesHaveCapability(user.roles, item.capability),
+    )
     .map(({ href, label, section }) => ({ href, label, section }));
 }
 
