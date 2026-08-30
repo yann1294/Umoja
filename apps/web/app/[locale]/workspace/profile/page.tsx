@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfileBundle } from "@/lib/profile/service";
 import { routing } from "@/i18n/routing";
 import { saveProfileAction } from "./actions";
+import { ProfileSaveButton } from "./save-status";
 
 export const dynamic = "force-dynamic";
 export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -114,9 +115,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               ? "Votre consentement ne publie jamais automatiquement le profil : une approbation Umoja est requise."
               : "Consent never publishes automatically: Umoja moderation approval is required."}
           </p>
-          <button className="workspace-primary-action" type="submit">
-            {french ? "Enregistrer le profil" : "Save profile"}
-          </button>
+          <ProfileSaveButton french={french} />
         </section>
         <section className="workspace-panel">
           <h2>{french ? "État de revue" : "Review status"}</h2>

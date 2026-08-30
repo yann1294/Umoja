@@ -68,6 +68,17 @@ async function create(email: string, role?: string) {
     },
   };
 }
+async function readOwnerProfile() {
+  const response = await api(
+    `/rest/v1/profiles?user_id=eq.${applicantId}&select=visibility,public_consent_at,publication_state`,
+    {
+      headers: applicantHeaders,
+    },
+  );
+  if (!response.ok) throw new Error(`owner-read:${response.status}`);
+  return (await response.json())[0] as
+    { visibility: string; public_consent_at: string | null; publication_state: string } | undefined;
+}
 test.beforeAll(async () => {
   const applicant = await create(applicantEmail);
   applicantId = applicant.id;
@@ -120,6 +131,19 @@ test("applicant can create, submit, receive review, and withdraw a public profil
   await page.getByLabel("Private draft").check();
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByLabel("Private draft")).toBeChecked();
+  await expect
+    .poll(async () => (await readOwnerProfile())?.visibility, { timeout: 5000 })
+    .toBe("private");
+  const ownerState = await readOwnerProfile();
+  expect(ownerState?.public_consent_at).toBeNull();
+  const projection = await api(
+    `/rest/v1/public_profiles?public_slug=eq.${slug}&select=public_slug`,
+    {
+      headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+    },
+  );
+  expect(projection.ok).toBeTruthy();
+  expect(await projection.json()).toEqual([]);
   const withdrawn = await request.get(`/en/talent/${slug}`);
   const withdrawnBody = await withdrawn.text();
   expect(withdrawnBody).not.toContain("Synthetic UI Applicant");

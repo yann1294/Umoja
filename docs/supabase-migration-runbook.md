@@ -365,9 +365,9 @@ evidence remain open; Prompt 12 must not be marked complete until those checks p
 `scripts/supabase-remote-profile-lifecycle.mjs` completed successfully with run-scoped owner, unrelated owner,
 and active administrator fixtures (latest run `8e103a64-3f61-45d9-a8a1-1ffe29438fb2`; all 11 checks passed).
 Owner creation, cross-owner denial, skill/language/portfolio/availability writes, admin approval, anonymous approved
-projection, anonymous base-table privacy, and post-withdrawal removal all passed. The complete role matrix,
-audit-failure rollback injection, and rendered browser lifecycle remain NOT RUN; a 1024px run currently fails because
-withdrawal still serves the identifying profile content, so no cache-invalidation PASS is claimed.
+projection, anonymous base-table privacy, and post-withdrawal removal all passed. The complete role matrix and
+audit-failure rollback injection remain NOT RUN. The rendered lifecycle now passes twice serially at 1024px with
+synchronized owner/projection checks. Talent reads use an explicit no-store client while CMS reads retain caching.
 
 The moderation-feedback migration `20260830173000_profile_moderation_feedback.sql` is applied and the scoped
 lifecycle harness now verifies applicant-safe feedback persistence alongside approval and withdrawal.
@@ -377,7 +377,7 @@ lifecycle harness now verifies applicant-safe feedback persistence alongside app
 | Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, run `8e103a64-3f61-45d9-a8a1-1ffe29438fb2` (11/11) | Expanded role matrix still pending |
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
-| Authenticated rendered lifecycle | FAIL | `tests/e2e/supabase-profile-lifecycle.spec.ts --project=width-1024 --workers=1`; sign-in reached nested workspace route, but post-withdrawal HTML still contained the synthetic profile | Investigate persisted withdrawal/public projection or server action failure; rerun twice after fix |
+| Authenticated rendered lifecycle | PASS | `tests/e2e/supabase-profile-lifecycle.spec.ts --project=width-1024 --workers=1`, two consecutive runs; owner state, anonymous projection exclusion and rendered privacy asserted | Expanded EN/FR request-changes/admin UI journey still pending |
 | Responsive/Axe/real 200% zoom | NOT RUN | Existing Gate A evidence covers prior routes only | New-route browser inspection required |
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
