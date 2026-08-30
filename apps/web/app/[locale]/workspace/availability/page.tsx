@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
-import { requireSupabaseWorkspaceUser } from "@/lib/supabase/auth";
+import { requireSupabaseApplicant } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { availabilityState, getProfileBundle } from "@/lib/profile/service";
 import { routing } from "@/i18n/routing";
@@ -15,7 +15,7 @@ export default async function AvailabilityPage({
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireSupabaseWorkspaceUser(locale);
+  const user = await requireSupabaseApplicant(locale);
   const bundle = await getProfileBundle(await createSupabaseServerClient(), user.id);
   const french = locale === "fr";
   const state = availabilityState(bundle.availability?.expires_at);

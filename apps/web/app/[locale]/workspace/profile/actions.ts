@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireSupabaseWorkspaceUser } from "@/lib/supabase/auth";
+import { requireSupabaseApplicant } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { saveProfile } from "@/lib/profile/service";
+import { saveProfile, savePrivateDetails } from "@/lib/profile/service";
 
 export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
-  const user = await requireSupabaseWorkspaceUser(locale);
+  const user = await requireSupabaseApplicant(locale);
   await saveProfile(await createSupabaseServerClient(), user.id, {
     professionalName: String(form.get("professionalName") ?? ""),
     locale,
@@ -16,6 +16,11 @@ export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
     visibility: form.get("visibility") === "public" ? "public" : "private",
     requestReview: form.get("requestReview") === "on",
   });
+  await savePrivateDetails(
+    await createSupabaseServerClient(),
+    user.id,
+    String(form.get("timezone") ?? ""),
+  );
   revalidatePath(`/${locale}/workspace`);
   revalidatePath(`/${locale}/workspace/profile`);
 }

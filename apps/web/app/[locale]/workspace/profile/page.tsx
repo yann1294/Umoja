@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
-import { requireSupabaseWorkspaceUser } from "@/lib/supabase/auth";
+import { requireSupabaseApplicant } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfileBundle } from "@/lib/profile/service";
 import { routing } from "@/i18n/routing";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireSupabaseWorkspaceUser(locale);
+  const user = await requireSupabaseApplicant(locale);
   const bundle = await getProfileBundle(await createSupabaseServerClient(), user.id);
   const french = locale === "fr";
   return (
@@ -71,6 +71,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               defaultValue={bundle.profile?.public_bio ?? ""}
             />
           </label>
+        </section>
+        <section className="workspace-panel">
+          <h2>{french ? "Détails opérationnels privés" : "Private operational details"}</h2>
+          <label>
+            {french ? "Fuseau horaire" : "Timezone"}
+            <input name="timezone" placeholder="Africa/Nairobi" />
+          </label>
+          <p className="workspace-help">
+            {french
+              ? "Chiffré avant enregistrement et jamais publié."
+              : "Encrypted before storage and never published."}
+          </p>
         </section>
         <section className="workspace-panel">
           <h2>{french ? "Visibilité" : "Visibility and consent"}</h2>

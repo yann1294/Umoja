@@ -3,6 +3,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "../../../../supabase/database.types";
+import {
+  createIntakeEncryptionKeyringFromEnvironment,
+  encryptIntakeValue,
+} from "@/lib/intake/encryption";
 
 type Client = SupabaseClient<Database>;
 export const profileInputSchema = z.object({
@@ -128,6 +132,125 @@ export async function saveAvailability(
     confirmed_at: now.toISOString(),
     expires_at: new Date(now.getTime() + 30 * 86400000).toISOString(),
   });
+  if (error) throw error;
+}
+
+export async function addProfileSkill(
+  client: Client,
+  userId: string,
+  skillId: string,
+  level: number,
+) {
+  const parsed = z
+    .object({ skillId: z.uuid(), level: z.number().int().min(1).max(5) })
+    .parse({ skillId, level });
+  const { error } = await client.from("profile_skills").upsert(
+    {
+      profile_id: userId,
+      skill_id: parsed.skillId,
+      level: parsed.level,
+      verification: "self_reported",
+    },
+    { onConflict: "profile_id,skill_id" },
+  );
+  if (error) throw error;
+}
+
+export async function removeProfileSkill(client: Client, userId: string, skillId: string) {
+  const { error } = await client
+    .from("profile_skills")
+    .delete()
+    .eq("profile_id", userId)
+    .eq("skill_id", skillId);
+  if (error) throw error;
+}
+
+export async function addProfileLanguage(
+  client: Client,
+  userId: string,
+  code: string,
+  proficiency: string,
+) {
+  const parsed = z
+    .object({
+      code: z.string().regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/),
+      proficiency: z.enum(["basic", "conversational", "professional", "fluent", "native"]),
+    })
+    .parse({ code, proficiency });
+  const { error } = await client.from("profile_languages").upsert(
+    {
+      profile_id: userId,
+      language_code: parsed.code,
+      proficiency: parsed.proficiency,
+      verification: "self_reported",
+    },
+    { onConflict: "profile_id,language_code" },
+  );
+  if (error) throw error;
+}
+
+export async function removeProfileLanguage(client: Client, userId: string, code: string) {
+  const { error } = await client
+    .from("profile_languages")
+    .delete()
+    .eq("profile_id", userId)
+    .eq("language_code", code);
+  if (error) throw error;
+}
+
+export async function savePrivateDetails(client: Client, userId: string, timezone: string) {
+  const parsed = z.string().trim().max(80).parse(timezone);
+  const keyring = createIntakeEncryptionKeyringFromEnvironment(process.env);
+  const encrypted = encryptIntakeValue(
+    JSON.stringify({ timezone: parsed || null }),
+    `profile:${userId}:private-details`,
+    keyring,
+  );
+  const { error } = await client.from("private_profile_details").upsert(
+    {
+      user_id: userId,
+      encryption_key_version: keyring.activeVersion,
+      encrypted_payload: encrypted,
+      consent_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (error) throw error;
+}
+
+export async function createPortfolioItem(
+  client: Client,
+  userId: string,
+  value: { title: string; roleSummary: string; externalUrl?: string },
+) {
+  const parsed = z
+    .object({
+      title: z.string().trim().min(1).max(200),
+      roleSummary: z.string().trim().min(1).max(2000),
+      externalUrl: z
+        .string()
+        .url()
+        .refine((url) => ["https:", "http:"].includes(new URL(url).protocol))
+        .optional()
+        .or(z.literal("")),
+    })
+    .parse(value);
+  const { error } = await client.from("portfolio_items").insert({
+    profile_id: userId,
+    title: parsed.title,
+    role_summary: parsed.roleSummary,
+    external_url: parsed.externalUrl || null,
+    publication_state: "private",
+  });
+  if (error) throw error;
+}
+export async function archivePortfolioItem(client: Client, userId: string, id: string) {
+  const { error } = await client
+    .from("portfolio_items")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("profile_id", userId);
   if (error) throw error;
 }
 
