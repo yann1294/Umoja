@@ -39,7 +39,7 @@ export const availabilityInputSchema = z.object({
 });
 
 export async function getProfileBundle(client: Client, userId: string) {
-  const [profile, skills, languages, portfolio, availability, membership, intake] =
+  const [profile, skills, languages, portfolio, availability, membership, intake, feedback] =
     await Promise.all([
       client.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       client.from("profile_skills").select("*, skills(*)").eq("profile_id", userId),
@@ -71,10 +71,23 @@ export async function getProfileBundle(client: Client, userId: string) {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      client
+        .from("profile_moderation_feedback")
+        .select("decision,feedback,created_at")
+        .eq("profile_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(5),
     ]);
-  const error = [profile, skills, languages, portfolio, availability, membership, intake].find(
-    (result) => result.error,
-  )?.error;
+  const error = [
+    profile,
+    skills,
+    languages,
+    portfolio,
+    availability,
+    membership,
+    intake,
+    feedback,
+  ].find((result) => result.error)?.error;
   if (error) throw error;
   return {
     profile: profile.data,
@@ -84,6 +97,7 @@ export async function getProfileBundle(client: Client, userId: string) {
     availability: availability.data,
     membership: membership.data,
     intake: intake.data,
+    feedback: feedback.data ?? [],
   };
 }
 

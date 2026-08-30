@@ -160,7 +160,12 @@ try {
   out.checks.availabilityWrite = availability.ok;
   const approve = await rpc(
     "moderate_profile",
-    { profile_user_id: owner.id, decision: "approved", expected_state: "submitted" },
+    {
+      profile_user_id: owner.id,
+      decision: "approved",
+      expected_state: "submitted",
+      feedback: "Synthetic approval",
+    },
     admin.headers,
   );
   out.checks.adminApprove = approve.ok;

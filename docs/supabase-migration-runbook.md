@@ -367,6 +367,9 @@ and active administrator fixtures. Owner creation, cross-owner denial, skill/lan
 admin approval, anonymous approved projection, anonymous base-table privacy, and post-withdrawal removal all passed.
 The complete role matrix, audit-failure rollback injection, and rendered browser lifecycle remain NOT RUN.
 
+The moderation-feedback migration `20260830173000_profile_moderation_feedback.sql` is applied and the scoped
+lifecycle harness now verifies applicant-safe feedback persistence alongside approval and withdrawal.
+
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
 - rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;

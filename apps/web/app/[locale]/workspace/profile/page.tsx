@@ -124,6 +124,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
             {bundle.profile?.publication_state ??
               (french ? "Pas encore commencé" : "Not started yet")}
           </p>
+          {bundle.feedback.length ? (
+            <div aria-live="polite">
+              <h3>{french ? "Retour Umoja" : "Umoja feedback"}</h3>
+              {bundle.feedback.map((item, index) => (
+                <p key={`${item.created_at}-${index}`}>
+                  {item.feedback || (french ? "Décision enregistrée." : "Decision recorded.")}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </section>
       </form>
     </WorkspaceShell>

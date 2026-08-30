@@ -59,6 +59,12 @@ export default async function AdminProfilesPage({
                 <form action={moderateProfile.bind(null, locale as "en" | "fr")}>
                   <input type="hidden" name="userId" value={profile.user_id} />
                   <input type="hidden" name="slug" value={profile.user_id} />
+                  <label>
+                    {french
+                      ? "Retour pour le candidat (facultatif)"
+                      : "Applicant feedback (optional)"}
+                    <textarea name="feedback" maxLength={2000} rows={3} />
+                  </label>
                   <button name="state" value="approved" type="submit">
                     {french ? "Approuver" : "Approve"}
                   </button>
