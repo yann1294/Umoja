@@ -79,6 +79,24 @@ async function readOwnerProfile() {
   return (await response.json())[0] as
     { visibility: string; public_consent_at: string | null; publication_state: string } | undefined;
 }
+async function timedPublicFetch(path: string) {
+  const controller = new AbortController();
+  const started = performance.now();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(`http://127.0.0.1:4173${path}`, { signal: controller.signal });
+    const headersAt = performance.now();
+    const body = await response.text();
+    return {
+      status: response.status,
+      headersMs: headersAt - started,
+      totalMs: performance.now() - started,
+      body,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 test.beforeAll(async () => {
   const applicant = await create(applicantEmail);
   applicantId = applicant.id;
@@ -177,6 +195,9 @@ test("applicant can create, submit, receive review, and withdraw a public profil
     );
     expect(projection.ok).toBeTruthy();
     expect(await projection.json()).toEqual([]);
+    const independent = await timedPublicFetch(`/en/talent/${slug}`);
+    expect(independent.status).toBe(404);
+    expect(independent.body).not.toContain("Synthetic UI Applicant");
     const withdrawn = await request.get(`/en/talent/${slug}`);
     const withdrawnBody = await withdrawn.text();
     expect(withdrawnBody).not.toContain("Synthetic UI Applicant");
