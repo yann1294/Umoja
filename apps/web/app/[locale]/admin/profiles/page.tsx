@@ -58,6 +58,7 @@ export default async function AdminProfilesPage({
                 </small>
                 <form action={moderateProfile.bind(null, locale as "en" | "fr")}>
                   <input type="hidden" name="userId" value={profile.user_id} />
+                  <input type="hidden" name="expectedUpdatedAt" value={profile.updated_at} />
                   <input type="hidden" name="slug" value={profile.user_id} />
                   <label>
                     {french

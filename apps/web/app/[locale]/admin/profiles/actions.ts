@@ -10,12 +10,14 @@ export async function moderateProfile(locale: "en" | "fr", form: FormData) {
     throw new Error("Invalid moderation state");
   const client = await createSupabaseServerClient();
   const profileId = String(form.get("userId"));
+  const expectedUpdatedAt = String(form.get("expectedUpdatedAt") ?? "") || undefined;
   const expected = state === "revoked" ? "approved" : "submitted";
   const { data, error } = await client.rpc("moderate_profile", {
     profile_user_id: profileId,
     decision: state as "approved" | "changes_requested" | "revoked",
     expected_state: expected,
     feedback,
+    expected_updated_at: expectedUpdatedAt,
   });
   if (error) throw error;
   if (!data) throw new Error("Profile review is stale or unavailable");

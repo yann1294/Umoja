@@ -1220,6 +1220,7 @@ export type Database = {
             Args: {
               decision: Database["public"]["Enums"]["profile_publication_state"];
               expected_state: Database["public"]["Enums"]["profile_publication_state"];
+              expected_updated_at?: string;
               feedback: string;
               profile_user_id: string;
             };
