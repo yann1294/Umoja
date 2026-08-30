@@ -69,7 +69,44 @@ const out = { run, checks: {} };
 try {
   const owner = await create("owner", null),
     other = await create("other", null),
-    admin = await create("admin", "admin", true);
+    admin = await create("admin", "admin", true),
+    editor = await create("editor", "cms-editor", true),
+    reviewer = await create("reviewer", "reviewer", true),
+    revokedAdmin = await create("revoked-admin", "admin", true),
+    disabled = await create("disabled", null);
+  const revoked = await req(
+    `/rest/v1/membership_history?user_id=eq.${revokedAdmin.id}&effective_to=is.null`,
+    {
+      method: "PATCH",
+      headers: { ...service, prefer: "return=minimal" },
+      body: JSON.stringify({ effective_to: new Date().toISOString() }),
+    },
+  );
+  if (!revoked.ok) throw new Error(`revoke-membership:${revoked.status}`);
+  const disabledUpdate = await req(`/auth/v1/admin/users/${disabled.id}`, {
+    method: "PUT",
+    headers: service,
+    body: JSON.stringify({ ban_duration: "1h" }),
+  });
+  if (!disabledUpdate.ok) throw new Error(`disable:${disabledUpdate.status}`);
+  const unverifiedEmail = `profile-unverified-${run}@example.test`;
+  const unverifiedCreate = await req("/auth/v1/admin/users", {
+    method: "POST",
+    headers: service,
+    body: JSON.stringify({ email: unverifiedEmail, password, email_confirm: false }),
+  });
+  if (!unverifiedCreate.ok) throw new Error(`create:unverified:${unverifiedCreate.status}`);
+  const unverified = await unverifiedCreate.json();
+  users.push(unverified.id);
+  const unverifiedToken = await req("/auth/v1/token?grant_type=password", {
+    method: "POST",
+    headers: { apikey: key, "content-type": "application/json" },
+    body: JSON.stringify({ email: unverifiedEmail, password }),
+  });
+  out.checks = {
+    ...out.checks,
+    unverifiedSignInDenied: !unverifiedToken.ok,
+  };
   const slug = `profile-${run}`;
   const rpc = (name, body, h) =>
     req(`/rest/v1/rpc/${name}`, { method: "POST", headers: h, body: JSON.stringify(body) });
@@ -216,6 +253,60 @@ try {
       })
     : new Response(null, { status: 404 });
   out.checks.availabilityImmutable = !availabilityTamper.ok;
+  const editorMutation = await rpc(
+    "save_profile_with_audit",
+    {
+      profile_user_id: owner.id,
+      professional_name: "Editor tamper",
+      profile_locale: "en",
+      profile_country: "KE",
+      profile_bio: "x",
+      profile_slug: slug,
+      profile_visibility: "private",
+      requested_state: "private",
+      consent_given: false,
+    },
+    editor.headers,
+  );
+  out.checks.editorOwnerMutationDenied = !editorMutation.ok;
+  const reviewerModeration = await rpc(
+    "moderate_profile",
+    {
+      profile_user_id: owner.id,
+      decision: "revoked",
+      expected_state: "approved",
+      feedback: "x",
+    },
+    reviewer.headers,
+  );
+  out.checks.reviewerModerationDenied = !reviewerModeration.ok;
+  const revokedModeration = await rpc(
+    "moderate_profile",
+    {
+      profile_user_id: owner.id,
+      decision: "revoked",
+      expected_state: "approved",
+      feedback: "x",
+    },
+    revokedAdmin.headers,
+  );
+  out.checks.revokedAdminDenied = !revokedModeration.ok;
+  const disabledMutation = await rpc(
+    "save_profile_with_audit",
+    {
+      profile_user_id: disabled.id,
+      professional_name: "Disabled",
+      profile_locale: "en",
+      profile_country: "KE",
+      profile_bio: "x",
+      profile_slug: `disabled-${run}`,
+      profile_visibility: "private",
+      requested_state: "private",
+      consent_given: false,
+    },
+    disabled.headers,
+  );
+  out.checks.disabledMutationDenied = !disabledMutation.ok;
   const pub = await (
     await req(
       `/rest/v1/public_profiles?select=public_slug,professional_name&public_slug=eq.${slug}`,
