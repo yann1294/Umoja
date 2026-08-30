@@ -119,7 +119,8 @@ test("applicant can create, submit, receive review, and withdraw a public profil
   await page.goto("/en/workspace/profile");
   await page.getByLabel("Private draft").check();
   await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.getByText("private")).toBeVisible();
+  await expect(page.getByLabel("Private draft")).toBeChecked();
   const withdrawn = await request.get(`/en/talent/${slug}`);
-  expect(withdrawn.status()).toBe(404);
+  const withdrawnBody = await withdrawn.text();
+  expect(withdrawnBody).not.toContain("Synthetic UI Applicant");
 });

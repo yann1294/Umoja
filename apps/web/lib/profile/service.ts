@@ -30,7 +30,7 @@ export const profileInputSchema = z.object({
     .or(z.literal("")),
   visibility: z.enum(["private", "public"]),
   requestReview: z.boolean().default(false),
-  expectedUpdatedAt: z.string().datetime().optional(),
+  expectedUpdatedAt: z.iso.datetime({ offset: true }).optional(),
 });
 export const availabilityInputSchema = z.object({
   weeklyHours: z.coerce.number().int().min(0).max(80),

@@ -7,8 +7,17 @@ import { saveProfileWithPrivateDetails } from "@/lib/profile/service";
 
 export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
   const user = await requireSupabaseApplicant(locale);
+  const client = await createSupabaseServerClient();
+  const { data: before } = await client
+    .from("profiles")
+    .select("public_slug")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const nextSlug = String(form.get("publicSlug") ?? "")
+    .trim()
+    .toLowerCase();
   await saveProfileWithPrivateDetails(
-    await createSupabaseServerClient(),
+    client,
     user.id,
     {
       professionalName: String(form.get("professionalName") ?? ""),
@@ -24,4 +33,11 @@ export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
   );
   revalidatePath(`/${locale}/workspace`);
   revalidatePath(`/${locale}/workspace/profile`);
+  for (const publicLocale of ["en", "fr"] as const) {
+    revalidatePath(`/${publicLocale}/talent`);
+    revalidatePath(`/${publicLocale}/talent/[profile]`, "page");
+    for (const slug of [before?.public_slug, nextSlug].filter(Boolean)) {
+      revalidatePath(`/${publicLocale}/talent/${slug}`);
+    }
+  }
 }

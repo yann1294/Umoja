@@ -11,6 +11,7 @@ import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { Breadcrumbs, ContentHero, publicContentStyles as styles } from "../../public-content";
 type Props = Readonly<{ params: Promise<{ locale: string; profile: string }> }>;
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export function generateStaticParams() {
   return PROFILE_SLUGS.map((profile) => ({ profile }));
 }

@@ -8,6 +8,8 @@ import { routing } from "@/i18n/routing";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { Breadcrumbs, ContentHero, ContentState } from "../public-content";
 type Props = Readonly<{ params: Promise<{ locale: string }> }>;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();

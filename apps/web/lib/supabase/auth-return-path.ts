@@ -10,7 +10,7 @@ export function safeAuthReturnPath(value: unknown, locale: "en" | "fr") {
   if (!new RegExp(`^/${localePattern}/`).test(value)) return fallback;
   if (/[\\\u0000-\u001f]/.test(value) || value.includes("?next=")) return fallback;
   return new RegExp(
-    `^/${locale}/(?:workspace|admin(?:/(?:content|intake)(?:/[^?#]*)?)?|account-state)(?:\\?[^#]*)?$`,
+    `^/${locale}/(?:workspace(?:/(?:profile|skills|languages|portfolio|availability))?|admin(?:/(?:content|intake)(?:/[^?#]*)?)?|account-state)(?:\\?[^#]*)?$`,
   ).test(value)
     ? value
     : fallback;
