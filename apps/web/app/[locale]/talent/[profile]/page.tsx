@@ -10,6 +10,7 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { Breadcrumbs, ContentHero, publicContentStyles as styles } from "../../public-content";
 type Props = Readonly<{ params: Promise<{ locale: string; profile: string }> }>;
+export const dynamic = "force-dynamic";
 export function generateStaticParams() {
   return PROFILE_SLUGS.map((profile) => ({ profile }));
 }
@@ -17,6 +18,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, profile } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const item = getPublicProfile(profile);
+  const { data: published } = await createSupabasePublicClient()
+    .from("public_profiles")
+    .select("public_slug,professional_name,public_bio")
+    .eq("public_slug", profile)
+    .maybeSingle();
+  if (!item && !published) notFound();
+  if (published)
+    return publicMetadata(
+      locale,
+      `talent/${profile}`,
+      published.professional_name ?? "",
+      published.public_bio ?? "",
+    );
   if (!item) notFound();
   return publicMetadata(
     locale,

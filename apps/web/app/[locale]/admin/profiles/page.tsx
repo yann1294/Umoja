@@ -79,8 +79,8 @@ export default async function AdminProfilesPage({
         )}
         <p className="workspace-help">
           {french
-            ? "Les décisions d’approbation seront ajoutées dans une action serveur auditée."
-            : "Approval decisions will be added through an audited server action."}
+            ? "Chaque décision est validée côté serveur et journalisée par empreinte."
+            : "Each decision is server-validated and recorded by digest."}
         </p>
       </section>
     </WorkspaceShell>
