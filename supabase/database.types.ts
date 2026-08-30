@@ -1189,6 +1189,35 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      moderate_profile: {
+        Args: {
+          decision: Database["public"]["Enums"]["profile_publication_state"];
+          expected_state: Database["public"]["Enums"]["profile_publication_state"];
+          profile_user_id: string;
+        };
+        Returns: {
+          archived_at: string | null;
+          consent_version: string | null;
+          country_code: string | null;
+          created_at: string;
+          locale: string;
+          professional_name: string;
+          public_bio: string | null;
+          public_consent_at: string | null;
+          public_slug: string | null;
+          publication_state: Database["public"]["Enums"]["profile_publication_state"];
+          timezone: string | null;
+          updated_at: string;
+          user_id: string;
+          visibility: Database["public"]["Enums"]["profile_visibility"];
+        };
+        SetofOptions: {
+          from: "*";
+          to: "profiles";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       publish_cms_page: {
         Args: { p_change_summary?: string; p_page_id: string };
         Returns: {
@@ -1322,6 +1351,44 @@ export type Database = {
         SetofOptions: {
           from: "*";
           to: "cms_pages";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      save_profile_with_audit: {
+        Args: {
+          consent_given: boolean;
+          expected_updated_at?: string;
+          private_envelope?: string;
+          private_key_version?: string;
+          professional_name: string;
+          profile_bio: string;
+          profile_country: string;
+          profile_locale: string;
+          profile_slug: string;
+          profile_user_id: string;
+          profile_visibility: Database["public"]["Enums"]["profile_visibility"];
+          requested_state: Database["public"]["Enums"]["profile_publication_state"];
+        };
+        Returns: {
+          archived_at: string | null;
+          consent_version: string | null;
+          country_code: string | null;
+          created_at: string;
+          locale: string;
+          professional_name: string;
+          public_bio: string | null;
+          public_consent_at: string | null;
+          public_slug: string | null;
+          publication_state: Database["public"]["Enums"]["profile_publication_state"];
+          timezone: string | null;
+          updated_at: string;
+          user_id: string;
+          visibility: Database["public"]["Enums"]["profile_visibility"];
+        };
+        SetofOptions: {
+          from: "*";
+          to: "profiles";
           isOneToOne: true;
           isSetofReturn: false;
         };
