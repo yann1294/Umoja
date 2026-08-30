@@ -98,22 +98,53 @@ export async function saveProfile(
       : input.visibility === "public"
         ? "draft"
         : "private";
-  const { error } = await client.from("profiles").upsert(
-    {
-      user_id: userId,
-      professional_name: input.professionalName,
-      locale: input.locale,
-      country_code: input.countryCode || null,
-      public_bio: input.publicBio || null,
-      public_slug: input.publicSlug || null,
-      visibility: input.visibility,
-      public_consent_at: input.visibility === "public" ? new Date().toISOString() : null,
-      consent_version: input.visibility === "public" ? "profile-public-v1" : null,
-      publication_state: review,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" },
+  const { error } = await client.rpc("save_profile_with_audit", {
+    profile_user_id: userId,
+    professional_name: input.professionalName,
+    profile_locale: input.locale,
+    profile_country: input.countryCode || "",
+    profile_bio: input.publicBio,
+    profile_slug: input.publicSlug || "",
+    profile_visibility: input.visibility,
+    requested_state: review,
+    consent_given: input.visibility === "public",
+  });
+  if (error) throw error;
+}
+
+export async function saveProfileWithPrivateDetails(
+  client: Client,
+  userId: string,
+  value: z.input<typeof profileInputSchema>,
+  timezone: string,
+) {
+  const input = profileInputSchema.parse(value);
+  const parsedTimezone = z.string().trim().max(80).parse(timezone);
+  const keyring = createIntakeEncryptionKeyringFromEnvironment(process.env);
+  const encrypted = encryptIntakeValue(
+    JSON.stringify({ timezone: parsedTimezone || null }),
+    `profile:${userId}:private-details`,
+    keyring,
   );
+  const requestedState =
+    input.requestReview && input.visibility === "public"
+      ? "submitted"
+      : input.visibility === "public"
+        ? "draft"
+        : "private";
+  const { error } = await client.rpc("save_profile_with_audit", {
+    profile_user_id: userId,
+    professional_name: input.professionalName,
+    profile_locale: input.locale,
+    profile_country: input.countryCode || "",
+    profile_bio: input.publicBio,
+    profile_slug: input.publicSlug || "",
+    profile_visibility: input.visibility,
+    requested_state: requestedState,
+    consent_given: input.visibility === "public",
+    private_envelope: encrypted,
+    private_key_version: keyring.activeVersion,
+  });
   if (error) throw error;
 }
 

@@ -8,17 +8,18 @@ export async function moderateProfile(locale: "en" | "fr", form: FormData) {
   if (!["approved", "changes_requested", "revoked"].includes(state))
     throw new Error("Invalid moderation state");
   const client = await createSupabaseServerClient();
-  const { data, error } = await client
-    .from("profiles")
-    .update({ publication_state: state as "approved" | "changes_requested" | "revoked" })
-    .eq("user_id", String(form.get("userId")))
-    .eq("publication_state", "submitted")
-    .select("user_id")
-    .maybeSingle();
+  const profileId = String(form.get("userId"));
+  const expected = state === "revoked" ? "approved" : "submitted";
+  const { data, error } = await client.rpc("moderate_profile", {
+    profile_user_id: profileId,
+    decision: state as "approved" | "changes_requested" | "revoked",
+    expected_state: expected,
+  });
   if (error) throw error;
   if (!data) throw new Error("Profile review is stale or unavailable");
   revalidatePath(`/${locale}/admin/profiles`);
   revalidatePath(`/${locale}/talent`);
-  revalidatePath(`/${locale}/talent/${String(form.get("slug") ?? "")}`);
+  const slug = data?.public_slug;
+  if (slug) revalidatePath(`/${locale}/talent/${slug}`);
   void admin;
 }
