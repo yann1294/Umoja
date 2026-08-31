@@ -236,13 +236,27 @@ function assertControlledPair(caseName, pair) {
 async function runConcurrentCase(caseName, first, second, ownerId, stateCheck) {
   const before = await snapshot(ownerId);
   const synchronizedAt = performance.now();
-  const pair = await Promise.all([first(), second()]);
+  const pairPromise = Promise.all([first(), second()]);
+  const duringPromise = new Promise((resolve) => setTimeout(resolve, 1_000)).then(async () => ({
+    ...(await snapshot(ownerId)),
+    observedAfterStartMs: Math.round(performance.now() - synchronizedAt),
+  }));
+  const pair = await pairPromise;
+  const during = await duringPromise;
   const after = await snapshot(ownerId);
   results.cases[caseName] = {
     harnessStartSkewMs: Math.abs(pair[0].startedAtMs - pair[1].startedAtMs),
     wallMs: Math.round(performance.now() - synchronizedAt),
     requests: pair,
     beforeDigest: before.digest,
+    during: {
+      observedAfterStartMs: during.observedAfterStartMs,
+      digest: during.digest,
+      profileState: during.profileState,
+      profileName: during.profileName,
+      feedbackCount: during.feedbackCount,
+      auditCount: during.auditCount,
+    },
     afterDigest: after.digest,
     state: {
       profileState: after.profileState,

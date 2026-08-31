@@ -1,9 +1,13 @@
 -- Read-only Prompt 12 concurrency observer. This grants nothing and performs no DDL.
 -- Required access: CONNECT plus pg_read_all_stats (or an equivalent narrowly scoped monitor role).
+-- Start this session before the HTTP harness. It samples for 30 seconds and never selects query text.
 \set ON_ERROR_STOP on
+\pset format unaligned
+\pset fieldsep '|'
+\pset tuples_only on
 
 BEGIN READ ONLY;
-SET LOCAL statement_timeout = '5s';
+SET LOCAL statement_timeout = '35s';
 SET LOCAL lock_timeout = '1s';
 SET LOCAL search_path = pg_catalog;
 
@@ -30,11 +34,13 @@ WITH candidate AS (
   FROM pg_locks l JOIN candidate c ON c.pid = l.pid
   GROUP BY l.pid
 )
-SELECT c.operation, c.state, c.wait_event_type, c.wait_event,
+SELECT to_char(clock_timestamp(), 'YYYY-MM-DD"T"HH24:MI:SS.MSOf') AS observed_at,
+  c.pid, c.operation, c.state, c.wait_event_type, c.wait_event,
   c.query_age, c.transaction_age, c.blocking_pids,
   coalesce(l.granted_locks, 0) AS granted_locks,
   coalesce(l.waiting_locks, 0) AS waiting_locks,
   coalesce(l.waiting_modes, '{}') AS waiting_modes
 FROM candidate c LEFT JOIN lock_summary l USING (pid)
 ORDER BY c.query_age DESC;
+\watch i=0.25 c=120 m=0
 ROLLBACK;

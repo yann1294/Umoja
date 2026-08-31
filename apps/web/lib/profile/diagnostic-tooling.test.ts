@@ -11,8 +11,24 @@ const concurrencyScript = fs.readFileSync(
   path.join(repositoryRoot, "scripts/supabase-profile-concurrency.mjs"),
   "utf8",
 );
+const concurrencyObserver = fs.readFileSync(
+  path.join(repositoryRoot, "scripts/supabase-profile-concurrency-observe.sql"),
+  "utf8",
+);
+const monitorSetup = fs.readFileSync(
+  path.join(repositoryRoot, "scripts/supabase-profile-concurrency-monitor-setup.sql"),
+  "utf8",
+);
+const monitorTeardown = fs.readFileSync(
+  path.join(repositoryRoot, "scripts/supabase-profile-concurrency-monitor-teardown.sql"),
+  "utf8",
+);
 const rollbackFixtureScript = fs.readFileSync(
   path.join(repositoryRoot, "scripts/supabase-profile-rollback-fixture.mjs"),
+  "utf8",
+);
+const zoomFixtureScript = fs.readFileSync(
+  path.join(repositoryRoot, "scripts/supabase-profile-zoom-fixture.mjs"),
   "utf8",
 );
 
@@ -52,7 +68,16 @@ describe("Prompt 12 diagnostic tooling", () => {
     expect(concurrencyScript).toContain("cleanupSafe = false");
     expect(concurrencyScript).toContain("intentionally_skipped_database_completion_unknown");
     expect(concurrencyScript).toContain("native_https_dedicated_socket");
+    expect(concurrencyObserver).not.toMatch(/\b(?:a|c)\.query\s*(?:,|AS\b)/i);
+    expect(concurrencyObserver).toContain("\\watch i=0.25 c=120 m=0");
+    expect(monitorSetup).toContain("default_transaction_read_only = on");
+    expect(monitorSetup).toContain("CONNECTION LIMIT 1");
+    expect(monitorSetup).toContain("GRANT pg_read_all_stats");
+    expect(monitorTeardown).toContain("DROP ROLE umoja_prompt12_monitor");
     expect(rollbackFixtureScript).not.toContain("access_token:");
     expect(rollbackFixtureScript).toContain("exactSyntheticUsersRemoved");
+    expect(zoomFixtureScript).not.toContain("console.log(tokenPayload");
+    expect(zoomFixtureScript).toContain('credentialFileMode: "0600"');
+    expect(zoomFixtureScript).toContain("exactSyntheticUsersRemoved");
   });
 });
