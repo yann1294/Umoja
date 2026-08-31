@@ -1,18 +1,34 @@
 #!/usr/bin/env node
 
-import { createCipheriv, randomBytes, randomUUID } from "node:crypto";
-import fs from "node:fs";
+import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
 
-const env = Object.fromEntries(
-  fs
-    .readFileSync("apps/web/.env.local", "utf8")
-    .split(/\r?\n/)
-    .filter((line) => line && !line.startsWith("#"))
-    .map((line) => {
-      const separator = line.indexOf("=");
-      return [line.slice(0, separator), line.slice(separator + 1).replace(/^['"]|['"]$/g, "")];
-    }),
-);
+if (!process.execArgv.includes("--experimental-strip-types")) {
+  const child = spawnSync(
+    process.execPath,
+    [
+      "--disable-warning=ExperimentalWarning",
+      "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON",
+      "--experimental-strip-types",
+      ...process.argv.slice(1),
+    ],
+    { stdio: "inherit" },
+  );
+  process.exit(child.status ?? 1);
+}
+
+const requireFromApp = createRequire(new URL("../apps/web/package.json", import.meta.url));
+const requireFromNext = createRequire(requireFromApp.resolve("next/package.json"));
+const { loadEnvConfig } = requireFromNext("@next/env");
+loadEnvConfig(path.resolve("apps/web"), false);
+const env = process.env;
+
+const { getIntakeCryptographyEnvironment } =
+  await import("../apps/web/lib/config/environment-core.ts");
+const { createIntakeEncryptionKeyring, encryptIntakeValue } =
+  await import("../apps/web/lib/intake/encryption-core.ts");
 const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const publishableKey = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const secretKey = env.SUPABASE_SECRET_KEY;
@@ -26,40 +42,14 @@ const serviceHeaders = {
 };
 const request = (path, options = {}) => fetch(`${url}${path}`, options);
 
-function encryptionConfiguration() {
-  const version =
-    env.UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION ?? env.SUPABASE_ACTIVE_ENCRYPTION_KEY_VERSION;
-  if (!version || !/^v[1-9][0-9]*$/.test(version))
-    throw new Error("profile_encryption_version_unavailable");
-  const suffix = version.toUpperCase();
-  const encodedKey =
-    env[`UMOJA_DATA_ENCRYPTION_KEY_${suffix}`] ?? env[`SUPABASE_DATA_ENCRYPTION_KEY_${suffix}`];
-  if (!encodedKey) throw new Error("profile_data_encryption_key_unavailable");
-  const key = Buffer.from(
-    encodedKey,
-    encodedKey.includes("+") || encodedKey.includes("/") ? "base64" : "base64url",
-  );
-  if (key.byteLength !== 32) throw new Error("profile_data_encryption_key_invalid");
-  return { version, key };
-}
-
 function encryptPrivateFixture(ownerId) {
-  const { version, key } = encryptionConfiguration();
-  const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
-  cipher.setAAD(Buffer.from(`umoja:data:${version}:profile:${ownerId}:private-details`, "utf8"));
-  const ciphertext = Buffer.concat([
-    cipher.update(JSON.stringify({ timezone: "Africa/Nairobi" }), "utf8"),
-    cipher.final(),
-  ]);
   return {
-    version,
-    envelope: [
-      version,
-      iv.toString("base64url"),
-      cipher.getAuthTag().toString("base64url"),
-      ciphertext.toString("base64url"),
-    ].join("."),
+    version: encryptionKeyring.activeVersion,
+    envelope: encryptIntakeValue(
+      JSON.stringify({ timezone: "Africa/Nairobi" }),
+      `profile:${ownerId}:private-details`,
+      encryptionKeyring,
+    ),
   };
 }
 
@@ -101,6 +91,16 @@ if (process.argv[2] === "--cleanup") {
   process.exit(0);
 }
 
+const encryptionKeyring = createIntakeEncryptionKeyring(getIntakeCryptographyEnvironment(env));
+if (process.argv[2] === "--validate-config") {
+  console.log(
+    JSON.stringify({
+      canonicalEncryptionConfiguration: "valid",
+      activeVersion: encryptionKeyring.activeVersion,
+    }),
+  );
+  process.exit(0);
+}
 const runId = randomUUID();
 const password = `Umoja-${randomUUID()}-A9!`;
 const createdIds = [];
