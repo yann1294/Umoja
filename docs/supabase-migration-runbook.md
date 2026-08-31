@@ -412,6 +412,47 @@ Owner procedure (do not put credentials in chat, shell history, browser variable
 
 The corrected script has been statically reviewed and unit-guarded, but privileged DDL has not been executed.
 
+##### Secure database connection prerequisite (checked 2026-08-31)
+
+No `PG*`/`SUPABASE_DB_URL` environment variable, workspace/home `.pgpass`, linked pooler URL or usable
+browser session was available at `4425b04`. The linked CLI can create an internal temporary login for its
+fixed inspection commands, but it does not expose a supported persistent arbitrary-SQL session and took longer
+than the concurrency window to connect. Do not extract or print that temporary credential.
+
+The owner should configure the missing connection locally as follows, without sending any value in chat:
+
+1. In the Supabase Dashboard, open the existing development project named **Umoja** and verify project ref
+   `ucfrrtgqbzjrrevsxput`. Open **Connect**, select **Session Pooler**, and copy its exact host, port, database
+   and user. Use the CA certificate/verification settings supplied by the Connect panel; do not guess a host.
+2. Create a private directory outside this repository, for example `~/.config/umoja-postgres`, mode `0700`.
+   Create `pg_service.conf` and `pgpass` there with mode `0600`. The owner service contains only:
+   `[umoja_dev_owner]`, the copied Session Pooler host/port/database/user, `sslmode=verify-full`, and the absolute
+   `sslrootcert` path. The matching `pgpass` line contains the password from the owner's password manager.
+   Escape literal `:` or `\` according to libpq's password-file rules.
+3. In the secure local shell set `PGSERVICEFILE` and `PGPASSFILE` to those absolute paths. Verify without
+   printing secrets: `psql service=umoja_dev_owner -X -Atqc "select current_database(), current_user"`. The
+   database must be `postgres`, and the connected user/host pattern must correspond to the verified project.
+4. Run `psql service=umoja_dev_owner -X -f scripts/supabase-profile-concurrency-monitor-setup.sql`. The script
+   creates `umoja_prompt12_monitor` with one connection, no superuser/create/replication/bypass-RLS capability,
+   read-only transactions and short timeouts, then uses psql's local hidden `\password` prompt. Add a second
+   `umoja_dev_monitor` service/password entry using the same verified Session Pooler and its required
+   project-qualified username form.
+
+`pg_read_all_stats` is deliberately temporary. It permits reading all `pg_stat_*` views/statistics and seeing
+other sessions' query text and backend details, including unrelated sessions. That visibility is needed to
+recognize PostgREST's profile RPC sessions and blockers; it grants no table writes or DDL. The repository
+observer further narrows output: it filters only `save_profile_with_audit`/`moderate_profile`, classifies the
+operation, and emits timestamp/PID/state/wait/age/blocking/lock fields without selecting query text. Establish
+the monitor session before the HTTP run:
+
+`PGSERVICEFILE=... PGPASSFILE=... psql service=umoja_dev_monitor -X -f scripts/supabase-profile-concurrency-observe.sql`
+
+After testing, close the monitor psql session and run
+`psql service=umoja_dev_owner -X -f scripts/supabase-profile-concurrency-monitor-teardown.sql`. It revokes
+`pg_read_all_stats`/`CONNECT`, drops the login and proves absence. Remove only the monitor entry/password from
+the private local files; retain or remove the owner service according to the owner's own credential policy.
+The setup, grant, observer, rollback test and teardown remain paused until this local connection reports ready.
+
 #### Prompt 12 concurrency diagnostic status (2026-08-31)
 
 The unsafe ephemeral probe has been replaced by
@@ -441,6 +482,11 @@ The existing on-demand Supabase inspection login took roughly three to four minu
 could confirm only post-timeout quiescence, not the live 20-second interval. Do not increase the request timeout
 or add locks to compensate.
 
+The observer now samples every 250 ms for 30 seconds, starting before the harness. The harness also captures a
+redacted state digest/count observation while the two requests are in flight. Together these distinguish a
+never-observed request from a PostgreSQL wait and show whether database state completed while HTTP remained
+pending. No new run was launched without the required live connection.
+
 #### Prompt 12 genuine 200% browser zoom status (2026-08-31)
 
 The accepted automated visual matrix and its artifacts remain unchanged. Current browser-control discovery
@@ -450,17 +496,30 @@ substituted. Genuine zoom therefore remains pending.
 
 Owner manual evidence procedure:
 
-1. Open one Chrome window and the intended profile or moderation tab; close or clearly distinguish duplicate
+The current synthetic fixture is run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`. Its owner/admin credentials and
+cleanup command exist only in mode-`0600`
+`/private/tmp/umoja-profile-zoom-934c9c70-818d-4dcd-b9a7-5b7f084d6668.json`; no token or password was printed.
+The production build is prepared at `http://127.0.0.1:4173`. If that process has ended, restart the already
+built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.0.0.1`.
+
+1. Read the restricted local fixture file, sign in as its owner, then open
+   `http://127.0.0.1:4173/en/workspace/profile`. In a separate incognito/profile context sign in as its admin
+   and open `http://127.0.0.1:4173/en/admin/profiles`. Never paste the fixture file into chat or a screenshot.
+2. Open one Chrome window and the intended profile or moderation tab; close or clearly distinguish duplicate
    Umoja tabs. Record `window.outerWidth`, `window.outerHeight`, `window.innerWidth`, `window.innerHeight`,
    `window.devicePixelRatio`, and `window.visualViewport.width/height` at 100%, then capture a screenshot.
-2. Use Chrome's browser zoom control on that same tab and confirm its indicator reads exactly 200%. Do not use
+   This read-only Console snippet returns the required values without reading page content or browser storage:
+   `(() => { const v = window.visualViewport; return { outerWidth: window.outerWidth, outerHeight: window.outerHeight, innerWidth: window.innerWidth, innerHeight: window.innerHeight, devicePixelRatio: window.devicePixelRatio, visualViewportWidth: v?.width ?? null, visualViewportHeight: v?.height ?? null, visualViewportScale: v?.scale ?? null }; })()`
+3. Use Chrome's browser zoom control on that same tab and confirm its indicator reads exactly 200%. Do not use
    DevTools device emulation. Keep the physical window dimensions unchanged.
-3. Record the same measurements. `outerWidth/outerHeight` must remain stable while CSS `innerWidth` and visual
+4. Record the same measurements. `outerWidth/outerHeight` must remain stable while CSS `innerWidth` and visual
    viewport dimensions fall to approximately half their 100% values; DPR alone is not evidence.
-4. Capture full-screen screenshots (including Chrome's visible 200% indicator) for one populated contributor
+5. Capture full-screen screenshots (including Chrome's visible 200% indicator) for one populated contributor
    profile and one moderation screen, in EN or FR with the other locale represented by the accepted matrix.
    Confirm no page-level horizontal scroll, clipped essential actions, lost focus target or sub-44 px control.
-5. Return the measurements and screenshots for review. Keep this gate pending until they are inspected.
+6. Return the measurements and screenshots for review. Keep this gate pending until they are inspected. After
+   acceptance or abandonment, run the exact cleanup command from the restricted fixture file and delete that
+   file; expected cleanup is `exactSyntheticUsersRemoved: 2`.
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
@@ -468,9 +527,9 @@ Owner manual evidence procedure:
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
 | Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Visual matrix still pending |
-| Audit-insertion rollback | READY / NOT RUN | Corrected owner-run SQL uses pre-procedural psql interpolation, exact run-bound fixture validation, request identity before snapshots, privileged complete-state digests, actual child/profile/moderation paths, unique `U1201` fault provenance, assertions before savepoint release, bounded shared-table locking, outer rollback and same-session catalog cleanup. `scripts/supabase-profile-rollback-fixture.mjs` creates application-encrypted fixtures. No privileged execution occurred. | Owner must separately authorize the short quiet-window DDL/`SET ROLE authenticated` run, use a locally held owner connection, revoke it, and execute exact fixture cleanup. Never send credentials in chat. |
-| True concurrency/conflict handling | FAIL | Safe repository harness reproduced same-version blocking twice: fetch run A=200/410 ms and B=no response by 20 s with 0 ms start skew; independent-socket run A=200/333 ms and B=no response by 20 s with 7 ms skew. Response bodies/Auth material are never logged. Separate post-timeout monitoring showed no matching long-running or blocking work before exact cleanup; 5/5 fixtures were removed after each run. Moderation and edit-versus-approval remain unexecuted because case 1 is unresolved. | Owner grants only temporary read-only `pg_stat_activity`/`pg_locks` visibility (`CONNECT` + `pg_read_all_stats` or narrower) before a run. Observe the live interval with `scripts/supabase-profile-concurrency-observe.sql`, establish ingress/pool/lock/transaction/response cause, fix it, then run all three bounded overlap cases. This is separate from rollback DDL approval. |
-| Responsive/Axe/real 200% zoom | PASS / PENDING | The accepted 11-project EN/FR visual/Axe matrix and historical classifications are preserved. Previous Chrome-for-Testing menu actions left `outer 1200x879` and CSS `1200x736` unchanged (DPR 2), so they remain rejected. Current Chrome 151 lacks the browser-control extension/native host; no emulation substitute was used. | Owner follows the measurement-based manual procedure above and returns 100%/200% outer, inner and visual-viewport dimensions plus screenshots for populated profile and moderation screens. Physical-device launch evidence remains Gate C. |
+| Audit-insertion rollback | READY / CONNECTION PENDING | Corrected owner-run SQL uses pre-procedural psql interpolation, exact run-bound fixture validation, request identity before snapshots, privileged complete-state digests, actual child/profile/moderation paths, unique `U1201` fault provenance, assertions before savepoint release, bounded shared-table locking, outer rollback and same-session catalog cleanup. No reviewed-method drift was found at `4425b04`; no privileged execution occurred. | Configure the verified local owner Session Pooler service above without sharing credentials. Then confirm the quiet window, create the exact application-encrypted fixture, execute once, close access and perform exact cleanup. |
+| True concurrency/conflict handling | FAIL / LIVE MONITOR PENDING | Prior safe runs remain recorded. The monitor setup/teardown now constrains a temporary login to one read-only connection and the observer samples redacted activity/locks every 250 ms for 30 seconds. The harness now records a redacted in-flight database-state observation. No new concurrency run was started without live monitoring. | Configure the verified local owner/monitor services. Accept temporary `pg_read_all_stats` visibility as explained above, establish the observer first, then identify and fix only the demonstrated cause before running all three overlap cases and exact cleanup. |
+| Responsive/Axe/real 200% zoom | PASS / EVIDENCE PENDING | The accepted 11-project EN/FR visual/Axe matrix and historical classifications are preserved. Two exact-prefix synthetic users and populated owner/moderation state were created under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; credentials are only in a local mode-`0600` file. Routes are prepared on the existing production build. Previous false zoom evidence remains rejected. | Owner follows the six-step measurement procedure and returns 100%/200% values plus screenshots. After review, execute exact two-user cleanup and remove the local fixture file. Physical-device launch evidence remains Gate C. |
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
