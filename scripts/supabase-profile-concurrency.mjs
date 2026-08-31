@@ -27,6 +27,7 @@ if (!url || !publishableKey || !secretKey) {
 const runId = randomUUID();
 const password = `Umoja-${randomUUID()}-A9!`;
 const fixtureUsers = new Set();
+const fixtureAdmins = new Set();
 const unsettledRequests = new Set();
 const results = {
   runId,
@@ -53,7 +54,7 @@ function categoryFromError(status, payload) {
   const code = typeof payload?.code === "string" ? payload.code : "";
   const message = typeof payload?.message === "string" ? payload.message.toLowerCase() : "";
   if (
-    code === "40001" ||
+    code === "PT409" ||
     message.includes("stale profile") ||
     message.includes("stale moderation")
   ) {
@@ -175,6 +176,7 @@ async function createUser(label, role = null) {
   const { id } = await created.json();
   fixtureUsers.add(id);
   if (role) {
+    if (role === "admin") fixtureAdmins.add(id);
     for (const [path, body] of [
       ["/rest/v1/user_roles", { user_id: id, role }],
       [
@@ -295,9 +297,20 @@ async function runConcurrentCase(caseName, first, second, ownerId, stateCheck) {
   stateCheck(before, after);
 }
 
-async function cleanupHistoricalProbeUsers() {
+async function cleanupHistoricalProbeUsers(runFilter = null) {
   const exactPattern =
     /^profile-(?:concurrency(?:-admin-[ab])?|moderation|edit-approval)-[0-9a-f-]+@example\.test$/;
+  const exactRunEmails = runFilter
+    ? new Set(
+        [
+          "concurrency",
+          "moderation",
+          "edit-approval",
+          "concurrency-admin-a",
+          "concurrency-admin-b",
+        ].map((label) => `profile-${label}-${runFilter}@example.test`),
+      )
+    : null;
   const matchingUsers = [];
   let removed = 0;
   for (let page = 1; ; page += 1) {
@@ -308,14 +321,18 @@ async function cleanupHistoricalProbeUsers() {
     const payload = await response.json();
     const users = Array.isArray(payload.users) ? payload.users : [];
     for (const user of users) {
-      if (typeof user.email === "string" && exactPattern.test(user.email)) {
-        matchingUsers.push(user.id);
+      if (
+        typeof user.email === "string" &&
+        (exactRunEmails ? exactRunEmails.has(user.email) : exactPattern.test(user.email))
+      ) {
+        matchingUsers.push({ id: user.id, isAdmin: user.email.includes("-admin-") });
       }
     }
     if (users.length < 1000) break;
   }
-  for (const id of matchingUsers) {
-    const removedUser = await request(`/auth/v1/admin/users/${id}`, {
+  matchingUsers.sort((first, second) => Number(first.isAdmin) - Number(second.isAdmin));
+  for (const user of matchingUsers) {
+    const removedUser = await request(`/auth/v1/admin/users/${user.id}`, {
       method: "DELETE",
       headers: serviceHeaders,
       body: JSON.stringify({ should_soft_delete: false }),
@@ -323,7 +340,27 @@ async function cleanupHistoricalProbeUsers() {
     if (!removedUser.ok) throw new Error(`historical_cleanup_${removedUser.status}`);
     removed += 1;
   }
-  console.log(JSON.stringify({ historicalSyntheticUsersRemoved: removed }));
+  console.log(
+    JSON.stringify({
+      cleanupScope: runFilter ? "exact_run" : "historical_probe_prefixes",
+      ...(runFilter ? { runId: runFilter } : {}),
+      syntheticUsersRemoved: removed,
+    }),
+  );
+}
+
+const cleanupRunIndex = process.argv.indexOf("--cleanup-run");
+if (cleanupRunIndex !== -1) {
+  const cleanupRunId = process.argv[cleanupRunIndex + 1];
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      cleanupRunId ?? "",
+    )
+  ) {
+    throw new Error("cleanup_run_id_invalid");
+  }
+  await cleanupHistoricalProbeUsers(cleanupRunId);
+  process.exit(0);
 }
 
 if (process.argv.includes("--cleanup-exposed-probes")) {
@@ -480,7 +517,10 @@ try {
 } finally {
   rpcSession?.close();
   if (cleanupSafe && unsettledRequests.size === 0) {
-    for (const id of fixtureUsers) {
+    const cleanupOrder = [...fixtureUsers].sort(
+      (first, second) => Number(fixtureAdmins.has(first)) - Number(fixtureAdmins.has(second)),
+    );
+    for (const id of cleanupOrder) {
       const response = await request(`/auth/v1/admin/users/${id}`, {
         method: "DELETE",
         headers: serviceHeaders,

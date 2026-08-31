@@ -503,15 +503,12 @@ Run `f5ef07fd-cc46-49fd-8942-d820c039f405` then reproduced it over one browser-r
 session: the session connected in 40 ms, both bodies finished within 5 ms, one returned 200 in 410 ms and the
 other received no headers by 20 s. Harness start skew was 3 ms.
 
-No active save was visible during the 30-second samples, excluding a PostgreSQL lock wait, long transaction or
-completed database work with a pending HTTP response. A bounded post-timeout check later observed the cancelled
-request only after it acquired a database session: `idle in transaction (aborted)`, `ClientRead`, zero locks and
-zero blocking PIDs. It then disappeared. This localizes the blocker to Supabase's managed REST connection
-admission/pool before PostgreSQL, not client synchronization, transport setup, request framing or database
-locking. Do not increase the timeout or add application/database locks. Each failed run remained isolated until
-zero unfinished matching sessions was proven; exact-prefix cleanup then removed all five users. The three-case
-acceptance run cannot proceed beyond case one until the development project's managed REST admission delay is
-resolved or Supabase supplies an actionable project-side configuration/support finding.
+No active save was visible during the 250 ms samples, so the live observer found no persistent PostgreSQL lock
+wait or long transaction. A bounded post-timeout check later observed one cancelled request briefly as
+`idle in transaction (aborted)`, `ClientRead`, with zero locks and blocking PIDs, before it ended. At that
+point managed REST admission/pool delay was recorded only as a hypothesis. Subsequent provider logs disproved
+that conclusion by revealing rapid repeated executions between observer samples. Each failed run remained
+isolated until zero unfinished matching sessions was proven; exact-prefix cleanup then removed all five users.
 
 Direct database concurrency is separately proven by
 [`scripts/supabase-profile-direct-concurrency.mjs`](../scripts/supabase-profile-direct-concurrency.mjs), run
@@ -522,25 +519,42 @@ timeout, one coherent business/audit state transition and the expected feedback 
 check proved all sessions ended before exact five-user cleanup. This passes database concurrency only; it does
 not pass application REST availability.
 
-The precisely timestamped REST reproduction and minimal provider reproduction are in
-[`docs/prompt12-rest-support-packet.md`](prompt12-rest-support-packet.md). Browser log inspection could not be
-performed because no in-app or extension browser was connected; the packet therefore labels managed REST/pool
-admission as an inference requiring provider log confirmation.
+The precisely timestamped REST diagnosis and post-fix evidence are in
+[`docs/prompt12-rest-support-packet.md`](prompt12-rest-support-packet.md). Authorized Management API logs showed
+that the losing stale-version call was repeatedly raising SQLSTATE `40001` under PostgREST 14.5. That code is a
+retryable serialization failure, not an application conflict, so the earlier managed admission/pool conclusion
+is superseded. Additive migrations `20260831131500_profile_rest_conflict_codes.sql` and
+`20260831132500_remove_legacy_moderation_rpc.sql` now return non-retryable `PT409` and remove the obsolete
+three-argument moderation overload.
+
+Post-fix authenticated REST runs `e7ff74ac-2275-4be9-b018-c68b069fdca9`,
+`1f40705b-3611-40a9-ad28-f49715feeec3` and `609214dc-df3e-49ce-807a-62e27d52dd62` each passed simultaneous
+same-version saves, competing moderation, and edit-versus-earlier-approval. Every pair returned exactly one
+HTTP 200 and one controlled HTTP 409 within 625 ms with coherent profile/private-details/feedback/audit state.
+The final edge-log aggregate contained three 200 and three 409 responses at 233–414 ms origin time. Cleanup is
+dependency ordered (owners before reviewer admins); each clean run removed five exact users after settlement.
+Final inventory found zero matching users, profiles or active RPCs, and deployed definitions contain two
+`PT409` paths and zero `40001` paths. The application REST concurrency gate passes without provider action.
 
 #### Prompt 12 genuine 200% browser zoom status (2026-08-31)
 
 The accepted automated visual matrix and its artifacts remain unchanged. Current browser-control discovery
-found Google Chrome 151 installed, but the ChatGPT Chrome extension and native-host manifest are absent, so
-direct Chrome control is unavailable. No AppleScript, CSS zoom, device scaling or fixed viewport emulation was
-substituted. Genuine zoom therefore remains pending.
+found Chrome for Testing 151 and standard Chrome 151 installed. The supported Chrome controller reports browser
+unavailable, and its diagnostics confirm both the extension and native-host manifest are absent. No AppleScript,
+standalone CDP/Playwright, CSS zoom, device scaling or fixed viewport emulation was substituted. Genuine zoom is
+therefore NOT RUN, not passed.
 
 Owner manual evidence procedure:
 
 The current synthetic fixture is run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`. Its owner/admin credentials and
 cleanup command exist only in mode-`0600`
 `/private/tmp/umoja-profile-zoom-934c9c70-818d-4dcd-b9a7-5b7f084d6668.json`; no token or password was printed.
-The production build is prepared at `http://127.0.0.1:4173`. If that process has ended, restart the already
+Both credentials returned HTTP 200 in local validation, and those two validation sessions were immediately
+invalidated. The production build is prepared at `http://127.0.0.1:4173`. If that process has ended, restart the already
 built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.0.0.1`.
+Use the installed Chrome for Testing application at
+`/Users/mimison/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app`;
+do not substitute standard Chrome evidence without recording that change.
 
 1. Read the restricted local fixture file, sign in as its owner, then open
    `http://127.0.0.1:4173/en/workspace/profile`. In a separate incognito/profile context sign in as its admin
@@ -549,13 +563,15 @@ built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.
    Umoja tabs. Record `window.outerWidth`, `window.outerHeight`, `window.innerWidth`, `window.innerHeight`,
    `window.devicePixelRatio`, and `window.visualViewport.width/height` at 100%, then capture a screenshot.
    This read-only Console snippet returns the required values without reading page content or browser storage:
-   `(() => { const v = window.visualViewport; return { outerWidth: window.outerWidth, outerHeight: window.outerHeight, innerWidth: window.innerWidth, innerHeight: window.innerHeight, devicePixelRatio: window.devicePixelRatio, visualViewportWidth: v?.width ?? null, visualViewportHeight: v?.height ?? null, visualViewportScale: v?.scale ?? null }; })()`
-3. Use Chrome's browser zoom control on that same tab and confirm its indicator reads exactly 200%. Do not use
+   `(() => { const d = document.documentElement, v = window.visualViewport; return { outerWidth: window.outerWidth, outerHeight: window.outerHeight, innerWidth: window.innerWidth, innerHeight: window.innerHeight, devicePixelRatio: window.devicePixelRatio, visualViewportWidth: v?.width ?? null, visualViewportHeight: v?.height ?? null, visualViewportScale: v?.scale ?? null, documentClientWidth: d.clientWidth, documentScrollWidth: d.scrollWidth, horizontalOverflow: d.scrollWidth > d.clientWidth }; })()`
+3. At 100%, open Chrome's zoom menu so the `100%` value is visible in the supporting screenshot. Use Chrome's
+   browser zoom control on that same tab and confirm its toolbar indicator/menu reads exactly 200%. Do not use
    DevTools device emulation. Keep the physical window dimensions unchanged.
 4. Record the same measurements. `outerWidth/outerHeight` must remain stable while CSS `innerWidth` and visual
    viewport dimensions fall to approximately half their 100% values; DPR alone is not evidence.
-5. Capture full-screen screenshots (including Chrome's visible 200% indicator) for one populated contributor
-   profile and one moderation screen, in EN or FR with the other locale represented by the accepted matrix.
+5. Capture full-screen screenshots (including Chrome's visible zoom confirmation) for the populated English
+   contributor profile and French moderation screen. At 200%, also spot-check `/fr/workspace/profile` and
+   `/fr/admin/profiles` for the longer labels/actions, even when the second spot-check is not a named screenshot.
    Confirm no page-level horizontal scroll, clipped essential actions, lost focus target or sub-44 px control.
    Use these exact names: `prompt12-profile-zoom-100.png`, `prompt12-profile-zoom-200.png`,
    `prompt12-moderation-zoom-100.png`, and `prompt12-moderation-zoom-200.png`.
@@ -565,14 +581,19 @@ built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
-| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, regression run `7b459f0b-5136-4a20-aaf4-17fff7a1dbba` (22/22) after the concurrency migration, covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility and immutable availability; prior run `ec46daa3-1de8-48d8-abb1-b04ade29cc1c` retained | Application REST concurrency/availability and genuine zoom remain separate open gates. |
+| Remote owner/public lifecycle | PASS | Post-fix regression run `d6c4fd81-5029-447d-abb3-e544a9eab99a` passed all 21 recorded checks after the `PT409` migration, covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility, immutable availability, approval, withdrawal and exact cleanup. Prior complete runs remain retained. | Genuine zoom remains the separate open Prompt 12 gate. |
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql`, synthetic cleanup runs and the successful `U1201` rollback execution | None for this acceptance area. |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
 | Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Genuine 200% zoom evidence remains separate and pending. |
 | Rollback correctness | PASS | Run `9062ada6-22a9-4a74-9ea6-1eef4c34fd57`: canonical application keyring/encryption path, exact fixture ownership, quiet-window bounded shared trigger, three exact `U1201` outcomes, complete unchanged business/audit digests, outer rollback, same-session catalog cleanup, fresh-session trigger absence and exact two-user cleanup. | None for Prompt 12 rollback correctness. Canonical local secrets remain untracked and must stay stable/backed up. |
 | Direct-database concurrency | PASS | Run `f82326c5-cdc3-4776-8705-1fa3c244cb49`: two real sessions under `authenticated` plus synthetic JWT identity; same-version save, competing moderation and edit-versus-approval each returned one commit and one controlled `40001`; exact state/audit/feedback assertions and five-user cleanup passed. | None for the database-only gate. This does not imply REST health. |
-| Application REST concurrency/availability | FAIL / PROVIDER LOG CONFIRMATION PENDING | HTTP/1.1 and HTTP/2 evidence remains preserved. Timestamped run `fab0a9e6-bf8c-48a2-9da5-afe5a46f7306` sent both bodies within 3 ms; save B returned 200 in 372 ms while save A received no headers by 20 s and was never observed executing during the live database window. The redacted packet records UTC window and correlations. Exact five-user cleanup followed database completion proof. | Owner performs the one Logs Explorer action in `docs/prompt12-rest-support-packet.md` and returns redacted matching gateway/PostgREST events. Do not change pool settings, restart services, add retries or contact support yet. |
-| Genuine 200% browser zoom | EVIDENCE PENDING | The accepted 11-project EN/FR visual/Axe matrix is preserved. Exactly two prepared users remain under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; the mode-`0600` local file and both routes are verified, and the existing production listener returns the expected authentication redirects. Previous false zoom evidence remains rejected. | Owner returns stable-window 100%/200% measurements plus the four exactly named screenshots. After review only, run exact two-user cleanup and remove the restricted file. Physical-device launch evidence remains Gate C. |
+| Application REST concurrency/availability | PASS | Logs confirmed retryable SQLSTATE `40001` caused repeated PostgREST execution. Additive migrations replace it with `PT409` and remove the obsolete overload. Runs `e7ff74ac-2275-4be9-b018-c68b069fdca9`, `1f40705b-3611-40a9-ad28-f49715feeec3` and `609214dc-df3e-49ce-807a-62e27d52dd62` each passed all three authenticated REST conflict scenarios within 625 ms; final gateway aggregate was 3×200/3×409 at 233–414 ms. State assertions and dependency-ordered cleanup passed; zero matching leftovers or active RPCs remain. | None for Prompt 12 REST concurrency. |
+| Genuine 200% browser zoom | NOT RUN | The accepted 11-project EN/FR visual/Axe matrix is preserved. Chrome for Testing 151 exists, but the supported controller is unavailable and its extension/native host are absent. Exactly two validated prepared users remain under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; the mode-`0600` local file and both routes are ready. Previous false zoom evidence remains rejected. | Owner either reinstalls/connects the supported Chrome controller, or returns stable-window 100%/200% measurements plus the four exactly named screenshots. After review only, remove the exact two users and restricted file. Physical-device launch evidence remains Gate C. |
+
+Prompt 12 technical completion: **NO**. REST concurrency now passes, but genuine 200% Chrome-for-Testing zoom
+is NOT RUN. Prompt 13 eligibility: **NO** until the measurements/screenshots are reviewed, the zoom gate passes,
+and only then the exact two zoom users and restricted credential file are removed with zero leftovers.
+Gate B and Gate C restrictions remain unchanged.
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;

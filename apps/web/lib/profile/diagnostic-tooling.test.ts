@@ -35,6 +35,14 @@ const zoomFixtureScript = fs.readFileSync(
   path.join(repositoryRoot, "scripts/supabase-profile-zoom-fixture.mjs"),
   "utf8",
 );
+const restConflictMigration = fs.readFileSync(
+  path.join(repositoryRoot, "supabase/migrations/20260831131500_profile_rest_conflict_codes.sql"),
+  "utf8",
+);
+const legacyModerationRemoval = fs.readFileSync(
+  path.join(repositoryRoot, "supabase/migrations/20260831132500_remove_legacy_moderation_rpc.sql"),
+  "utf8",
+);
 
 describe("Prompt 12 diagnostic tooling", () => {
   it("passes psql values to PostgreSQL before entering procedural bodies", () => {
@@ -70,6 +78,7 @@ describe("Prompt 12 diagnostic tooling", () => {
     );
     expect(concurrencyScript).not.toContain("response.text(");
     expect(concurrencyScript).toContain("cleanupSafe = false");
+    expect(concurrencyScript).toContain("fixtureAdmins.has(first)");
     expect(concurrencyScript).toContain("intentionally_skipped_database_completion_unknown");
     expect(concurrencyScript).toContain("native_http2_shared_session");
     expect(concurrencyScript).toContain("transportPhases");
@@ -80,7 +89,11 @@ describe("Prompt 12 diagnostic tooling", () => {
     expect(concurrencyObserver).not.toContain("m=0");
     expect(directConcurrencyScript).toContain("SET LOCAL ROLE authenticated");
     expect(directConcurrencyScript).toContain("request.jwt.claims");
-    expect(directConcurrencyScript).toContain("controlled_40001");
+    expect(directConcurrencyScript).toContain("controlled_stale_conflict");
+    expect(concurrencyScript).toContain('code === "PT409"');
+    expect(restConflictMigration.match(/errcode = 'PT409'/g)).toHaveLength(3);
+    expect(restConflictMigration).not.toContain("40001");
+    expect(legacyModerationRemoval).toContain("drop function if exists public.moderate_profile");
     expect(directConcurrencyScript).toContain("databaseOperationsFinished");
     expect(monitorSetup).toContain("default_transaction_read_only = on");
     expect(monitorSetup).toContain("CONNECTION LIMIT 1");

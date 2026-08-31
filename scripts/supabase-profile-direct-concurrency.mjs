@@ -103,7 +103,8 @@ function runPsql(label, sql, timeoutMs = 12_000) {
       resolve({
         label,
         elapsedMs: Math.round(performance.now() - startedAt),
-        status: code === 0 ? "committed" : controlledConflict ? "controlled_40001" : "failed",
+        status:
+          code === 0 ? "committed" : controlledConflict ? "controlled_stale_conflict" : "failed",
         timedOut: signal === "SIGTERM",
         stdout,
       });
@@ -173,7 +174,7 @@ FROM public.profiles p WHERE p.user_id=${literal(ownerId)}::uuid;
 
 function assertPair(caseName, pair) {
   const commits = pair.filter((item) => item.status === "committed").length;
-  const conflicts = pair.filter((item) => item.status === "controlled_40001").length;
+  const conflicts = pair.filter((item) => item.status === "controlled_stale_conflict").length;
   if (commits !== 1 || conflicts !== 1 || pair.some((item) => item.timedOut))
     throw new Error(`${caseName}_unexpected_outcomes`);
 }
