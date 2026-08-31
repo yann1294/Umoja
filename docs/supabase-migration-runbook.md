@@ -456,6 +456,21 @@ database `postgres`, server SSL enabled and the expected project-qualified login
 already inherits `pg_read_all_stats`, so the live diagnostic used that existing connection instead of creating
 the optional temporary monitor. No temporary login or grant was created, and no monitor teardown is due.
 
+The rollback fixture configuration issue was a documented variable rename, not an invalid or regenerated key.
+The local environment held the preserved, valid, pairwise-distinct Appwrite-named `v1` data/file/lookup keys,
+while canonical names were absent. Commit `728a832` and the root environment template define the `UMOJA_*`
+names as canonical aliases for that existing protected material. Their values were copied locally to the four
+canonical names without printing, changing or committing them. The fixture now loads `.env.local` through
+Next's environment loader and calls the application's shared environment validator, keyring and
+`encryptIntakeValue` implementation; it no longer parses a data key or implements AES separately.
+
+Rollback run `9062ada6-22a9-4a74-9ea6-1eef4c34fd57` then passed in a quiet window with exact owner/admin/slug
+ownership. All child, profile/private-details and moderation/feedback mutations caught the intended `U1201`
+fault with run-bound detail; complete business/audit digests were unchanged before savepoint release. The outer
+transaction rolled back and same-session checks proved trigger/helper removal. A fresh session found the
+submitted fixture and one private-details row unchanged and no fault trigger. Exact cleanup removed two users;
+zero rollback fixtures remain.
+
 #### Prompt 12 concurrency diagnostic status (2026-08-31)
 
 The unsafe ephemeral probe has been replaced by
@@ -498,6 +513,20 @@ zero unfinished matching sessions was proven; exact-prefix cleanup then removed 
 acceptance run cannot proceed beyond case one until the development project's managed REST admission delay is
 resolved or Supabase supplies an actionable project-side configuration/support finding.
 
+Direct database concurrency is separately proven by
+[`scripts/supabase-profile-direct-concurrency.mjs`](../scripts/supabase-profile-direct-concurrency.mjs), run
+`f82326c5-cdc3-4776-8705-1fa3c244cb49`. Each connection used `SET LOCAL ROLE authenticated` and a synthetic
+request identity, then called the actual RPC with the same expected version. Same-version saves, competing
+moderation and edit-versus-earlier-approval each produced exactly one commit and one controlled `40001`, no
+timeout, one coherent business/audit state transition and the expected feedback count. A database activity
+check proved all sessions ended before exact five-user cleanup. This passes database concurrency only; it does
+not pass application REST availability.
+
+The precisely timestamped REST reproduction and minimal provider reproduction are in
+[`docs/prompt12-rest-support-packet.md`](prompt12-rest-support-packet.md). Browser log inspection could not be
+performed because no in-app or extension browser was connected; the packet therefore labels managed REST/pool
+admission as an inference requiring provider log confirmation.
+
 #### Prompt 12 genuine 200% browser zoom status (2026-08-31)
 
 The accepted automated visual matrix and its artifacts remain unchanged. Current browser-control discovery
@@ -528,19 +557,22 @@ built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.
 5. Capture full-screen screenshots (including Chrome's visible 200% indicator) for one populated contributor
    profile and one moderation screen, in EN or FR with the other locale represented by the accepted matrix.
    Confirm no page-level horizontal scroll, clipped essential actions, lost focus target or sub-44 px control.
+   Use these exact names: `prompt12-profile-zoom-100.png`, `prompt12-profile-zoom-200.png`,
+   `prompt12-moderation-zoom-100.png`, and `prompt12-moderation-zoom-200.png`.
 6. Return the measurements and screenshots for review. Keep this gate pending until they are inspected. After
    acceptance or abandonment, run the exact cleanup command from the restricted fixture file and delete that
    file; expected cleanup is `exactSyntheticUsersRemoved: 2`.
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
-| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, regression run `7b459f0b-5136-4a20-aaf4-17fff7a1dbba` (22/22) after the concurrency migration, covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility and immutable availability; prior run `ec46daa3-1de8-48d8-abb1-b04ade29cc1c` retained | Fault-injection rollback and true concurrency proof still pending |
-| Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
+| Remote owner/public lifecycle | PASS | `node scripts/supabase-remote-profile-lifecycle.mjs`, regression run `7b459f0b-5136-4a20-aaf4-17fff7a1dbba` (22/22) after the concurrency migration, covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility and immutable availability; prior run `ec46daa3-1de8-48d8-abb1-b04ade29cc1c` retained | Application REST concurrency/availability and genuine zoom remain separate open gates. |
+| Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql`, synthetic cleanup runs and the successful `U1201` rollback execution | None for this acceptance area. |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
-| Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Visual matrix still pending |
-| Audit-insertion rollback | READY / ENCRYPTION CONFIG PENDING | The owner Session Pooler connection is verified against the exact development project with CA/hostname verification. Quiet-window preflight found zero other active/transactional sessions, zero prior rollback fixtures and no fault trigger. The reviewed fixture run stopped before profile/DDL work because canonical `UMOJA_*`/`SUPABASE_*` encryption variables are absent; its failure handler removed both users and database inventory confirmed zero survivors. The SQL remains unchanged and unexecuted. | Load the approved canonical active version and 32-byte data key locally (never in chat or Git; do not substitute legacy `APPWRITE_*`). Rerun the exact fixture, repeat quiet-window/ownership checks, execute the reviewed SQL once, verify all three `U1201` cases, and perform exact two-user cleanup. |
-| True concurrency/conflict handling | FAIL / MANAGED REST POOL BLOCKED | Live owner-level `pg_read_all_stats` observation and allow-listed HTTP phase timings ruled out harness skew, DNS/TCP/TLS/upload delay, HTTP/1.1 framing, HTTP/2 multiplexing, PostgreSQL locks and a committed hidden mutation. The cancelled request appeared only later as `idle in transaction (aborted)` / `ClientRead`, with zero locks/blockers, then ended. All failed-run fixtures were retained until completion proof and exactly five users per run were removed. | Investigate the development project's Supabase REST connection-admission/pool delay with project-side logs/support; do not raise timeouts or add locks. After resolution, rerun all three overlap cases with the observer and require bounded controlled conflicts plus exact cleanup. |
-| Responsive/Axe/real 200% zoom | PASS / EVIDENCE PENDING | The accepted 11-project EN/FR visual/Axe matrix and historical classifications are preserved. Two exact-prefix synthetic users and populated owner/moderation state were created under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; credentials are only in a local mode-`0600` file. Routes are prepared on the existing production build. Previous false zoom evidence remains rejected. | Owner follows the six-step measurement procedure and returns 100%/200% values plus screenshots. After review, execute exact two-user cleanup and remove the local fixture file. Physical-device launch evidence remains Gate C. |
+| Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Genuine 200% zoom evidence remains separate and pending. |
+| Rollback correctness | PASS | Run `9062ada6-22a9-4a74-9ea6-1eef4c34fd57`: canonical application keyring/encryption path, exact fixture ownership, quiet-window bounded shared trigger, three exact `U1201` outcomes, complete unchanged business/audit digests, outer rollback, same-session catalog cleanup, fresh-session trigger absence and exact two-user cleanup. | None for Prompt 12 rollback correctness. Canonical local secrets remain untracked and must stay stable/backed up. |
+| Direct-database concurrency | PASS | Run `f82326c5-cdc3-4776-8705-1fa3c244cb49`: two real sessions under `authenticated` plus synthetic JWT identity; same-version save, competing moderation and edit-versus-approval each returned one commit and one controlled `40001`; exact state/audit/feedback assertions and five-user cleanup passed. | None for the database-only gate. This does not imply REST health. |
+| Application REST concurrency/availability | FAIL / PROVIDER LOG CONFIRMATION PENDING | HTTP/1.1 and HTTP/2 evidence remains preserved. Timestamped run `fab0a9e6-bf8c-48a2-9da5-afe5a46f7306` sent both bodies within 3 ms; save B returned 200 in 372 ms while save A received no headers by 20 s and was never observed executing during the live database window. The redacted packet records UTC window and correlations. Exact five-user cleanup followed database completion proof. | Owner performs the one Logs Explorer action in `docs/prompt12-rest-support-packet.md` and returns redacted matching gateway/PostgREST events. Do not change pool settings, restart services, add retries or contact support yet. |
+| Genuine 200% browser zoom | EVIDENCE PENDING | The accepted 11-project EN/FR visual/Axe matrix is preserved. Exactly two prepared users remain under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; the mode-`0600` local file and both routes are verified, and the existing production listener returns the expected authentication redirects. Previous false zoom evidence remains rejected. | Owner returns stable-window 100%/200% measurements plus the four exactly named screenshots. After review only, run exact two-user cleanup and remove the restricted file. Physical-device launch evidence remains Gate C. |
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;

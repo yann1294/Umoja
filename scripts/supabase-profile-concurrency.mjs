@@ -30,6 +30,7 @@ const fixtureUsers = new Set();
 const unsettledRequests = new Set();
 const results = {
   runId,
+  startedAt: new Date().toISOString(),
   requestLimitMs: REQUEST_LIMIT_MS,
   concurrentTransport: "native_http2_shared_session",
   cases: {},
@@ -71,6 +72,8 @@ async function request(path, options = {}) {
 
 async function timedRequest(label, path, options) {
   const startedAt = performance.now();
+  const startedAtIso = new Date().toISOString();
+  const clientCorrelationId = `umoja-prompt12/${runId}/${label}`;
   const transportPhases = {};
   const markPhase = (phase) => {
     transportPhases[phase] = Math.round(performance.now() - startedAt);
@@ -83,13 +86,20 @@ async function timedRequest(label, path, options) {
       ":method": options.method,
       ":path": `${target.pathname}${target.search}`,
       ...options.headers,
+      "x-client-info": clientCorrelationId,
       ...(options.body ? { "content-length": Buffer.byteLength(options.body) } : {}),
     });
     let status = 500;
+    let responseCorrelation = {};
     const chunks = [];
     activeRequest.on("response", (headers) => {
       markPhase("responseHeadersMs");
       status = Number(headers[":status"] ?? 500);
+      responseCorrelation = Object.fromEntries(
+        ["sb-request-id", "x-request-id", "cf-ray"]
+          .filter((name) => typeof headers[name] === "string")
+          .map((name) => [name, headers[name]]),
+      );
     });
     activeRequest.on("data", (chunk) => chunks.push(chunk));
     activeRequest.on("end", () => {
@@ -102,7 +112,7 @@ async function timedRequest(label, path, options) {
           payload = null;
         }
       }
-      resolve({ status, payload });
+      resolve({ status, payload, responseCorrelation });
     });
     activeRequest.on("finish", () => markPhase("requestBodySentMs"));
     activeRequest.on("error", reject);
@@ -121,17 +131,22 @@ async function timedRequest(label, path, options) {
     ]);
     return {
       label,
+      startedAt: startedAtIso,
+      clientCorrelationId,
       startedAtMs: Math.round(startedAt),
       elapsedMs: Math.round(performance.now() - startedAt),
       status: response.status,
       category: categoryFromError(response.status, response.payload),
       transportPhases,
+      responseCorrelation: response.responseCorrelation,
       settled: true,
     };
   } catch (error) {
     cleanupSafe = false;
     return {
       label,
+      startedAt: startedAtIso,
+      clientCorrelationId,
       startedAtMs: Math.round(startedAt),
       elapsedMs: Math.round(performance.now() - startedAt),
       status: null,
@@ -140,6 +155,7 @@ async function timedRequest(label, path, options) {
           ? "client_timeout_database_completion_unknown"
           : "network_or_pool_failure",
       transportPhases,
+      responseCorrelation: {},
       settled: false,
     };
   } finally {
@@ -484,5 +500,6 @@ try {
     results.ownerAction =
       "Run the read-only activity/lock observer, wait for zero matching activity, then use --cleanup-exposed-probes.";
   }
+  results.finishedAt = new Date().toISOString();
   console.log(JSON.stringify(results));
 }

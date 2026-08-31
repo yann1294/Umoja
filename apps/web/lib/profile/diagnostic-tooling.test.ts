@@ -15,6 +15,10 @@ const concurrencyObserver = fs.readFileSync(
   path.join(repositoryRoot, "scripts/supabase-profile-concurrency-observe.sql"),
   "utf8",
 );
+const directConcurrencyScript = fs.readFileSync(
+  path.join(repositoryRoot, "scripts/supabase-profile-direct-concurrency.mjs"),
+  "utf8",
+);
 const monitorSetup = fs.readFileSync(
   path.join(repositoryRoot, "scripts/supabase-profile-concurrency-monitor-setup.sql"),
   "utf8",
@@ -74,11 +78,19 @@ describe("Prompt 12 diagnostic tooling", () => {
     expect(concurrencyObserver).not.toMatch(/\b(?:a|c)\.query\s*(?:,|AS\b)/i);
     expect(concurrencyObserver).toContain("\\watch i=0.25 c=120");
     expect(concurrencyObserver).not.toContain("m=0");
+    expect(directConcurrencyScript).toContain("SET LOCAL ROLE authenticated");
+    expect(directConcurrencyScript).toContain("request.jwt.claims");
+    expect(directConcurrencyScript).toContain("controlled_40001");
+    expect(directConcurrencyScript).toContain("databaseOperationsFinished");
     expect(monitorSetup).toContain("default_transaction_read_only = on");
     expect(monitorSetup).toContain("CONNECTION LIMIT 1");
     expect(monitorSetup).toContain("GRANT pg_read_all_stats");
     expect(monitorTeardown).toContain("DROP ROLE umoja_prompt12_monitor");
     expect(rollbackFixtureScript).not.toContain("access_token:");
+    expect(rollbackFixtureScript).not.toContain("createCipheriv");
+    expect(rollbackFixtureScript).toContain("getIntakeCryptographyEnvironment");
+    expect(rollbackFixtureScript).toContain("createIntakeEncryptionKeyring");
+    expect(rollbackFixtureScript).toContain("encryptIntakeValue");
     expect(rollbackFixtureScript).toContain("exactSyntheticUsersRemoved");
     expect(zoomFixtureScript).not.toContain("console.log(tokenPayload");
     expect(zoomFixtureScript).toContain('credentialFileMode: "0600"');
