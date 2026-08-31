@@ -127,7 +127,7 @@ try {
   );
   out.checks.ownerCreate = saved.ok;
   if (!saved.ok) throw new Error(`owner-create:${saved.status}`);
-  const profile = await saved.json();
+  await saved.arrayBuffer();
   const cross = await rpc(
     "save_profile_with_audit",
     {
