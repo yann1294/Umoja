@@ -42,5 +42,5 @@ SELECT to_char(clock_timestamp(), 'YYYY-MM-DD"T"HH24:MI:SS.MSOf') AS observed_at
   coalesce(l.waiting_modes, '{}') AS waiting_modes
 FROM candidate c LEFT JOIN lock_summary l USING (pid)
 ORDER BY c.query_age DESC;
-\watch i=0.25 c=120 m=0
+\watch i=0.25 c=120
 ROLLBACK;

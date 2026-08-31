@@ -2,7 +2,8 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
-import https from "node:https";
+import http2 from "node:http2";
+import { once } from "node:events";
 
 const REQUEST_LIMIT_MS = 20_000;
 const env = Object.fromEntries(
@@ -30,11 +31,12 @@ const unsettledRequests = new Set();
 const results = {
   runId,
   requestLimitMs: REQUEST_LIMIT_MS,
-  concurrentTransport: "native_https_dedicated_socket",
+  concurrentTransport: "native_http2_shared_session",
   cases: {},
   cleanup: "not_started",
 };
 let cleanupSafe = true;
+let rpcSession;
 
 const serviceHeaders = {
   apikey: secretKey,
@@ -69,36 +71,42 @@ async function request(path, options = {}) {
 
 async function timedRequest(label, path, options) {
   const startedAt = performance.now();
+  const transportPhases = {};
+  const markPhase = (phase) => {
+    transportPhases[phase] = Math.round(performance.now() - startedAt);
+  };
   let timer;
   let activeRequest;
   const operation = new Promise((resolve, reject) => {
     const target = new URL(path, url);
-    activeRequest = https.request(
-      target,
-      {
-        method: options.method,
-        headers: { ...options.headers, connection: "close" },
-        agent: false,
-      },
-      (response) => {
-        const chunks = [];
-        response.on("data", (chunk) => chunks.push(chunk));
-        response.on("end", () => {
-          let payload = null;
-          if ((response.statusCode ?? 500) >= 400) {
-            try {
-              payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-            } catch {
-              payload = null;
-            }
-          }
-          resolve({ status: response.statusCode ?? 500, payload });
-        });
-      },
-    );
+    activeRequest = rpcSession.request({
+      ":method": options.method,
+      ":path": `${target.pathname}${target.search}`,
+      ...options.headers,
+      ...(options.body ? { "content-length": Buffer.byteLength(options.body) } : {}),
+    });
+    let status = 500;
+    const chunks = [];
+    activeRequest.on("response", (headers) => {
+      markPhase("responseHeadersMs");
+      status = Number(headers[":status"] ?? 500);
+    });
+    activeRequest.on("data", (chunk) => chunks.push(chunk));
+    activeRequest.on("end", () => {
+      markPhase("responseEndMs");
+      let payload = null;
+      if (status >= 400) {
+        try {
+          payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        } catch {
+          payload = null;
+        }
+      }
+      resolve({ status, payload });
+    });
+    activeRequest.on("finish", () => markPhase("requestBodySentMs"));
     activeRequest.on("error", reject);
-    if (options.body) activeRequest.write(options.body);
-    activeRequest.end();
+    activeRequest.end(options.body);
   });
   unsettledRequests.add(label);
   try {
@@ -106,7 +114,7 @@ async function timedRequest(label, path, options) {
       operation,
       new Promise((_, reject) => {
         timer = setTimeout(() => {
-          activeRequest?.destroy();
+          activeRequest?.close(http2.constants.NGHTTP2_CANCEL);
           reject(new Error("bounded-client-timeout"));
         }, REQUEST_LIMIT_MS);
       }),
@@ -117,6 +125,7 @@ async function timedRequest(label, path, options) {
       elapsedMs: Math.round(performance.now() - startedAt),
       status: response.status,
       category: categoryFromError(response.status, response.payload),
+      transportPhases,
       settled: true,
     };
   } catch (error) {
@@ -130,6 +139,7 @@ async function timedRequest(label, path, options) {
         error instanceof Error && error.message === "bounded-client-timeout"
           ? "client_timeout_database_completion_unknown"
           : "network_or_pool_failure",
+      transportPhases,
       settled: false,
     };
   } finally {
@@ -306,6 +316,15 @@ if (process.argv.includes("--cleanup-exposed-probes")) {
 }
 
 try {
+  const sessionStartedAt = performance.now();
+  rpcSession = http2.connect(new URL(url).origin);
+  await Promise.race([
+    once(rpcSession, "connect"),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("http2_session_connect_timeout")), REQUEST_LIMIT_MS),
+    ),
+  ]);
+  results.transportSessionSetupMs = Math.round(performance.now() - sessionStartedAt);
   const [saveOwner, moderationOwner, editOwner, adminA, adminB] = await Promise.all([
     createUser("concurrency", null),
     createUser("moderation", null),
@@ -443,6 +462,7 @@ try {
       : "assertion_or_fixture_failure";
   process.exitCode = 1;
 } finally {
+  rpcSession?.close();
   if (cleanupSafe && unsettledRequests.size === 0) {
     for (const id of fixtureUsers) {
       const response = await request(`/auth/v1/admin/users/${id}`, {

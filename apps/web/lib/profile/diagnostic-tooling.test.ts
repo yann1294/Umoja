@@ -67,9 +67,13 @@ describe("Prompt 12 diagnostic tooling", () => {
     expect(concurrencyScript).not.toContain("response.text(");
     expect(concurrencyScript).toContain("cleanupSafe = false");
     expect(concurrencyScript).toContain("intentionally_skipped_database_completion_unknown");
-    expect(concurrencyScript).toContain("native_https_dedicated_socket");
+    expect(concurrencyScript).toContain("native_http2_shared_session");
+    expect(concurrencyScript).toContain("transportPhases");
+    expect(concurrencyScript).toContain("requestBodySentMs");
+    expect(concurrencyScript).toContain("responseHeadersMs");
     expect(concurrencyObserver).not.toMatch(/\b(?:a|c)\.query\s*(?:,|AS\b)/i);
-    expect(concurrencyObserver).toContain("\\watch i=0.25 c=120 m=0");
+    expect(concurrencyObserver).toContain("\\watch i=0.25 c=120");
+    expect(concurrencyObserver).not.toContain("m=0");
     expect(monitorSetup).toContain("default_transaction_read_only = on");
     expect(monitorSetup).toContain("CONNECTION LIMIT 1");
     expect(monitorSetup).toContain("GRANT pg_read_all_stats");

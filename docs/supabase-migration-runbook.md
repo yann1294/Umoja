@@ -451,7 +451,10 @@ After testing, close the monitor psql session and run
 `psql service=umoja_dev_owner -X -f scripts/supabase-profile-concurrency-monitor-teardown.sql`. It revokes
 `pg_read_all_stats`/`CONNECT`, drops the login and proves absence. Remove only the monitor entry/password from
 the private local files; retain or remove the owner service according to the owner's own credential policy.
-The setup, grant, observer, rollback test and teardown remain paused until this local connection reports ready.
+The verified owner Session Pooler service now uses `sslmode=verify-full` with the downloaded CA and reports
+database `postgres`, server SSL enabled and the expected project-qualified login. The mapped `postgres` role
+already inherits `pg_read_all_stats`, so the live diagnostic used that existing connection instead of creating
+the optional temporary monitor. No temporary login or grant was created, and no monitor teardown is due.
 
 #### Prompt 12 concurrency diagnostic status (2026-08-31)
 
@@ -471,21 +474,29 @@ The post-timeout state contained A's expected committed name and audit count; it
 A client abort still does not prove database cancellation, so the harness intentionally suppresses cleanup on
 any timeout.
 
-The remaining diagnostic needs a monitoring connection established before the run. Grant only `CONNECT` and
-`pg_read_all_stats` (or an equivalently narrow monitoring role) for the quiet diagnostic window, with no DDL,
-write, role-elevation or owner capability. Run
-[`scripts/supabase-profile-concurrency-observe.sql`](../scripts/supabase-profile-concurrency-observe.sql)
-while the overlap is live in a quiet diagnostic window. Its output omits query text and reports state,
-wait-event category, age, blocking PIDs and lock summary. This is required to distinguish request ingress,
-pool/network delay, PostgreSQL lock/transaction wait, and completed database work with a pending HTTP response.
-The existing on-demand Supabase inspection login took roughly three to four minutes to initialize and therefore
-could confirm only post-timeout quiescence, not the live 20-second interval. Do not increase the request timeout
-or add locks to compensate.
+The owner-authorized live diagnostic ran on 2026-08-31. PostgreSQL 18 rejected the observer's original
+`\watch ... m=0` because its minimum-row option must be positive; removing that option restored the intended
+120 samples at 250 ms without changing the query or visibility. Every subsequent run started the observer
+before the HTTP pair. The observer emits no query text and reports only operation class, state, wait category,
+age, blocking PIDs and lock counts.
 
-The observer now samples every 250 ms for 30 seconds, starting before the harness. The harness also captures a
-redacted state digest/count observation while the two requests are in flight. Together these distinguish a
-never-observed request from a PostgreSQL wait and show whether database state completed while HTTP remained
-pending. No new run was launched without the required live connection.
+Runs `6f66eb5a-ab9a-4e54-b2e0-28e043b1560d` and
+`ecae669f-ff07-42c2-85a2-01f5fe9abba3` reproduced the first case over independent HTTP/1.1 sockets. The latter
+recorded both requests completing DNS, TCP, TLS and body upload within 48 ms; one returned HTTP 200 at 464 ms,
+while the other received no response headers by 20 s. Adding exact `Content-Length` did not change the result.
+Run `f5ef07fd-cc46-49fd-8942-d820c039f405` then reproduced it over one browser-representative native HTTP/2
+session: the session connected in 40 ms, both bodies finished within 5 ms, one returned 200 in 410 ms and the
+other received no headers by 20 s. Harness start skew was 3 ms.
+
+No active save was visible during the 30-second samples, excluding a PostgreSQL lock wait, long transaction or
+completed database work with a pending HTTP response. A bounded post-timeout check later observed the cancelled
+request only after it acquired a database session: `idle in transaction (aborted)`, `ClientRead`, zero locks and
+zero blocking PIDs. It then disappeared. This localizes the blocker to Supabase's managed REST connection
+admission/pool before PostgreSQL, not client synchronization, transport setup, request framing or database
+locking. Do not increase the timeout or add application/database locks. Each failed run remained isolated until
+zero unfinished matching sessions was proven; exact-prefix cleanup then removed all five users. The three-case
+acceptance run cannot proceed beyond case one until the development project's managed REST admission delay is
+resolved or Supabase supplies an actionable project-side configuration/support finding.
 
 #### Prompt 12 genuine 200% browser zoom status (2026-08-31)
 
@@ -527,8 +538,8 @@ built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
 | Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Visual matrix still pending |
-| Audit-insertion rollback | READY / CONNECTION PENDING | Corrected owner-run SQL uses pre-procedural psql interpolation, exact run-bound fixture validation, request identity before snapshots, privileged complete-state digests, actual child/profile/moderation paths, unique `U1201` fault provenance, assertions before savepoint release, bounded shared-table locking, outer rollback and same-session catalog cleanup. No reviewed-method drift was found at `4425b04`; no privileged execution occurred. | Configure the verified local owner Session Pooler service above without sharing credentials. Then confirm the quiet window, create the exact application-encrypted fixture, execute once, close access and perform exact cleanup. |
-| True concurrency/conflict handling | FAIL / LIVE MONITOR PENDING | Prior safe runs remain recorded. The monitor setup/teardown now constrains a temporary login to one read-only connection and the observer samples redacted activity/locks every 250 ms for 30 seconds. The harness now records a redacted in-flight database-state observation. No new concurrency run was started without live monitoring. | Configure the verified local owner/monitor services. Accept temporary `pg_read_all_stats` visibility as explained above, establish the observer first, then identify and fix only the demonstrated cause before running all three overlap cases and exact cleanup. |
+| Audit-insertion rollback | READY / ENCRYPTION CONFIG PENDING | The owner Session Pooler connection is verified against the exact development project with CA/hostname verification. Quiet-window preflight found zero other active/transactional sessions, zero prior rollback fixtures and no fault trigger. The reviewed fixture run stopped before profile/DDL work because canonical `UMOJA_*`/`SUPABASE_*` encryption variables are absent; its failure handler removed both users and database inventory confirmed zero survivors. The SQL remains unchanged and unexecuted. | Load the approved canonical active version and 32-byte data key locally (never in chat or Git; do not substitute legacy `APPWRITE_*`). Rerun the exact fixture, repeat quiet-window/ownership checks, execute the reviewed SQL once, verify all three `U1201` cases, and perform exact two-user cleanup. |
+| True concurrency/conflict handling | FAIL / MANAGED REST POOL BLOCKED | Live owner-level `pg_read_all_stats` observation and allow-listed HTTP phase timings ruled out harness skew, DNS/TCP/TLS/upload delay, HTTP/1.1 framing, HTTP/2 multiplexing, PostgreSQL locks and a committed hidden mutation. The cancelled request appeared only later as `idle in transaction (aborted)` / `ClientRead`, with zero locks/blockers, then ended. All failed-run fixtures were retained until completion proof and exactly five users per run were removed. | Investigate the development project's Supabase REST connection-admission/pool delay with project-side logs/support; do not raise timeouts or add locks. After resolution, rerun all three overlap cases with the observer and require bounded controlled conflicts plus exact cleanup. |
 | Responsive/Axe/real 200% zoom | PASS / EVIDENCE PENDING | The accepted 11-project EN/FR visual/Axe matrix and historical classifications are preserved. Two exact-prefix synthetic users and populated owner/moderation state were created under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; credentials are only in a local mode-`0600` file. Routes are prepared on the existing production build. Previous false zoom evidence remains rejected. | Owner follows the six-step measurement procedure and returns 100%/200% values plus screenshots. After review, execute exact two-user cleanup and remove the local fixture file. Physical-device launch evidence remains Gate C. |
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
