@@ -376,21 +376,91 @@ lifecycle harness now verifies applicant-safe feedback persistence alongside app
 #### Prompt 12 rollback fault-injection method
 
 The reviewed owner-run script is [`scripts/supabase-profile-audit-rollback.sql`](../scripts/supabase-profile-audit-rollback.sql).
-It is a single PostgreSQL transaction over pre-created synthetic UUIDs only. It creates a
-temporary trigger function in `pg_temp` and a transaction-scoped `BEFORE INSERT` trigger on
-`public.audit_logs`; the trigger raises only for the supplied synthetic owner UUID.
-The child-mutation case then writes a synthetic `profile_skills` row, the profile case calls
-`save_profile_with_audit` with a synthetic encrypted private-details envelope, and the moderation case calls
-`moderate_profile` with synthetic feedback. Each call must fail, and each savepoint must read back unchanged
-profile/child/private-details, feedback, and audit counts before the outer transaction is rolled back. The
-script requires the expected `P0001` fault, uses statement/lock/idle timeouts, and has an outer rollback
-path for interruption or connection loss. The owner must verify that the temporary trigger/function no
-longer exists, then run exact-prefix Auth/table cleanup. The trigger is attached to a shared table and
-requires a short quiet-window authorization. Creating the temporary function/trigger and connecting with
-a privileged PostgreSQL role require database-owner or equivalent DDL privileges; the Supabase service key
-cannot execute PostgreSQL DDL and is intentionally insufficient. Safe local execution is:
-`PGAPPNAME=umoja-prompt12-audit-rollback psql "$SUPABASE_DB_URL" -v owner_id=... -v admin_id=... -v skill_id=... -v fixture_slug=... -f scripts/supabase-profile-audit-rollback.sql`.
-The connection string must come from the owner’s password manager/env, never chat, browser variables, or Git.
+It is a single PostgreSQL transaction over pre-created synthetic UUIDs only. psql variables are first
+interpolated as quoted SQL literals into a session-private parameter table; dollar-quoted procedural bodies
+then read that table. This follows PostgreSQL's documented rule that psql does not interpolate inside quoted
+SQL literals. The script validates exact run-bound owner/admin emails, profile slug, active account/role/
+membership, skill, submitted state and an application-format encrypted envelope before any DDL.
+
+After setting the intended request JWT identity, the privileged connection captures complete ordered row
+digests outside RLS for profile, child, private-details, feedback and audit state. It then uses the same child
+upsert, `save_profile_with_audit`, and version-bound `moderate_profile` paths as the application. The temporary
+audit trigger raises SQLSTATE `U1201` with a run-specific detail marker only for the fixture owner. Each
+PL/pgSQL exception block rolls its failed statement subtransaction back; the script proves that exact fault
+and compares all relevant digests immediately, before releasing its savepoint. No explicit savepoint rollback
+can conceal the mutation result. Only after all three cases pass does the outer transaction roll back.
+
+`CREATE TRIGGER` takes `SHARE ROW EXCLUSIVE` on the shared `audit_logs` table until the outer transaction
+ends, so this requires an approved quiet window. `lock_timeout = 3s`, `statement_timeout = 15s`, and
+`idle_in_transaction_session_timeout = 30s` bound the operation. `ON_ERROR_STOP`, the open outer transaction,
+and PostgreSQL connection semantics guarantee rollback after an unexpected error, SIGINT or connection loss.
+Same-session post-rollback catalog checks prove that both the shared trigger and correct `pg_temp` helper are
+gone. No persistent bypass or remotely callable fault endpoint is installed.
+
+Owner procedure (do not put credentials in chat, shell history, browser variables or Git):
+
+1. In a secure local shell with the existing development environment and application encryption keys loaded,
+   run `node scripts/supabase-profile-rollback-fixture.mjs`. It creates only the two run-bound synthetic users,
+   seeds admin role/membership, saves a submitted profile through the real RPC with an application-compatible
+   encrypted private envelope, and prints non-secret UUID/label variables plus its exact cleanup command.
+2. Separately authorize the quiet window and a short-lived PostgreSQL owner/equivalent connection that can
+   `SET ROLE authenticated` and create a trigger. This is DDL permission; it is not the read-only monitoring
+   permission requested for concurrency diagnosis. The service key is intentionally insufficient.
+3. Run `PGAPPNAME=umoja-prompt12-audit-rollback psql "$SUPABASE_DB_URL" -X -v owner_id=... -v owner_email=... -v admin_id=... -v admin_email=... -v skill_id=... -v fixture_slug=... -v run_id=... -f scripts/supabase-profile-audit-rollback.sql` using values printed in step 1. Expected output ends with the single `PASS` line.
+4. Close/revoke the temporary database access, run the exact cleanup command printed in step 1, and retain
+   redacted output showing the PASS line and `exactSyntheticUsersRemoved: 2`.
+
+The corrected script has been statically reviewed and unit-guarded, but privileged DDL has not been executed.
+
+#### Prompt 12 concurrency diagnostic status (2026-08-31)
+
+The unsafe ephemeral probe has been replaced by
+[`scripts/supabase-profile-concurrency.mjs`](../scripts/supabase-profile-concurrency.mjs). It emits only
+allow-listed labels, timings, status codes, redacted categories, state digests and counts—never response-body
+prefixes, raw Auth payloads, tokens or error messages. Exact-prefix inventory found zero surviving users from
+the earlier probe, so its synthetic sessions had already been invalidated by prior user deletion. Two new
+failed runs each left five isolated fixtures until separate read-only remote activity/blocking checks returned
+no matching work; exact cleanup then removed all five fixtures from each run.
+
+Both repaired runs reproduced the first case. The fetch run started both requests in the same millisecond: A
+returned HTTP 200 in 410 ms; B had no response at the fixed 20 s bound. A second run used independent native
+HTTPS sockets (`agent: false`, `Connection: close`), with 7 ms start skew: A returned HTTP 200 in 333 ms; B
+again had no response by 20 s. This rules out the original fetch connection pool and harness synchronization.
+The post-timeout state contained A's expected committed name and audit count; it did not show B's mutation.
+A client abort still does not prove database cancellation, so the harness intentionally suppresses cleanup on
+any timeout.
+
+The remaining diagnostic needs a monitoring connection established before the run. Grant only `CONNECT` and
+`pg_read_all_stats` (or an equivalently narrow monitoring role) for the quiet diagnostic window, with no DDL,
+write, role-elevation or owner capability. Run
+[`scripts/supabase-profile-concurrency-observe.sql`](../scripts/supabase-profile-concurrency-observe.sql)
+while the overlap is live in a quiet diagnostic window. Its output omits query text and reports state,
+wait-event category, age, blocking PIDs and lock summary. This is required to distinguish request ingress,
+pool/network delay, PostgreSQL lock/transaction wait, and completed database work with a pending HTTP response.
+The existing on-demand Supabase inspection login took roughly three to four minutes to initialize and therefore
+could confirm only post-timeout quiescence, not the live 20-second interval. Do not increase the request timeout
+or add locks to compensate.
+
+#### Prompt 12 genuine 200% browser zoom status (2026-08-31)
+
+The accepted automated visual matrix and its artifacts remain unchanged. Current browser-control discovery
+found Google Chrome 151 installed, but the ChatGPT Chrome extension and native-host manifest are absent, so
+direct Chrome control is unavailable. No AppleScript, CSS zoom, device scaling or fixed viewport emulation was
+substituted. Genuine zoom therefore remains pending.
+
+Owner manual evidence procedure:
+
+1. Open one Chrome window and the intended profile or moderation tab; close or clearly distinguish duplicate
+   Umoja tabs. Record `window.outerWidth`, `window.outerHeight`, `window.innerWidth`, `window.innerHeight`,
+   `window.devicePixelRatio`, and `window.visualViewport.width/height` at 100%, then capture a screenshot.
+2. Use Chrome's browser zoom control on that same tab and confirm its indicator reads exactly 200%. Do not use
+   DevTools device emulation. Keep the physical window dimensions unchanged.
+3. Record the same measurements. `outerWidth/outerHeight` must remain stable while CSS `innerWidth` and visual
+   viewport dimensions fall to approximately half their 100% values; DPR alone is not evidence.
+4. Capture full-screen screenshots (including Chrome's visible 200% indicator) for one populated contributor
+   profile and one moderation screen, in EN or FR with the other locale represented by the accepted matrix.
+   Confirm no page-level horizontal scroll, clipped essential actions, lost focus target or sub-44 px control.
+5. Return the measurements and screenshots for review. Keep this gate pending until they are inspected.
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
@@ -398,9 +468,9 @@ The connection string must come from the owner’s password manager/env, never c
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql` and synthetic cleanup runs | Fault-injection rollback still pending |
 | Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
 | Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Visual matrix still pending |
-| Audit-insertion rollback | NOT RUN | Reviewed script is `scripts/supabase-profile-audit-rollback.sql`; no privileged execution occurred. It uses exact synthetic variables, savepoints, expected `P0001`, bounded PostgreSQL timeouts, outer `ROLLBACK`, and post-connection helper/trigger checks. | Owner must authorize a short quiet-window run with DDL and `SET ROLE authenticated` capability over a short-lived PostgreSQL connection. Service key is insufficient. Owner supplies values locally, then closes/revokes temporary access and performs exact-prefix cleanup. |
-| True concurrency/conflict handling | FAIL | `/private/tmp/umoja-concurrency-timing.mjs` issued simultaneous same-version saves. A completed at ~4.3s with HTTP 200; B remained pending until the fixed 60s client deadline and was aborted. No request-id/server-timing headers exposed database timing. Cleanup began only after both client promises settled, but REST cannot prove server-side cancellation. Migration `20260830210000_profile_concurrency_guards.sql` is applied; moderation and edit-versus-approval were not run because the first required case is unresolved. | Owner must provide read-only `pg_stat_activity`/`pg_locks` observability or run an approved diagnostic query via privileged PostgreSQL connection. Determine lock/pool/transaction/harness cause, then rerun all three overlap cases with one success/one controlled conflict, consistent rows/audit, and no stale approval. |
-| Responsive/Axe/real 200% zoom | PASS / NOT RUN | New authenticated synthetic fixture `tests/e2e/supabase-profile-visual.spec.ts` passed all 11 projects (320, 360, 390, 768, 1024, 1280, 1440, 1920, 2560, phone landscape, tablet landscape) in EN/FR, covering profile, skills/languages, portfolio, availability, moderation, long text, screenshots, focus, touch, overflow and Axe. Demonstrated fixes: workspace-panel controls below 44px; duplicate nested main landmarks; private skip-link target. Artifacts are Playwright `test-results/supabase-profile-visual-*`. Seven historical shell differences remain individually classified: workspace 320/768/1440 are intentional fixture/RLS-supported changes; mobile-nav 390 and admin 1024/1280/1920 are unrelated existing differences; no baselines were bulk-updated. Chrome-for-Testing artifacts are in `/private/tmp/umoja-chrome-zoom-qa/`; genuine menu actions left fixed-window `outer 1200x879` and CSS `1200x736` unchanged (DPR 2), so 200% is not accepted. | Repeat genuine 200% with a browser-control method that changes CSS viewport to approximately half width; physical-device launch evidence remains Gate C. |
+| Audit-insertion rollback | READY / NOT RUN | Corrected owner-run SQL uses pre-procedural psql interpolation, exact run-bound fixture validation, request identity before snapshots, privileged complete-state digests, actual child/profile/moderation paths, unique `U1201` fault provenance, assertions before savepoint release, bounded shared-table locking, outer rollback and same-session catalog cleanup. `scripts/supabase-profile-rollback-fixture.mjs` creates application-encrypted fixtures. No privileged execution occurred. | Owner must separately authorize the short quiet-window DDL/`SET ROLE authenticated` run, use a locally held owner connection, revoke it, and execute exact fixture cleanup. Never send credentials in chat. |
+| True concurrency/conflict handling | FAIL | Safe repository harness reproduced same-version blocking twice: fetch run A=200/410 ms and B=no response by 20 s with 0 ms start skew; independent-socket run A=200/333 ms and B=no response by 20 s with 7 ms skew. Response bodies/Auth material are never logged. Separate post-timeout monitoring showed no matching long-running or blocking work before exact cleanup; 5/5 fixtures were removed after each run. Moderation and edit-versus-approval remain unexecuted because case 1 is unresolved. | Owner grants only temporary read-only `pg_stat_activity`/`pg_locks` visibility (`CONNECT` + `pg_read_all_stats` or narrower) before a run. Observe the live interval with `scripts/supabase-profile-concurrency-observe.sql`, establish ingress/pool/lock/transaction/response cause, fix it, then run all three bounded overlap cases. This is separate from rollback DDL approval. |
+| Responsive/Axe/real 200% zoom | PASS / PENDING | The accepted 11-project EN/FR visual/Axe matrix and historical classifications are preserved. Previous Chrome-for-Testing menu actions left `outer 1200x879` and CSS `1200x736` unchanged (DPR 2), so they remain rejected. Current Chrome 151 lacks the browser-control extension/native host; no emulation substitute was used. | Owner follows the measurement-based manual procedure above and returns 100%/200% outer, inner and visual-viewport dimensions plus screenshots for populated profile and moderation screens. Physical-device launch evidence remains Gate C. |
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
