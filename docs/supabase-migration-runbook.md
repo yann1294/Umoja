@@ -538,62 +538,50 @@ Final inventory found zero matching users, profiles or active RPCs, and deployed
 
 #### Prompt 12 genuine 200% browser zoom status (2026-08-31)
 
-The accepted automated visual matrix and its artifacts remain unchanged. Current browser-control discovery
-found Chrome for Testing 151 and standard Chrome 151 installed. The supported Chrome controller reports browser
-unavailable, and its diagnostics confirm both the extension and native-host manifest are absent. No AppleScript,
-standalone CDP/Playwright, CSS zoom, device scaling or fixed viewport emulation was substituted. Genuine zoom is
-therefore NOT RUN, not passed.
+The accepted automated visual matrix and its artifacts remain unchanged. The supported extension integration
+connected to the owner-authorized regular Google Chrome `151.0.7922.174`; no unrelated tabs, history, browser
+credentials or personal data were inspected. The controller's tab-scoped shortcuts could not operate Chrome's
+toolbar zoom, so the owner manually selected and visibly confirmed 100% and 200% in Chrome. The controller then
+measured and captured the isolated synthetic task tab. No viewport override, DevTools emulation, CSS zoom,
+transform, device scaling, pinch scaling, standalone CDP/Playwright or window resize was used.
 
-Owner manual evidence procedure:
+For both `/en/workspace/profile` and `/en/admin/profiles`, the physical outer window stayed `1200 × 879` while
+`innerWidth/innerHeight` and `visualViewport.width/height` changed from `1200 × 702` at 100% to `600 × 351` at
+200%; DPR changed from 2 to 4 and `visualViewport.scale` remained 1. `documentScrollWidth` equalled
+`documentClientWidth` at both zoom levels. Visual review found no clipped main content or unintended horizontal
+scrolling. The responsive navigation dialog remained operable, keyboard focus was visible, populated profile
+forms remained usable, and the moderation feedback and Approve/Request changes/Revoke actions remained visible
+and enabled. Each moderation action was 44 CSS px high. The `/fr/workspace/profile` and `/fr/admin/profiles`
+spot checks confirmed that longer French headings, labels, feedback text and actions reflowed without clipping.
 
-The current synthetic fixture is run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`. Its owner/admin credentials and
-cleanup command exist only in mode-`0600`
-`/private/tmp/umoja-profile-zoom-934c9c70-818d-4dcd-b9a7-5b7f084d6668.json`; no token or password was printed.
-Both credentials returned HTTP 200 in local validation, and those two validation sessions were immediately
-invalidated. The production build is prepared at `http://127.0.0.1:4173`. If that process has ended, restart the already
-built application with `PORT=4173 pnpm --filter @umoja/web start --hostname 127.0.0.1`.
-Use the installed Chrome for Testing application at
-`/Users/mimison/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app`;
-do not substitute standard Chrome evidence without recording that change.
+Measurements and cleanup results are recorded in
+[`docs/evidence/prompt12/prompt12-zoom-measurements.json`](evidence/prompt12/prompt12-zoom-measurements.json).
+Reviewed screenshots are
+[`prompt12-profile-zoom-100.png`](evidence/prompt12/prompt12-profile-zoom-100.png),
+[`prompt12-profile-zoom-200.png`](evidence/prompt12/prompt12-profile-zoom-200.png),
+[`prompt12-moderation-zoom-100.png`](evidence/prompt12/prompt12-moderation-zoom-100.png), and
+[`prompt12-moderation-zoom-200.png`](evidence/prompt12/prompt12-moderation-zoom-200.png).
 
-1. Read the restricted local fixture file, sign in as its owner, then open
-   `http://127.0.0.1:4173/en/workspace/profile`. In a separate incognito/profile context sign in as its admin
-   and open `http://127.0.0.1:4173/en/admin/profiles`. Never paste the fixture file into chat or a screenshot.
-2. Open one Chrome window and the intended profile or moderation tab; close or clearly distinguish duplicate
-   Umoja tabs. Record `window.outerWidth`, `window.outerHeight`, `window.innerWidth`, `window.innerHeight`,
-   `window.devicePixelRatio`, and `window.visualViewport.width/height` at 100%, then capture a screenshot.
-   This read-only Console snippet returns the required values without reading page content or browser storage:
-   `(() => { const d = document.documentElement, v = window.visualViewport; return { outerWidth: window.outerWidth, outerHeight: window.outerHeight, innerWidth: window.innerWidth, innerHeight: window.innerHeight, devicePixelRatio: window.devicePixelRatio, visualViewportWidth: v?.width ?? null, visualViewportHeight: v?.height ?? null, visualViewportScale: v?.scale ?? null, documentClientWidth: d.clientWidth, documentScrollWidth: d.scrollWidth, horizontalOverflow: d.scrollWidth > d.clientWidth }; })()`
-3. At 100%, open Chrome's zoom menu so the `100%` value is visible in the supporting screenshot. Use Chrome's
-   browser zoom control on that same tab and confirm its toolbar indicator/menu reads exactly 200%. Do not use
-   DevTools device emulation. Keep the physical window dimensions unchanged.
-4. Record the same measurements. `outerWidth/outerHeight` must remain stable while CSS `innerWidth` and visual
-   viewport dimensions fall to approximately half their 100% values; DPR alone is not evidence.
-5. Capture full-screen screenshots (including Chrome's visible zoom confirmation) for the populated English
-   contributor profile and French moderation screen. At 200%, also spot-check `/fr/workspace/profile` and
-   `/fr/admin/profiles` for the longer labels/actions, even when the second spot-check is not a named screenshot.
-   Confirm no page-level horizontal scroll, clipped essential actions, lost focus target or sub-44 px control.
-   Use these exact names: `prompt12-profile-zoom-100.png`, `prompt12-profile-zoom-200.png`,
-   `prompt12-moderation-zoom-100.png`, and `prompt12-moderation-zoom-200.png`.
-6. Return the measurements and screenshots for review. Keep this gate pending until they are inspected. After
-   acceptance or abandonment, run the exact cleanup command from the restricted fixture file and delete that
-   file; expected cleanup is `exactSyntheticUsersRemoved: 2`.
+After acceptance, exact fixture run `934c9c70-818d-4dcd-b9a7-5b7f084d6668` removed two synthetic Auth users.
+A second exact inventory returned zero matching users, the run-specific `public_slug` returned zero profiles,
+and the restricted mode-`0600` credential file was removed. The file deletion is not recoverable from its former
+`/private/tmp` path. No real administrator, unknown `cms-private` object, quarantined file, Appwrite resource,
+encryption key or unrelated data was changed.
 
 | Prompt 12 acceptance area | Status | Evidence | Remaining dependency |
 | --- | --- | --- | --- |
-| Remote owner/public lifecycle | PASS | Post-fix regression run `d6c4fd81-5029-447d-abb3-e544a9eab99a` passed all 21 recorded checks after the `PT409` migration, covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility, immutable availability, approval, withdrawal and exact cleanup. Prior complete runs remain retained. | Genuine zoom remains the separate open Prompt 12 gate. |
+| Remote owner/public lifecycle | PASS | Post-fix regression run `d6c4fd81-5029-447d-abb3-e544a9eab99a` passed all 21 recorded checks after the `PT409` migration, covering unverified, disabled, editor, reviewer and revoked-admin cases plus cross-owner, self-approval, anonymous privacy, audit visibility, immutable availability, approval, withdrawal and exact cleanup. Prior complete runs remain retained. | None for Prompt 12. |
 | Narrow audit cleanup boundary | PASS | `20260830170000_narrow_profile_audit_cleanup.sql`, synthetic cleanup runs and the successful `U1201` rollback execution | None for this acceptance area. |
-| Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path | Browser feedback journey pending |
-| Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | Genuine 200% zoom evidence remains separate and pending. |
+| Moderation feedback persistence | PASS | `20260830173000_profile_moderation_feedback.sql`; RPC feedback path; the accepted EN/FR authenticated lifecycle exercises rendered feedback, resubmission and approval. | None for Prompt 12. |
+| Authenticated rendered lifecycle | PASS | Current independent EN and FR runs passed twice consecutively at `width-1024` against the fresh production build; command used `PROFILE_LOCALE=en|fr pnpm exec playwright test tests/e2e/supabase-profile-lifecycle.spec.ts --config=/private/tmp/umoja-playwright-existing-server.config.ts --project=width-1024 --workers=1`; each run used separate applicant/admin contexts, rendered moderation actions, feedback/resubmission, approval, anonymous projection, withdrawal, persisted state checks, and exact synthetic cleanup. The lifecycle test now has a measured 90s remote-run timeout. Historical `39f13f8` evidence remains retained separately. | None for Prompt 12. |
 | Rollback correctness | PASS | Run `9062ada6-22a9-4a74-9ea6-1eef4c34fd57`: canonical application keyring/encryption path, exact fixture ownership, quiet-window bounded shared trigger, three exact `U1201` outcomes, complete unchanged business/audit digests, outer rollback, same-session catalog cleanup, fresh-session trigger absence and exact two-user cleanup. | None for Prompt 12 rollback correctness. Canonical local secrets remain untracked and must stay stable/backed up. |
 | Direct-database concurrency | PASS | Run `f82326c5-cdc3-4776-8705-1fa3c244cb49`: two real sessions under `authenticated` plus synthetic JWT identity; same-version save, competing moderation and edit-versus-approval each returned one commit and one controlled `40001`; exact state/audit/feedback assertions and five-user cleanup passed. | None for the database-only gate. This does not imply REST health. |
 | Application REST concurrency/availability | PASS | Logs confirmed retryable SQLSTATE `40001` caused repeated PostgREST execution. Additive migrations replace it with `PT409` and remove the obsolete overload. Runs `e7ff74ac-2275-4be9-b018-c68b069fdca9`, `1f40705b-3611-40a9-ad28-f49715feeec3` and `609214dc-df3e-49ce-807a-62e27d52dd62` each passed all three authenticated REST conflict scenarios within 625 ms; final gateway aggregate was 3×200/3×409 at 233–414 ms. State assertions and dependency-ordered cleanup passed; zero matching leftovers or active RPCs remain. | None for Prompt 12 REST concurrency. |
-| Genuine 200% browser zoom | NOT RUN | The accepted 11-project EN/FR visual/Axe matrix is preserved. Chrome for Testing 151 exists, but the supported controller is unavailable and its extension/native host are absent. Exactly two validated prepared users remain under run `934c9c70-818d-4dcd-b9a7-5b7f084d6668`; the mode-`0600` local file and both routes are ready. Previous false zoom evidence remains rejected. | Owner either reinstalls/connects the supported Chrome controller, or returns stable-window 100%/200% measurements plus the four exactly named screenshots. After review only, remove the exact two users and restricted file. Physical-device launch evidence remains Gate C. |
+| Genuine 200% browser zoom | PASS | Regular Chrome `151.0.7922.174`; owner-visible toolbar confirmation; stable `1200 × 879` outer window; CSS and visual viewport reduced from `1200 × 702` to `600 × 351`; four reviewed screenshots; EN/FR profile and moderation interaction review; no horizontal overflow or clipping; visible focus; 44px moderation actions; exact two-user, profile and credential-file cleanup. | None for Prompt 12. Physical-device launch evidence remains Gate C. |
 
-Prompt 12 technical completion: **NO**. REST concurrency now passes, but genuine 200% Chrome-for-Testing zoom
-is NOT RUN. Prompt 13 eligibility: **NO** until the measurements/screenshots are reviewed, the zoom gate passes,
-and only then the exact two zoom users and restricted credential file are removed with zero leftovers.
-Gate B and Gate C restrictions remain unchanged.
+Prompt 12 technical completion: **YES**. Prompt 13 technical eligibility: **YES**, subject to a separate explicit
+owner instruction to begin it. This does not authorize merge, push, deployment, production activation or any
+Gate B/Gate C activity. Gate B and Gate C restrictions remain unchanged.
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;
