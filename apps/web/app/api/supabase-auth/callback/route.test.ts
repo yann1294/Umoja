@@ -35,16 +35,18 @@ describe("Supabase Auth callback", () => {
     );
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
-    expect(info).toHaveBeenCalledWith(
-      "supabase-auth-callback",
-      JSON.stringify({
+    const log = JSON.parse(String(info.mock.calls[0]?.[0]));
+    expect(log).toMatchObject({
+      level: "info",
+      event: "supabase-auth-callback",
+      context: {
         flow: "verification",
         locale: "en",
         codePresent: true,
         exchange: "succeeded",
         finalRoute: "/en/verify-email?verified=1",
-      }),
-    );
+      },
+    });
     info.mockRestore();
   });
 

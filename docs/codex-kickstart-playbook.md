@@ -300,6 +300,21 @@ Do not add new product features, production secrets, analytics, payments, or dep
 Acceptance: lint, typecheck, unit/integration/browser/accessibility tests, active-backend migration/drift/health/integration/RLS-or-permission/Storage security checks, client secret scan, responsive screenshot matrix, and production build all pass; exactly one backend is active and no temporary bootstrap, Supabase secret/service, or deprecated provider credential is present in client or deployed runtime contexts where it is not required; documented manual visual review confirms a coherent branded product with task-oriented layouts and finds no scaffold-like screens, parallel shells, fake controls/metrics, exposed private identities, repeated policy prose, arbitrary empty space, unclear next actions, clipping, broken reflow, inaccessible scrolling, unreachable actions, or unintended overflow; physical testing results are recorded for at least one supported Android phone and one supported iPhone. If physical devices are unavailable, mark public launch blocked and do not claim this acceptance item passed. If no initial administrator with verified MFA exists, mark the private operations preview blocked. No high-severity dependency, migration risk, or free-plan security limitation is left unexplained. Create exactly one commit named "chore: harden platform foundation for preview" only when all automatable checks and the manual visual review pass, and report manual launch gates separately and truthfully.
 ```
 
+### Prompt 13 execution status — 2026-09-01
+
+Prompt 13 is technically complete on `spike/supabase-migration` and ready for a development
+integration review. The implementation adds fail-closed private-preview indexing, production
+security headers/CSP, public metadata, private response controls, structured redacted logs, bounded
+intake parsing, linked type alignment and safe one-project isolation for remote-mutating browser
+suites. Current synthetic baselines were reviewed individually; no Prompt 13 layout or CSS changed,
+so Prompt 12's accepted genuine 200% Chrome evidence remains in force.
+
+The authoritative evidence, operational checklist, Free-plan limitations and proposed
+`spike/supabase-migration` → `develop` sequence are in
+[`docs/prompt13-release-readiness.md`](prompt13-release-readiness.md). Gate B still blocks a private
+operations preview, and Gate C still blocks public production. Do not merge, push, deploy, begin a
+new product slice or activate production from this status entry.
+
 ## Commit map
 
 | Order | Commit | Outcome |

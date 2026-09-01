@@ -32,8 +32,11 @@ const tables = [
 ];
 const counts = {};
 for (const table of tables) {
-  const response = await fetch(`${url}/rest/v1/${table}?select=id&limit=1`, { headers });
-  if (response.status === 404 || response.status === 400) {
+  const response = await fetch(`${url}/rest/v1/${table}?select=*&limit=1`, {
+    method: "HEAD",
+    headers,
+  });
+  if (response.status === 404) {
     counts[table] = "absent";
     continue;
   }
@@ -42,15 +45,31 @@ for (const table of tables) {
 }
 const users = await fetch(`${url}/auth/v1/admin/users?per_page=1`, { headers });
 if (!users.ok) throw new Error(`Unable to inspect users: ${users.status}`);
+const userPage = await users.json();
 const buckets = await fetch(`${url}/storage/v1/bucket`, { headers });
 if (!buckets.ok) throw new Error(`Unable to inspect buckets: ${buckets.status}`);
-const userCount = Number((users.headers.get("content-range") ?? "*/0").split("/").at(-1));
+const userCount = Number(
+  userPage.total ??
+    users.headers.get("x-total-count") ??
+    (users.headers.get("content-range") ?? "*/0").split("/").at(-1),
+);
 const bucketRows = await buckets.json();
+const bucketObjectCounts = {};
+for (const bucket of bucketRows) {
+  const objects = await fetch(`${url}/storage/v1/object/list/${encodeURIComponent(bucket.id)}`, {
+    method: "POST",
+    headers: { ...headers, "content-type": "application/json" },
+    body: JSON.stringify({ prefix: "", limit: 1000, offset: 0 }),
+  });
+  if (!objects.ok) throw new Error(`Unable to inspect bucket objects: ${objects.status}`);
+  bucketObjectCounts[bucket.id] = (await objects.json()).length;
+}
 console.log(
   JSON.stringify({
     projectHost: new URL(url).host,
     users: userCount,
     tableCounts: counts,
     bucketIds: bucketRows.map((bucket) => bucket.id).sort(),
+    bucketObjectCounts,
   }),
 );

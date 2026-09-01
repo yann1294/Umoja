@@ -27,6 +27,7 @@ describe("CMS revalidation boundary", () => {
       }),
     );
     expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("no-store, private");
     expect(revalidateTag).not.toHaveBeenCalled();
   });
 
@@ -42,6 +43,7 @@ describe("CMS revalidation boundary", () => {
       }),
     );
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store, private");
     expect(revalidateTag).toHaveBeenCalledWith("cms:fr:home", { expire: 0 });
     expect(revalidatePath).toHaveBeenCalledWith("/fr");
   });

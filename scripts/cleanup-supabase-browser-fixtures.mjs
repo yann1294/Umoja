@@ -26,6 +26,7 @@ const syntheticPrefixes = [
   "cms-",
   "intake-",
   "lifecycle-",
+  "profile-ui-",
   "project-",
   "spike-",
   "talent-",

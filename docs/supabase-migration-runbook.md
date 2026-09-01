@@ -1,7 +1,8 @@
 # Supabase Migration Spike and Cutover Runbook
 
-Status: accepted remote-only canonical development runtime; Gate A complete; Prompt 12 permitted
-with synthetic/test data; production prohibited
+Status: accepted remote-only canonical development runtime; Prompt 12 technically complete;
+Prompt 13 technically complete and ready for development integration review; Gate B/Gate C and
+production remain prohibited
 Decision authority: `docs/adr/0001-evaluate-supabase-migration.md`
 
 ## 1. Safety boundary
@@ -582,6 +583,52 @@ encryption key or unrelated data was changed.
 Prompt 12 technical completion: **YES**. Prompt 13 technical eligibility: **YES**, subject to a separate explicit
 owner instruction to begin it. This does not authorize merge, push, deployment, production activation or any
 Gate B/Gate C activity. Gate B and Gate C restrictions remain unchanged.
+
+## Prompt 13 hardening evidence — 2026-09-01
+
+Prompt 13 technical completion: **YES**. Development integration review readiness: **YES**. This
+does not satisfy Gate B or Gate C and does not authorize a merge, push, deployment, external service
+change or production activation. The operational checklist and exact integration sequence are in
+[`docs/prompt13-release-readiness.md`](prompt13-release-readiness.md).
+
+- Supabase remains the sole active runtime. No Appwrite import, dependency or environment
+  requirement exists in `apps/web`; retained Appwrite packages, tests and runbooks remain rollback
+  history.
+- The private-preview build now sends CSP, permissions, referrer, MIME, framing and indexing
+  headers. Indexing is disabled unless `UMOJA_PUBLIC_INDEXING=enabled`; protected responses remain
+  private/no-store/noindex independently.
+- Public metadata now includes canonical EN/FR/`x-default` alternates and Open Graph fields.
+  Structured server logs redact sensitive keys, token-shaped values, contacts and raw error details.
+- Intake and CMS mutation errors are non-cacheable/private, and declared intake payload size is
+  bounded before multipart parsing.
+- Linked migration history matched all 31 committed migrations, linked database lint returned no
+  schema errors, and regenerated types removed only the obsolete `moderate_profile` overload already
+  removed by Prompt 12 migration `20260831132500`.
+- Remote policy smoke, role-policy matrix, CMS/Storage matrix, Auth lifecycle and the isolated
+  authenticated CMS/intake/profile browser suites passed. A recovery export checksum passed and its
+  mode-0600 temporary artifact was removed.
+- The client bundle scan found zero configured secret values or privileged variable names in 30
+  generated static files. The production dependency audit found no known vulnerabilities.
+- The complete responsive browser command exposed a pre-existing harness collision: the remote
+  profile lifecycle was running once per viewport against shared development state. It is now
+  restricted to `width-1280`, like the other remote-mutating suites. Twenty-two stale synthetic
+  baselines were individually reviewed and updated for the already-accepted unified profile
+  navigation; no Prompt 13 layout code changed.
+- The final `CI=true pnpm test:e2e` run completed with 165 passing and 220 intentionally skipped
+  cases. The contact retry fixture now uses a worker/retry-specific synthetic address and masks that
+  variable value in its reviewed screenshot; no production contact behavior changed.
+- Final exact cleanup removed two `profile-ui-*@example.test` users left by that collision. Aggregate
+  readback then showed one preserved non-synthetic Auth user, one role/membership row, zero profile,
+  private-detail, profile-skill, portfolio, availability, intake or CMS fixture rows, and eight total
+  `cms-private` objects. No unknown or quarantined object was deleted or inspected by name.
+- Chrome extension control rendered the production English public page and French sign-in page with
+  no console warning/error. Prompt 12's accepted Chrome 151 genuine-zoom evidence remains applicable
+  because Prompt 13 changed no layout or CSS.
+
+The selected development region is `ap-southeast-2` (Sydney). Current Free-plan quota, pausing,
+backup, encryption rotation/recovery, retention, Appwrite decommission-window and physical-device
+requirements are recorded in the Prompt 13 readiness checklist. Gate B/C restrictions below remain
+unchanged.
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
 - manually complete all six English/French verification, invitation, and recovery inbox flows;

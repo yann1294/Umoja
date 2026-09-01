@@ -306,7 +306,9 @@ test("preserves contact entries through network and duplicate responses", async 
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "width-1280", "One project verifies mock response states.");
-  const email = "contact-journey@example.com";
+  // The mock adapter remembers addresses for the life of the production server. Keep retries
+  // independent while still proving a duplicate within each attempt.
+  const email = `contact-journey-${testInfo.workerIndex}-${testInfo.retry}@example.com`;
   await page.goto("/en/contact", { waitUntil: "domcontentloaded" });
   await hideOffscreenSkipLinkForCapture(page);
   await fillContact(page, email);
@@ -324,7 +326,10 @@ test("preserves contact entries through network and duplicate responses", async 
   await confirmContact(page);
   await expect(page.locator('[data-submission-state="duplicate"]')).toBeVisible();
   await expectNoPageHorizontalOverflow(page);
-  await expectDeterministicScreenshot(page, "contact-intake-duplicate-en.png");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expectDeterministicScreenshot(page, "contact-intake-duplicate-en.png", undefined, [
+    page.getByText(email, { exact: true }),
+  ]);
 });
 
 async function fillContact(page: Page, email: string) {

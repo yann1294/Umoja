@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { getSupabaseEnvironment } from "./env";
+import { logInfo } from "@/lib/observability/structured-log";
 
 const localeSchema = z.enum(["en", "fr"]);
 const flowSchema = z.enum(["verification", "invite", "recovery"]);
@@ -86,5 +87,5 @@ export function logSupabaseAuthCallbackOutcome(input: {
   exchange: "not-attempted" | "succeeded" | "failed";
   finalRoute: string | "none";
 }) {
-  console.info("supabase-auth-callback", JSON.stringify(input));
+  logInfo("supabase-auth-callback", input);
 }

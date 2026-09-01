@@ -34,6 +34,7 @@ export default defineConfig({
             "**/supabase-cms-auth.spec.ts",
             "**/supabase-cms-media-policy.spec.ts",
             "**/supabase-intake-runtime.spec.ts",
+            "**/supabase-profile-lifecycle.spec.ts",
           ],
   })),
   webServer: {

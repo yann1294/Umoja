@@ -63,4 +63,36 @@ describe("atomic public intake route", () => {
     expect(submitMockIntake).toHaveBeenCalledOnce();
     expect(persistSupabasePublicIntake).not.toHaveBeenCalled();
   });
+
+  it("rejects oversized requests before parsing or persistence", async () => {
+    const request = {
+      headers: new Headers({
+        "content-length": "31000001",
+        "content-type": "multipart/form-data; boundary=synthetic",
+      }),
+      formData: vi.fn(),
+    } as unknown as Request;
+    const response = await POST(request, {
+      params: Promise.resolve({ kind: "project" }),
+    });
+    expect(response.status).toBe(413);
+    expect(response.headers.get("cache-control")).toBe("no-store, private");
+    expect(request.formData).not.toHaveBeenCalled();
+    expect(persistSupabasePublicIntake).not.toHaveBeenCalled();
+  });
+
+  it("marks failure responses private and non-cacheable", async () => {
+    const response = await POST(
+      {
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => {
+          throw new Error("synthetic parse failure");
+        },
+      } as unknown as Request,
+      { params: Promise.resolve({ kind: "talent" }) },
+    );
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store, private");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+  });
 });
