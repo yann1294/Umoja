@@ -59,8 +59,55 @@ const projectStepSchemas = [
   }),
 ] as const;
 
-export function IntakeJourney({ copy, kind }: Readonly<{ copy: IntakeCopy; kind: IntakeKind }>) {
-  const section = copy[kind];
+export function IntakeJourney({
+  copy,
+  kind,
+  locale,
+}: Readonly<{ copy: IntakeCopy; kind: IntakeKind; locale: "en" | "fr" }>) {
+  const persisted = kind !== "contact";
+  const french = locale === "fr";
+  const activeCopy: IntakeCopy = persisted
+    ? {
+        ...copy,
+        common: {
+          ...copy.common,
+          submit: french ? "Envoyer en toute sécurité" : "Submit securely",
+          confirmTitle: french ? "Envoyer cette demande ?" : "Send this submission?",
+          confirmBody: french
+            ? "Umoja chiffrera et conservera cette demande pour un examen autorisé."
+            : "Umoja will encrypt and retain this submission for authorized review.",
+          confirm: french ? "Confirmer l’envoi" : "Confirm submission",
+          successTitle: french ? "Demande reçue." : "Submission received.",
+          successBody: french
+            ? "Votre demande est conservée de façon sécurisée. Umoja vous contactera. Aucun accès candidat ni lien de réclamation n’est disponible pour le moment."
+            : "Your submission is stored securely. Umoja will contact you. Applicant read-back and claim links are not available yet.",
+          duplicateTitle: french
+            ? "Cette demande semble déjà reçue."
+            : "This submission appears to be a duplicate.",
+          duplicateBody: french
+            ? "Aucune seconde copie n’a été créée. Umoja utilisera la demande déjà reçue."
+            : "No second copy was created. Umoja will use the submission already received.",
+          networkTitle: french ? "L’envoi n’a pas abouti." : "The submission could not be sent.",
+          reference: french ? "Référence de la demande" : "Submission reference",
+        },
+        project: {
+          ...copy.project,
+          intro: french
+            ? "Partagez le contexte nécessaire à un premier examen responsable. Les données sensibles et les fichiers sont chiffrés avant stockage."
+            : "Share enough context for a responsible first review. Sensitive data and files are encrypted before storage.",
+          filesHint: french
+            ? "Jusqu’à trois fichiers, 10 Mo chacun. Les fichiers sont chiffrés et restent en quarantaine jusqu’à une analyse antimalware réelle."
+            : "Up to three files, 10 MB each. Files are encrypted and remain quarantined until a real malware scan completes.",
+        },
+        talent: {
+          ...copy.talent,
+          intro: french
+            ? "Cette candidature privée reste distincte de toute visibilité publique facultative."
+            : "This private application remains separate from optional public-profile visibility.",
+        },
+      }
+    : copy;
+  const section = activeCopy[kind];
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="intake-title">
@@ -71,21 +118,23 @@ export function IntakeJourney({ copy, kind }: Readonly<{ copy: IntakeCopy; kind:
               <h1 id="intake-title">{section.title}</h1>
               <p className={styles.heroDescription}>{section.intro}</p>
             </div>
-            {kind === "contact" ? <div className={styles.mockNotice} role="status">
-              <span className={styles.noticeIcon} aria-hidden="true">
-                i
-              </span>
-              <p>{copy.common.mock}</p>
-            </div> : null}
+            {kind === "contact" ? (
+              <div className={styles.mockNotice} role="status">
+                <span className={styles.noticeIcon} aria-hidden="true">
+                  i
+                </span>
+                <p>{activeCopy.common.mock}</p>
+              </div>
+            ) : null}
           </div>
         </Container>
       </section>
       {kind === "project" ? (
-        <ProjectJourney copy={copy} />
+        <ProjectJourney copy={activeCopy} />
       ) : kind === "talent" ? (
-        <TalentJourney copy={copy} />
+        <TalentJourney copy={activeCopy} />
       ) : (
-        <ContactJourney copy={copy} />
+        <ContactJourney copy={activeCopy} />
       )}
     </div>
   );
@@ -382,11 +431,25 @@ function ReviewSections({
   );
 }
 
-async function send(kind: IntakeKind, payload: unknown): Promise<IntakeSubmissionResult> {
+async function send(
+  kind: IntakeKind,
+  payload: unknown,
+  files: readonly File[] = [],
+): Promise<IntakeSubmissionResult> {
+  const multipart = kind !== "contact";
+  const body = multipart ? new FormData() : JSON.stringify(payload);
+  if (body instanceof FormData) {
+    body.set("payload", JSON.stringify(payload));
+    body.set("website", "");
+    files.forEach((file) => body.append("files", file));
+  }
   const response = await fetch(`/api/intake/${kind}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-umoja-locale": document.documentElement.lang === "fr" ? "fr" : "en" },
-    body: JSON.stringify(payload),
+    headers: {
+      ...(multipart ? {} : { "Content-Type": "application/json" }),
+      "x-umoja-locale": document.documentElement.lang === "fr" ? "fr" : "en",
+    },
+    body,
   });
   const result = (await response.json()) as IntakeSubmissionResult;
   if (!response.ok && result.status !== "duplicate" && result.status !== "validation_error")
@@ -507,14 +570,18 @@ function ConfirmDialog({
   );
 }
 
-function useJourneySubmit<T extends FieldValues>(kind: IntakeKind, form: UseFormReturn<T>) {
+function useJourneySubmit<T extends FieldValues>(
+  kind: IntakeKind,
+  form: UseFormReturn<T>,
+  files: readonly File[] = [],
+) {
   const [status, setStatus] = useState<Status>("idle");
   const [reference, setReference] = useState("");
   const [dialog, setDialog] = useState(false);
   const submit = form.handleSubmit(async (data) => {
     setStatus("loading");
     try {
-      const result = await send(kind, data);
+      const result = await send(kind, data, files);
       setDialog(false);
       if (result.status === "success") {
         setReference(result.reference);
@@ -548,7 +615,8 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
-  const submission = useJourneySubmit("project", form);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const submission = useJourneySubmit("project", form, selectedFiles);
   const e = form.formState.errors;
   const fields: FieldPath<ProjectIntake>[][] = [
     ["contact.preferredName", "contact.email", "contact.phone"],
@@ -784,9 +852,13 @@ function ProjectJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
                   hint={c.filesHint}
                   multiple
                   onChange={(event) => {
-                    const files = Array.from(event.target.files ?? []).map<IntakeFileMetadata>(
-                      (file) => ({ name: file.name, mimeType: file.type, size: file.size }),
-                    );
+                    const selected = Array.from(event.target.files ?? []);
+                    setSelectedFiles(selected);
+                    const files = selected.map<IntakeFileMetadata>((file) => ({
+                      name: file.name,
+                      mimeType: file.type,
+                      size: file.size,
+                    }));
                     form.setValue("attachments", files, { shouldValidate: true });
                   }}
                   error={errorText(e.attachments, copy.common)}
@@ -896,7 +968,8 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
-  const submission = useJourneySubmit("talent", form);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const submission = useJourneySubmit("talent", form, selectedFiles);
   const e = form.formState.errors;
   const fields: FieldPath<TalentIntake>[][] = [
     ["preferredName", "privateContact.email", "privateContact.phone", "country", "timezone"],
@@ -1130,6 +1203,24 @@ function TalentJourney({ copy }: Readonly<{ copy: IntakeCopy }>) {
                 {copy.common.addPortfolio}
               </Button>
             ) : null}
+            <div className={styles.wide}>
+              <FileField
+                id="talent-files"
+                label={copy.project.files}
+                hint={copy.project.filesHint}
+                multiple
+                onChange={(event) => setSelectedFiles(Array.from(event.target.files ?? []))}
+              />
+              {selectedFiles.length ? (
+                <ul className={styles.fileList}>
+                  {selectedFiles.map((file) => (
+                    <li key={`${file.name}-${file.size}`}>
+                      {file.name} — {Math.ceil(file.size / 1024)} KB
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           </>
         )}
         {step === 3 && (

@@ -10,13 +10,13 @@ export default async function RecoverPasswordPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ userId?: string; secret?: string }>;
+  searchParams: Promise<{ recovery?: string; state?: string }>;
 }) {
   const { locale } = await params;
-  const { userId = "", secret = "" } = await searchParams;
+  const { recovery, state } = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
   const french = locale === "fr";
-  const valid = Boolean(userId && secret);
+  const valid = recovery === "1" && state !== "invalid";
   return (
     <section className="auth-page" aria-labelledby="recovery-confirm-title">
       <Container size="narrow">
@@ -25,7 +25,7 @@ export default async function RecoverPasswordPage({
             {french ? "Choisir un nouveau mot de passe" : "Choose a new password"}
           </h1>
           {valid ? (
-            <RecoveryConfirmForm locale={locale} userId={userId} secret={secret} />
+            <RecoveryConfirmForm locale={locale} />
           ) : (
             <>
               <div className="auth-error" role="alert">

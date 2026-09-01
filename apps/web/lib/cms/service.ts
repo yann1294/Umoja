@@ -1,41 +1,35 @@
 import "server-only";
 
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
-import { resolvePublishedPage, type CmsLocale, type CmsPage } from "@umoja/appwrite/cms";
-import { createRuntimeServices } from "@/lib/appwrite/admin";
-import { AppwriteCmsRepository } from "./repository";
+import { resolvePublishedPage, type CmsLocale, type CmsPage } from "./domain";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
+import { SupabaseCmsRepository } from "./supabase-repository";
 
 export type StaticCmsFallback = Readonly<Record<string, CmsPage>>;
 
 const lastKnownPublished = new Map<string, CmsPage | null>();
 
-export async function getPublishedCmsPage(
+export async function createSupabaseCmsEditorRepository() {
+  return new SupabaseCmsRepository(await createSupabaseServerClient(), async (page) => {
+    revalidateTag(`cms:${page.locale}:${page.slug}`, "max");
+    revalidatePath(page.slug === "home" ? `/${page.locale}` : `/${page.locale}/${page.slug}`);
+  });
+}
+
+export async function getSupabasePublishedCmsPage(
   locale: CmsLocale,
   slug: string,
   fallback: StaticCmsFallback = {},
 ) {
   const key = `${locale}:${slug}`;
+  const tag = `cms:${locale}:${slug}`;
   const read = unstable_cache(
-    async () =>
-      new AppwriteCmsRepository(createRuntimeServices().tables).getPublished(locale, slug),
-    ["cms-published", locale, slug],
-    { revalidate: 300, tags: [`cms:${locale}:${slug}`] },
+    async () => new SupabaseCmsRepository(createSupabasePublicClient()).getPublished(locale, slug),
+    ["supabase-cms-published", locale, slug],
+    { revalidate: 300, tags: [tag] },
   );
-
   return resolvePublishedPage(key, read, lastKnownPublished, fallback[key] ?? null);
-}
-
-export function createCmsEditorRepository(
-  tables: ConstructorParameters<typeof AppwriteCmsRepository>[0],
-) {
-  return new AppwriteCmsRepository(
-    tables,
-    async (page) => {
-      revalidateTag(`cms:${page.locale}:${page.slug}`, "max");
-      revalidatePath(page.slug === "home" ? `/${page.locale}` : `/${page.locale}/${page.slug}`);
-    },
-    createRuntimeServices().tables,
-  );
 }
 
 export function cmsField(page: CmsPage | null, key: string, fallback: string) {

@@ -14,7 +14,16 @@ export function publicMetadata(
     description,
     alternates: {
       canonical: `/${locale}${suffix}`,
-      languages: { en: `/en${suffix}`, fr: `/fr${suffix}` },
+      languages: { en: `/en${suffix}`, fr: `/fr${suffix}`, "x-default": `/en${suffix}` },
+    },
+    openGraph: {
+      type: "website",
+      locale: locale === "fr" ? "fr_FR" : "en_GB",
+      alternateLocale: locale === "fr" ? ["en_GB"] : ["fr_FR"],
+      siteName: "Umoja",
+      title,
+      description,
+      url: `/${locale}${suffix}`,
     },
   };
 }

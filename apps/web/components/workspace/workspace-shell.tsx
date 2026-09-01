@@ -1,20 +1,39 @@
-import type { UmojaCapability } from "@umoja/appwrite";
 import type { ReactNode } from "react";
 
-import { canUseWorkspaceCapability, type WorkspaceUser } from "@/lib/appwrite/auth";
+import { rolesHaveCapability, type UmojaCapability, type UmojaRole } from "@/lib/auth/policy";
+
 import { AuthenticatedShell } from "./authenticated-shell";
 import "./workspace-shell.css";
 
 export type WorkspaceNavigationItem = Readonly<{
-  href: "/workspace" | "/admin" | "/admin/content" | "/admin/intake";
+  href:
+    | "/workspace"
+    | "/workspace/profile"
+    | "/workspace/skills"
+    | "/workspace/portfolio"
+    | "/workspace/availability"
+    | "/admin"
+    | "/admin/content"
+    | "/admin/intake"
+    | "/admin/profiles";
   label: string;
   section: "workspace" | "administration";
 }>;
 
 type CandidateNavigationItem = WorkspaceNavigationItem & Readonly<{ capability: UmojaCapability }>;
 
+/** Canonical shell shape shared by protected Umoja route groups. */
+export type WorkspaceShellUser = Readonly<{
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  mfaEnabled: boolean;
+  roles: readonly UmojaRole[];
+}>;
+
 export function getWorkspaceNavigation(
-  user: WorkspaceUser,
+  user: WorkspaceShellUser,
   locale: "en" | "fr",
 ): readonly WorkspaceNavigationItem[] {
   const french = locale === "fr";
@@ -22,6 +41,30 @@ export function getWorkspaceNavigation(
     {
       href: "/workspace",
       label: french ? "Vue d’ensemble" : "Overview",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/profile",
+      label: french ? "Profil" : "Profile",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/skills",
+      label: french ? "Compétences" : "Skills",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/portfolio",
+      label: french ? "Portfolio" : "Portfolio",
+      section: "workspace",
+      capability: "workspace.access",
+    },
+    {
+      href: "/workspace/availability",
+      label: french ? "Disponibilité" : "Availability",
       section: "workspace",
       capability: "workspace.access",
     },
@@ -38,6 +81,12 @@ export function getWorkspaceNavigation(
       capability: "intake.review",
     },
     {
+      href: "/admin/profiles",
+      label: french ? "Profils publics" : "Public profiles",
+      section: "administration",
+      capability: "admin.operations",
+    },
+    {
       href: "/admin/content",
       label: french ? "Contenu public" : "Public content",
       section: "administration",
@@ -46,7 +95,9 @@ export function getWorkspaceNavigation(
   ];
 
   return candidates
-    .filter((item) => canUseWorkspaceCapability(user, item.capability))
+    .filter(
+      (item) => item.section === "workspace" || rolesHaveCapability(user.roles, item.capability),
+    )
     .map(({ href, label, section }) => ({ href, label, section }));
 }
 
@@ -58,10 +109,18 @@ export function WorkspaceShell({
   user,
 }: Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "content"
+    | "intake";
   locale: "en" | "fr";
   sessionState?: "active" | "stale";
-  user: WorkspaceUser;
+  user: WorkspaceShellUser;
 }>) {
   return (
     <AuthenticatedShell

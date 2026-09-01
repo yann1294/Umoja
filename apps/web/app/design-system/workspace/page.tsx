@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import type { UmojaRole } from "@umoja/appwrite";
+import type { UmojaRole } from "@/lib/auth/policy";
 
-import { AdminOverview, WorkspaceOverview } from "@/components/workspace/workspace-overviews";
-import { WorkspaceShell } from "@/components/workspace/workspace-shell";
+import { AdminOverview } from "@/components/workspace/workspace-overviews";
+import { WorkspaceShell, type WorkspaceShellUser } from "@/components/workspace/workspace-shell";
 import "../../[locale]/admin/content/content.css";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +47,7 @@ export default async function WorkspaceFixturePage({
         ? ["admin", "cms-editor"]
         : ["reviewer", "project-manager"];
   const user = {
-    id: "visual-fixture-only",
+    id: "00000000-0000-4000-8000-000000000001",
     name:
       query.state === "missing-name"
         ? ""
@@ -78,9 +78,100 @@ export default async function WorkspaceFixturePage({
       ) : admin ? (
         <AdminOverview locale={locale} user={user} />
       ) : (
-        <WorkspaceOverview locale={locale} user={user} />
+        <FixtureWorkspaceOverview locale={locale} user={user} />
       )}
     </WorkspaceShell>
+  );
+}
+
+function FixtureWorkspaceOverview({
+  locale,
+  user,
+}: Readonly<{ locale: "en" | "fr"; user: WorkspaceShellUser }>) {
+  const french = locale === "fr";
+  const cards = [
+    [
+      french ? "Votre profil" : "Your profile",
+      french ? "Commencer votre profil" : "Start your profile",
+      `/${locale}/workspace/profile`,
+    ],
+    [
+      french ? "Compétences et langues" : "Skills and languages",
+      french ? "Aucune compétence ajoutée" : "No skills added yet",
+      `/${locale}/workspace/skills`,
+    ],
+    [
+      french ? "Disponibilité" : "Availability",
+      french ? "Confirmation requise" : "Confirmation needed",
+      `/${locale}/workspace/availability`,
+    ],
+    [
+      french ? "Portfolio" : "Portfolio",
+      french
+        ? "Ajoutez des métadonnées et des liens sûrs."
+        : "Add safe metadata and external links.",
+      `/${locale}/workspace/portfolio`,
+    ],
+  ] as const;
+  return (
+    <>
+      <header className="workspace-page-header">
+        <div>
+          <p className="workspace-eyebrow">{french ? "Votre espace" : "Your workspace"}</p>
+          <h1>{french ? `Bonjour, ${user.name}` : `Welcome, ${user.name}`}</h1>
+          <p className="workspace-page-summary">
+            {french
+              ? "Retrouvez les espaces de travail accessibles avec votre rôle Umoja."
+              : "Find the work areas available to your Umoja role."}
+          </p>
+        </div>
+      </header>
+      <section className="workspace-section" aria-labelledby="fixture-destinations-heading">
+        <div className="workspace-section-heading">
+          <h2 id="fixture-destinations-heading">
+            {french ? "Espaces disponibles" : "Available work areas"}
+          </h2>
+          <p>{french ? "Selon vos accès actuels" : "Based on your current access"}</p>
+        </div>
+        <div className="workspace-grid">
+          {cards.map(([title, description, href]) => (
+            <article className="workspace-panel" data-actionable key={title}>
+              <h3>
+                <a className="workspace-panel-link" href={href}>
+                  {title}
+                </a>
+              </h3>
+              <p>{description}</p>
+              <span className="workspace-panel-status">{french ? "Gérer" : "Manage"} →</span>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section
+        className="workspace-section workspace-readiness"
+        aria-label={french ? "Accès et préparation du compte" : "Access and account readiness"}
+      >
+        <div className="workspace-access-panel">
+          <h2>{french ? "Vos accès" : "Your access"}</h2>
+          <ul className="workspace-access-list">
+            <li>
+              <span>{french ? "Rôles actifs" : "Active roles"}</span>
+              <strong>{user.roles.join(", ")}</strong>
+            </li>
+            <li>
+              <span>{french ? "Adresse vérifiée" : "Verified address"}</span>
+              <strong>{french ? "Oui" : "Yes"}</strong>
+            </li>
+            <li>
+              <span>{french ? "Sécurité du compte" : "Account security"}</span>
+              <strong>
+                {user.mfaEnabled ? "MFA active" : french ? "MFA à configurer" : "MFA needs setup"}
+              </strong>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </>
   );
 }
 

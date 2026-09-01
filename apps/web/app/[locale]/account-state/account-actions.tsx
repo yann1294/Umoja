@@ -17,7 +17,7 @@ export function AccountActions({
     setPending("verification");
     setMessage("");
     try {
-      const response = await fetch("/api/auth/verification", {
+      const response = await fetch("/api/supabase-auth/verification", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ locale }),
@@ -42,7 +42,7 @@ export function AccountActions({
   async function signOut() {
     setPending("sign-out");
     try {
-      await fetch("/api/auth/sign-out", { method: "POST" });
+      await fetch("/api/supabase-auth/sign-out", { method: "POST" });
     } finally {
       router.replace(`/${locale}/sign-in`);
       router.refresh();

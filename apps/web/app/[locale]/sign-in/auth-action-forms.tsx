@@ -16,7 +16,7 @@ export function RecoveryRequestForm({ locale }: LocaleProps) {
     setPending(true);
     const data = new FormData(event.currentTarget);
     try {
-      await fetch("/api/auth/recovery", {
+      await fetch("/api/supabase-auth/recovery", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: data.get("email"), locale }),
@@ -58,11 +58,7 @@ export function RecoveryRequestForm({ locale }: LocaleProps) {
   );
 }
 
-export function RecoveryConfirmForm({
-  locale,
-  secret,
-  userId,
-}: LocaleProps & Readonly<{ secret: string; userId: string }>) {
+export function RecoveryConfirmForm({ locale }: LocaleProps) {
   const french = locale === "fr";
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -74,10 +70,10 @@ export function RecoveryConfirmForm({
     setError("");
     const password = new FormData(event.currentTarget).get("password");
     try {
-      const response = await fetch("/api/auth/recovery/confirm", {
+      const response = await fetch("/api/supabase-auth/recovery/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ userId, secret, password }),
+        body: JSON.stringify({ password }),
       });
       if (!response.ok) throw new Error("recovery");
       router.replace(`/${locale}/sign-in`);
@@ -115,6 +111,58 @@ export function RecoveryConfirmForm({
       />
       <Button type="submit" loading={pending} loadingLabel={french ? "Mise à jour…" : "Updating…"}>
         {french ? "Mettre à jour" : "Update password"}
+      </Button>
+    </form>
+  );
+}
+
+export function InvitationPasswordForm({ locale }: LocaleProps) {
+  const french = locale === "fr";
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+    const password = new FormData(event.currentTarget).get("password");
+    try {
+      const response = await fetch("/api/supabase-auth/invite/accept", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (!response.ok) throw new Error("invite");
+      router.replace(`/${locale}/workspace`);
+      router.refresh();
+    } catch {
+      setError(
+        french
+          ? "Cette invitation est invalide, expirée ou déjà utilisée."
+          : "This invitation is invalid, expired, or already used.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+  return (
+    <form className="auth-form" onSubmit={submit}>
+      {error ? (
+        <div className="auth-error" role="alert">
+          {error}
+        </div>
+      ) : null}
+      <TextField
+        id="invite-password"
+        name="password"
+        type="password"
+        autoComplete="new-password"
+        minLength={12}
+        required
+        label={french ? "Choisir un mot de passe" : "Choose a password"}
+      />
+      <Button type="submit" loading={pending} loadingLabel={french ? "Activation…" : "Activating…"}>
+        {french ? "Activer le compte" : "Activate account"}
       </Button>
     </form>
   );

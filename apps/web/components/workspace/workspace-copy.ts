@@ -1,4 +1,4 @@
-import type { UmojaRole } from "@umoja/appwrite";
+import type { UmojaRole } from "@/lib/auth/policy";
 
 export const roleLabels: Readonly<Record<UmojaRole, { en: string; fr: string }>> = {
   admin: { en: "Operations administrator", fr: "Administration des opérations" },

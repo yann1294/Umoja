@@ -213,6 +213,26 @@ Even Core members should receive full access only to projects on which they are 
 
 Acceptance should never be a single checkbox. Store the assessment and who approved it.
 
+### Public intake ownership and review semantics
+
+Project and talent intake remain publicly accessible without authentication. A new anonymous
+submission has no account owner and no applicant-readable access. Umoja must never infer ownership
+from an email address, encrypted email, email blind index, submission reference, or another value
+provided by the applicant.
+
+A future account may claim a submission only through a cryptographically random, expiring,
+single-use capability bound to the submission, intake kind, intended recipient, and verified user.
+Until English and French verification, invitation, and recovery email delivery/exchange are proven,
+rendered production paths must not issue claim links or expose applicant read-back. The confirmation
+may show a non-secret submission reference and state that Umoja will contact the applicant.
+
+Operational review may triage, request information, qualify or shortlist where the implemented
+workflow supports those meanings, decline, or record withdrawal. The persisted `accepted` state is
+reserved for a future governance/commercial approval capability. Reviewers and operations
+administrators must not expose or apply it, and an intake review decision is not project acceptance.
+Existing stored states remain stable until an additive, reviewed workflow migration defines any new
+vocabulary and its compatibility mapping.
+
 ### B. Extended-to-Core progression
 
 1. Applicant creates a private profile and consents to data use.
@@ -381,6 +401,16 @@ Appwrite native encrypted database columns are unavailable on the current free p
 Public CMS content and approved operational metadata remain queryable plaintext because they are not classified secrets. Decryption of sensitive fields or files occurs only after server-side authentication and authorization. Private files are application-encrypted even when provider-native bucket encryption is enabled, and are delivered only through authorized server download/decryption routes—never public Appwrite URLs or previews.
 
 Infrastructure is defined in version-controlled Appwrite configuration and provisioned additively with validation, drift, health, integration, read-back, and permission-filtered checks. Long-lived runtime and SSR keys are least-privilege server secrets. Schema changes use a separately scoped, short-lived bootstrap key that is removed after verified provisioning. Future profile/workspace tables require a new approved additive migration; `talent_intakes` must not become a permanent profile database merely to avoid a schema change.
+
+### Backend decision checkpoint after Prompt 11
+
+The existing Appwrite implementation remains valid and recoverable, but Phase 12 is the point at which the domain becomes substantially more relational. A proposed migration spike is recorded in `docs/adr/0001-evaluate-supabase-migration.md` and `docs/supabase-migration-runbook.md`.
+
+Do not justify a migration with the claim that Appwrite Free categorically disables uploads. As checked on 2026-08-26, Appwrite lists 2 GB Storage and a 50 MB file-size limit on Free; its billing documentation says uploads are disabled after the Storage resource limit is reached. The missing bootstrap key is intentionally removable/recreatable for an approved schema operation. Verify actual usage and a real upload response before treating Storage as blocked.
+
+Supabase is nevertheless a strong candidate for Umoja's future relational model because Postgres foreign keys, constraints, migrations, RLS, and Storage policies map directly to profiles, skills, availability, organizations, projects, nested modules, dependencies, assignments, deliverables, and audit records. Supabase Free is still pre-production infrastructure: it currently lists 500 MB database size, 1 GB file Storage, a 50 MB maximum upload setting, and project pausing after one week of inactivity.
+
+Evaluate Supabase on a dedicated branch while leaving Appwrite Cloud unchanged. Do not operate a permanent hybrid with Appwrite Auth/data and Supabase files. If Supabase is accepted, migrate Auth, data, and Storage together; preserve application AES-256-GCM/HMAC protection; separate public CMS, private CMS, and applicant files; and make SQL migrations plus RLS tests the source of truth. Until the ADR acceptance gates pass, Appwrite remains the accepted runtime architecture.
 
 ### Deployment
 
@@ -612,9 +642,9 @@ Exit: repeatable commercial operations across approved jurisdictions.
 
 - Initialize monorepo, checks, preview deployments, environment validation, and architecture decisions.
 - Implement design tokens, typography, responsive shell, bilingual routing, metadata, and accessibility checks.
-- Configure Appwrite environments via repeatable additive scripts with validation, drift, health, integration, read-back, and permission-filtered checks; never configure production only by clicking in a console.
-- Build separate browser, per-request session, SSR, runtime-admin, and temporary-bootstrap Appwrite clients; keep every privileged key server-only and remove bootstrap keys after verified schema operations.
-- Maintain the free-plan `cms_media` shared-bucket aliases and strict per-file sensitivity boundaries until an approved migration to separate buckets is available.
+- Keep Appwrite as the accepted runtime until ADR 0001's Supabase acceptance gates pass. Configure the active backend from version-controlled migrations or additive provisioning with validation, schema-history/drift, health, integration, read-back, and authorization-policy checks; never configure production only by clicking in a console.
+- Keep browser-safe and privileged clients separate. Use per-request server sessions, keep every privileged key server-only, and remove temporary bootstrap credentials after verified schema operations. If Supabase is accepted, use its supported Next.js SSR cookie flow and make RLS plus grants the data-access authority.
+- On Appwrite Free, maintain the `cms_media` shared-bucket aliases and strict per-file sensitivity boundaries. If Supabase is accepted, replace that exception with separate public CMS, private CMS, and applicant buckets protected by explicit Storage RLS policies. Never run Appwrite Auth/data with Supabase files as the permanent architecture.
 - Build versioned AES-256-GCM data/file encryption, independent HMAC blind indexes, authorization policies, digest-only audit helpers, key-rotation documentation, and deterministic test fixtures.
 
 ### Public release
@@ -646,9 +676,9 @@ These are organizational decisions, not software questions:
 8. Which two service categories and countries are the launch focus?
 9. Which historical projects have client permission to appear publicly?
 10. Who owns English/French content quality and operational data quality?
-11. Which production Appwrite region and plan satisfy the approved latency, residency, backup, quota, and support requirements? The current `syd` project is a development baseline only.
-12. At what risk or scale threshold must Umoja replace the shared free-plan bucket with separate buckets by sensitivity?
-13. Who is accountable for encryption-key generation, independent backup, access review, rotation, incident response, and recovery testing?
+11. Which production backend, region, and plan satisfy the approved relational-model, latency, residency, backup, quota, and support requirements? Appwrite `syd` is the current development baseline; Supabase remains a proposed migration until its ADR gates pass.
+12. If Appwrite remains active, at what risk or scale threshold must Umoja replace the shared free-plan bucket with separate buckets by sensitivity? If Supabase is accepted, which separate bucket policy is the approved equivalent?
+13. Who is accountable for encryption-key generation, independent backup, access review, rotation, incident response, and recovery testing across any backend migration?
 
 ## 18. Recommendation in one sentence
 
@@ -659,3 +689,6 @@ Launch Umoja as a **curated pan-African delivery collective with a private modul
 - AfricaWork demonstrates the value of clear employer/candidate paths and country coverage: https://www.africawork.com/fr/executive-search
 - i-kiotahub demonstrates a regional innovation and learning ecosystem, although its current website appears compromised by unrelated spam links and should not be used as a technical or security model: https://ikiotahub.com/
 - Appwrite product documentation: https://appwrite.io/docs/products/auth, https://appwrite.io/docs/products/databases, https://appwrite.io/docs/products/storage, https://appwrite.io/docs/products/functions
+- Appwrite Free-plan limits and pricing: https://appwrite.io/docs/advanced/billing/free, https://appwrite.io/pricing
+- Supabase pricing and Storage upload limits: https://supabase.com/pricing, https://supabase.com/docs/guides/storage/uploads/file-limits
+- Supabase RLS, Storage access control, Next.js SSR Auth, and migrations: https://supabase.com/docs/guides/database/postgres/row-level-security, https://supabase.com/docs/guides/storage/security/access-control, https://supabase.com/docs/guides/auth/server-side, https://supabase.com/docs/guides/local-development/database-migrations

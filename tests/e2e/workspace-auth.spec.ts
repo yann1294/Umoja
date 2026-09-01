@@ -49,7 +49,7 @@ test("workspace route is protected on the server", async ({ page }, testInfo) =>
     "A single project verifies the server redirect.",
   );
   await page.goto("/en/workspace");
-  await expect(page).toHaveURL(/\/en\/sign-in$/);
+  await expect(page).toHaveURL(/\/en\/sign-in\?next=%2Fen%2Fworkspace$/);
 });
 
 test("admin route is protected on the server", async ({ page }, testInfo) => {
@@ -58,7 +58,7 @@ test("admin route is protected on the server", async ({ page }, testInfo) => {
     "A single project verifies the server redirect.",
   );
   await page.goto("/en/admin");
-  await expect(page).toHaveURL(/\/en\/sign-in$/);
+  await expect(page).toHaveURL(/\/en\/sign-in\?next=%2Fen%2Fadmin$/);
 });
 
 test("there is no public account registration route", async ({ request }, testInfo) => {
@@ -66,7 +66,7 @@ test("there is no public account registration route", async ({ request }, testIn
     testInfo.project.name !== "width-1280",
     "A single project verifies invite-only routing.",
   );
-  const response = await request.post("/api/auth/sign-up", {
+  const response = await request.post("/api/supabase-auth/sign-up", {
     data: { email: "person@example.com", password: "not-a-real-password" },
   });
   expect(response.status()).toBe(404);
@@ -247,14 +247,14 @@ test("account menu announces stale-session refresh, offline state, and sign-out"
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "width-1280", "One project verifies session controls.");
-  await page.route("**/api/auth/session/refresh", async (route) => {
+  await page.route("**/api/supabase-auth/session/refresh", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: '{"reason":"allowed"}',
     });
   });
-  await page.route("**/api/auth/sign-out", async (route) => {
+  await page.route("**/api/supabase-auth/sign-out", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: '{"success":true}' });
   });
   await page.goto("/design-system/workspace?view=admin&roles=admin&locale=en&session=stale", {

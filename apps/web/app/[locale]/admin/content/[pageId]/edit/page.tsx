@@ -4,9 +4,8 @@ import { ContentEditorForm } from "@/components/cms/content-editor-form";
 import { ContentWorkflow, RevisionHistory } from "@/components/cms/content-workflow";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
-import { requireWorkspaceCapability } from "@/lib/appwrite/auth";
-import { createSessionServices } from "@/lib/appwrite/session";
-import { createCmsEditorRepository } from "@/lib/cms/service";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 import { saveContent } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +14,8 @@ export default async function EditContent({
 }: Readonly<{ params: Promise<{ locale: string; pageId: string }> }>) {
   const { locale, pageId } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireWorkspaceCapability("cms.manage", locale);
-  const services = await createSessionServices();
-  if (!services) notFound();
-  const repository = createCmsEditorRepository(services.tables);
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
+  const repository = await createSupabaseCmsEditorRepository();
   const [page, revisions] = await Promise.all([
     repository.getDraft(pageId),
     repository.listRevisions(pageId),

@@ -4,13 +4,21 @@ import { Logo, VisuallyHidden } from "@umoja/ui";
 import type { ReactNode, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
-import type { WorkspaceUser } from "@/lib/appwrite/auth";
+import type { SupabaseWorkspaceUser as WorkspaceUser } from "@/lib/supabase/auth";
 import { AccountMenu } from "./session-controls";
 import type { WorkspaceNavigationItem } from "./workspace-shell";
 
 type Props = Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "content"
+    | "intake";
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
   sessionState: "active" | "stale";
@@ -36,16 +44,30 @@ export function AuthenticatedShell({
         ? "Demandes"
         : "Intakes"
       : current === "content"
-      ? french
-        ? "Contenu public"
-        : "Public content"
-      : current === "admin"
         ? french
-          ? "Opérations"
-          : "Operations"
-        : french
-          ? "Vue d’ensemble"
-          : "Overview";
+          ? "Contenu public"
+          : "Public content"
+        : current === "profile"
+          ? french
+            ? "Profil"
+            : "Profile"
+          : current === "skills"
+            ? french
+              ? "Compétences"
+              : "Skills"
+            : current === "portfolio"
+              ? "Portfolio"
+              : current === "availability"
+                ? french
+                  ? "Disponibilité"
+                  : "Availability"
+                : current === "admin"
+                  ? french
+                    ? "Opérations"
+                    : "Operations"
+                  : french
+                    ? "Vue d’ensemble"
+                    : "Overview";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -206,7 +228,15 @@ function WorkspaceNavigation({
   navigation,
   onNavigate,
 }: Readonly<{
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "content"
+    | "intake";
   idPrefix: string;
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];

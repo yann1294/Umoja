@@ -15,7 +15,7 @@ export function IntakePage({ kind, locale }: Readonly<{ kind: IntakeKind; locale
         ariaLabel={locale === "fr" ? "Fil d’Ariane" : "Breadcrumb"}
         items={[{ label: home, href: "/" }, { label: copy[kind].eyebrow }]}
       />
-      <IntakeJourney copy={copy} kind={kind} />
+      <IntakeJourney copy={copy} kind={kind} locale={locale} />
     </>
   );
 }
