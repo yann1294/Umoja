@@ -8,7 +8,7 @@ import {
 const key = (byte: number) => Buffer.alloc(32, byte).toString("base64");
 
 describe("provider-neutral application environment", () => {
-  it("reads shared application settings without an Appwrite parser", () => {
+  it("accepts a valid canonical application origin", () => {
     expect(
       getApplicationEnvironment({
         APP_URL: "https://umoja.example",
@@ -35,7 +35,10 @@ describe("provider-neutral application environment", () => {
     expect(canonical).toEqual(legacy);
   });
 
-  it("fails with a neutral error when required configuration is absent", () => {
+  it("fails closed when APP_URL is missing or invalid", () => {
     expect(() => getApplicationEnvironment({})).toThrow(ApplicationEnvironmentError);
+    expect(() => getApplicationEnvironment({ APP_URL: "not-an-origin" })).toThrow(
+      ApplicationEnvironmentError,
+    );
   });
 });

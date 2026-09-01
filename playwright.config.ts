@@ -3,7 +3,7 @@ import { defineConfig } from "@playwright/test";
 import { RESPONSIVE_VIEWPORTS } from "./tests/e2e/viewports";
 
 const port = 4173;
-const baseURL = `http://127.0.0.1:${port}`;
+export const PLAYWRIGHT_BASE_URL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -15,7 +15,7 @@ export default defineConfig({
   snapshotPathTemplate:
     "{testDir}/__screenshots__/{testFilePath}/{projectName}/{arg}-{platform}{ext}",
   use: {
-    baseURL,
+    baseURL: PLAYWRIGHT_BASE_URL,
     browserName: "chromium",
     colorScheme: "light",
     locale: "en-US",
@@ -40,9 +40,11 @@ export default defineConfig({
   webServer: {
     command: `pnpm build && pnpm --filter @umoja/web start --hostname 127.0.0.1 --port ${port}`,
     env: {
+      ...process.env,
+      APP_URL: PLAYWRIGHT_BASE_URL,
       DESIGN_SYSTEM_ENABLED: "true",
     },
-    url: baseURL,
+    url: PLAYWRIGHT_BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
