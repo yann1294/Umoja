@@ -7,27 +7,30 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import type { CmsPage } from "@/lib/cms/domain";
 import { cmsField, getSupabasePublishedCmsPage } from "@/lib/cms/service";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
 
+import { EngagementOptions } from "./engagement-options";
 import styles from "./page.module.css";
 
 type HomePageProps = Readonly<{ params: Promise<{ locale: string }> }>;
 type OperatingStep = Readonly<{ title: string; description: string }>;
 type Capability = Readonly<{ title: string; description: string }>;
-type NetworkPart = Readonly<{ name: string; description: string }>;
+type FeaturedProfile = Readonly<{
+  country_code: string | null;
+  professional_name: string;
+  public_bio: string;
+  public_slug: string;
+}>;
 
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "Home" });
   const cms = await getSupabasePublishedCmsPage(locale, "home");
-
   return {
     title: cms?.seoTitle ?? cms?.title ?? t("title"),
     description: cms?.seoDescription ?? t("metadataDescription"),
-    alternates: {
-      canonical: `/${locale}`,
-      languages: { en: "/en", fr: "/fr" },
-    },
+    alternates: { canonical: `/${locale}`, languages: { en: "/en", fr: "/fr" } },
   };
 }
 
@@ -45,9 +48,32 @@ export default async function HomePage({ params }: HomePageProps) {
       metadataDescription: t("metadataDescription"),
     }),
   });
+  const field = (key: string, fallback: string) => cmsField(cms, key, fallback);
   const operatingSteps = t.raw("operating.steps") as OperatingStep[];
   const capabilities = t.raw("capabilities.items") as Capability[];
-  const networkParts = t.raw("network.parts") as NetworkPart[];
+  const { data } = await createSupabasePublicClient({ noStore: true })
+    .from("public_profiles")
+    .select("public_slug,professional_name,public_bio,country_code")
+    .order("professional_name")
+    .limit(3);
+  const featuredProfiles = (data ?? []) as FeaturedProfile[];
+  const engagementOptions = [
+    {
+      title: field("engagement.individual.title", t("engagement.individualTitle")),
+      description: field(
+        "engagement.individual.description",
+        t("engagement.individualDescription"),
+      ),
+      action: field("engagement.individual.action", t("engagement.individualAction")),
+      href: `/${locale}/hire#individual`,
+    },
+    {
+      title: field("engagement.team.title", t("engagement.teamTitle")),
+      description: field("engagement.team.description", t("engagement.teamDescription")),
+      action: field("engagement.team.action", t("engagement.teamAction")),
+      href: `/${locale}/hire#team`,
+    },
+  ] as const;
 
   return (
     <>
@@ -60,17 +86,15 @@ export default async function HomePage({ params }: HomePageProps) {
         <Container>
           <div className={styles.hero}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>{cmsField(cms, "hero.eyebrow", t("eyebrow"))}</p>
-              <h1 id="home-title">{cmsField(cms, "hero.title", t("title"))}</h1>
-              <p className={styles.introduction}>
-                {cmsField(cms, "hero.introduction", t("introduction"))}
-              </p>
+              <p className={styles.eyebrow}>{field("hero.eyebrow", t("eyebrow"))}</p>
+              <h1 id="home-title">{field("hero.title", t("title"))}</h1>
+              <p className={styles.introduction}>{field("hero.introduction", t("introduction"))}</p>
               <div className={styles.actions}>
-                <LinkButton href={`/${locale}/start-a-project`} variant="highlight" size="large">
-                  {cmsField(cms, "hero.primaryAction", t("primaryAction"))}
+                <LinkButton href={`/${locale}/hire`} variant="highlight" size="large">
+                  {field("hero.primaryAction", t("primaryAction"))}
                 </LinkButton>
                 <LinkButton href={`/${locale}/join`} variant="inverse" size="large">
-                  {cmsField(cms, "hero.secondaryAction", t("secondaryAction"))}
+                  {field("hero.secondaryAction", t("secondaryAction"))}
                 </LinkButton>
               </div>
             </div>
@@ -84,54 +108,59 @@ export default async function HomePage({ params }: HomePageProps) {
         </Container>
       </Section>
 
-      <section className={styles.trustSection} aria-labelledby="trust-title">
+      <Section aria-labelledby="talent-title">
         <Container>
-          <div className={styles.trustGrid}>
-            <p className={styles.sectionIndex}>01</p>
-            <div>
-              <p className={styles.eyebrowDark}>{t("trust.eyebrow")}</p>
-              <h2 id="trust-title">{t("trust.title")}</h2>
-            </div>
-            <p className={styles.trustCopy}>{t("trust.description")}</p>
-          </div>
-          <ul className={styles.trustPrinciples} aria-label={t("trust.principlesLabel")}>
-            <li>{t("trust.managed")}</li>
-            <li>{t("trust.modular")}</li>
-            <li>{t("trust.bilingual")}</li>
-          </ul>
-        </Container>
-      </section>
-
-      <Section className={styles.operatingSection} tone="sand" aria-labelledby="operating-title">
-        <Container>
-          <SectionHeading
-            index="02"
-            eyebrow={t("operating.eyebrow")}
-            title={t("operating.title")}
-            description={t("operating.description")}
-            id="operating-title"
-          />
-          <ol className={styles.steps}>
-            {operatingSteps.map((step, index) => (
-              <li key={step.title}>
-                <span className={styles.stepNumber}>{String(index + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
+          <div className={styles.talentGrid}>
+            <SectionHeading
+              index="01"
+              eyebrow={field("talent.eyebrow", t("talent.eyebrow"))}
+              title={field("talent.title", t("talent.title"))}
+              description={field("talent.description", t("talent.description"))}
+              id="talent-title"
+            />
+            {featuredProfiles.length ? (
+              <ul className={styles.profileList} aria-label={t("talent.title")}>
+                {featuredProfiles.map((profile) => (
+                  <li className={styles.profileCard} key={profile.public_slug}>
+                    <Badge variant="neutral">{t("talent.status")}</Badge>
+                    <h3>{profile.professional_name}</h3>
+                    <p>{profile.public_bio}</p>
+                    {profile.country_code ? <small>{profile.country_code}</small> : null}
+                    <LinkButton
+                      href={`/${locale}/talent/${profile.public_slug}`}
+                      variant="secondary"
+                    >
+                      {field("talent.action", t("talent.action"))}
+                    </LinkButton>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className={styles.talentPlaceholder} data-content-state="empty">
+                <div className={styles.profileModules} aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
                 </div>
-              </li>
-            ))}
-          </ol>
+                <Badge variant="neutral">{field("talent.status", t("talent.status"))}</Badge>
+                <h3>{field("talent.emptyTitle", t("talent.emptyTitle"))}</h3>
+                <p>{field("talent.emptyDescription", t("talent.emptyDescription"))}</p>
+                <LinkButton href={`/${locale}/talent`} variant="secondary">
+                  {field("talent.action", t("talent.action"))}
+                </LinkButton>
+              </div>
+            )}
+          </div>
         </Container>
       </Section>
 
-      <Section aria-labelledby="capabilities-title">
+      <Section tone="sand" aria-labelledby="capabilities-title">
         <Container>
           <SectionHeading
-            index="03"
-            eyebrow={t("capabilities.eyebrow")}
-            title={t("capabilities.title")}
-            description={t("capabilities.description")}
+            index="02"
+            eyebrow={field("capabilities.eyebrow", t("capabilities.eyebrow"))}
+            title={field("capabilities.title", t("capabilities.title"))}
+            description={field("capabilities.description", t("capabilities.description"))}
             id="capabilities-title"
           />
           <ul className={styles.capabilityGrid}>
@@ -142,14 +171,50 @@ export default async function HomePage({ params }: HomePageProps) {
                   data-accent={index % 3}
                   aria-hidden="true"
                 />
-                <h3>{capability.title}</h3>
-                <p>{capability.description}</p>
+                <h3>{field(`capabilities.${index}.title`, capability.title)}</h3>
+                <p>{field(`capabilities.${index}.description`, capability.description)}</p>
               </li>
             ))}
           </ul>
           <LinkButton href={`/${locale}/services`} variant="secondary">
-            {t("capabilities.action")}
+            {field("capabilities.action", t("capabilities.action"))}
           </LinkButton>
+        </Container>
+      </Section>
+
+      <Section aria-labelledby="engagement-title">
+        <Container>
+          <SectionHeading
+            index="03"
+            eyebrow={field("engagement.eyebrow", t("engagement.eyebrow"))}
+            title={field("engagement.title", t("engagement.title"))}
+            description={field("engagement.description", t("engagement.description"))}
+            id="engagement-title"
+          />
+          <EngagementOptions compact options={engagementOptions} />
+        </Container>
+      </Section>
+
+      <Section className={styles.operatingSection} tone="sand" aria-labelledby="operating-title">
+        <Container>
+          <SectionHeading
+            index="04"
+            eyebrow={field("operating.eyebrow", t("operating.eyebrow"))}
+            title={field("operating.title", t("operating.title"))}
+            description={field("operating.description", t("operating.description"))}
+            id="operating-title"
+          />
+          <ol className={styles.steps} data-count={operatingSteps.length}>
+            {operatingSteps.map((step, index) => (
+              <li key={step.title}>
+                <span className={styles.stepNumber}>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>{field(`operating.${index}.title`, step.title)}</h3>
+                  <p>{field(`operating.${index}.description`, step.description)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </Container>
       </Section>
 
@@ -157,120 +222,24 @@ export default async function HomePage({ params }: HomePageProps) {
         <Container>
           <div className={styles.workGrid}>
             <SectionHeading
-              index="04"
-              eyebrow={t("work.eyebrow")}
-              title={t("work.title")}
-              description={t("work.description")}
+              index="05"
+              eyebrow={field("work.eyebrow", t("work.eyebrow"))}
+              title={field("work.title", t("work.title"))}
+              description={field("work.description", t("work.description"))}
               id="work-title"
               inverse
             />
             <div className={styles.emptyState} data-content-state="empty">
-              <Badge variant="inverse">{t("work.status")}</Badge>
+              <Badge variant="inverse">{field("work.status", t("work.status"))}</Badge>
               <div className={styles.emptyStateGraphic} aria-hidden="true">
                 <span />
                 <span />
                 <span />
               </div>
-              <h3>{t("work.emptyTitle")}</h3>
-              <p>{t("work.emptyDescription")}</p>
+              <h3>{field("work.emptyTitle", t("work.emptyTitle"))}</h3>
+              <p>{field("work.emptyDescription", t("work.emptyDescription"))}</p>
               <LinkButton href={`/${locale}/work`} variant="inverse">
-                {t("work.action")}
-              </LinkButton>
-            </div>
-          </div>
-        </Container>
-      </Section>
-
-      <Section className={styles.networkSection} tone="sand" aria-labelledby="network-title">
-        <Container>
-          <SectionHeading
-            index="05"
-            eyebrow={t("network.eyebrow")}
-            title={t("network.title")}
-            description={t("network.description")}
-            id="network-title"
-          />
-          <figure className={styles.networkFigure} aria-labelledby="network-caption">
-            <div className={styles.networkCore} aria-hidden="true">
-              <Logo variant="mark" size="medium" decorative />
-            </div>
-            <ul className={styles.networkParts}>
-              {networkParts.map((part, index) => (
-                <li key={part.name} data-position={index}>
-                  <span className={styles.networkNode} aria-hidden="true" />
-                  <h3>{part.name}</h3>
-                  <p>{part.description}</p>
-                </li>
-              ))}
-            </ul>
-            <figcaption id="network-caption">{t("network.caption")}</figcaption>
-          </figure>
-        </Container>
-      </Section>
-
-      <Section aria-labelledby="talent-title">
-        <Container>
-          <div className={styles.talentGrid}>
-            <SectionHeading
-              index="06"
-              eyebrow={t("talent.eyebrow")}
-              title={t("talent.title")}
-              description={t("talent.description")}
-              id="talent-title"
-            />
-            <div className={styles.talentPlaceholder} data-content-state="empty">
-              <div className={styles.profileModules} aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
-              <Badge variant="neutral">{t("talent.status")}</Badge>
-              <h3>{t("talent.emptyTitle")}</h3>
-              <p>{t("talent.emptyDescription")}</p>
-              <LinkButton href={`/${locale}/talent`} variant="secondary">
-                {t("talent.action")}
-              </LinkButton>
-            </div>
-          </div>
-        </Container>
-      </Section>
-
-      <Section className={styles.africitSection} tone="canopy" aria-labelledby="africit-title">
-        <Container>
-          <div className={styles.africitGrid}>
-            <div className={styles.africitGraphic} aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className={styles.africitCopy}>
-              <p className={styles.eyebrow}>{t("africit.eyebrow")}</p>
-              <h2 id="africit-title">{t("africit.title")}</h2>
-              <p>{t("africit.description")}</p>
-              <ul>
-                <li>{t("africit.workshops")}</li>
-                <li>{t("africit.resources")}</li>
-                <li>{t("africit.research")}</li>
-              </ul>
-              <LinkButton href={`/${locale}/africit`} variant="highlight">
-                {t("africit.action")}
-              </LinkButton>
-            </div>
-          </div>
-        </Container>
-      </Section>
-
-      <Section className={styles.manifestoSection} aria-labelledby="manifesto-title">
-        <Container>
-          <div className={styles.manifestoGrid}>
-            <p className={styles.sectionIndex}>07</p>
-            <div>
-              <p className={styles.eyebrowDark}>{t("manifesto.eyebrow")}</p>
-              <h2 id="manifesto-title">{t("manifesto.title")}</h2>
-              <p className={styles.manifestoText}>{t("manifesto.description")}</p>
-              <LinkButton href={`/${locale}/about`} variant="secondary">
-                {t("manifesto.action")}
+                {field("work.action", t("work.action"))}
               </LinkButton>
             </div>
           </div>
@@ -279,29 +248,29 @@ export default async function HomePage({ params }: HomePageProps) {
 
       <Section className={styles.finalSection} tone="sand" aria-labelledby="final-title">
         <Container>
-          <p className={styles.eyebrowDark}>{t("final.eyebrow")}</p>
+          <p className={styles.eyebrowDark}>{field("final.eyebrow", t("final.eyebrow"))}</p>
           <h2 id="final-title" className={styles.finalTitle}>
-            {t("final.title")}
+            {field("final.title", t("final.title"))}
           </h2>
           <div className={styles.finalGrid}>
             <article className={styles.finalCard}>
               <span className={styles.finalCardMark} aria-hidden="true">
                 ↗
               </span>
-              <h3>{t("final.buildTitle")}</h3>
-              <p>{t("final.buildDescription")}</p>
-              <LinkButton href={`/${locale}/start-a-project`} variant="highlight" size="large">
-                {t("final.buildAction")}
+              <h3>{field("final.buildTitle", t("final.buildTitle"))}</h3>
+              <p>{field("final.buildDescription", t("final.buildDescription"))}</p>
+              <LinkButton href={`/${locale}/hire`} variant="highlight" size="large">
+                {field("final.buildAction", t("final.buildAction"))}
               </LinkButton>
             </article>
             <article className={`${styles.finalCard} ${styles.finalCardDark}`}>
               <span className={styles.finalCardMark} aria-hidden="true">
                 ＋
               </span>
-              <h3>{t("final.growTitle")}</h3>
-              <p>{t("final.growDescription")}</p>
+              <h3>{field("final.growTitle", t("final.growTitle"))}</h3>
+              <p>{field("final.growDescription", t("final.growDescription"))}</p>
               <LinkButton href={`/${locale}/join`} variant="inverse" size="large">
-                {t("final.growAction")}
+                {field("final.growAction", t("final.growAction"))}
               </LinkButton>
             </article>
           </div>

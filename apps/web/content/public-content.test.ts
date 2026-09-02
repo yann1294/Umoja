@@ -41,4 +41,16 @@ describe("public content route data", () => {
       expect.arrayContaining(["email", "phone", "legalName", "address", "rate", "assessment"]),
     );
   });
+
+  it("keeps institutional and AfricIT context under About", () => {
+    const about = getEditorialPage("about");
+    expect(about?.sections.map((section) => section.title.en)).toEqual(
+      expect.arrayContaining([
+        "Two curated engagement paths",
+        "Core, Extended, and partners",
+        "AfricIT strengthens the talent pool",
+        "Work should leave capability behind",
+      ]),
+    );
+  });
 });

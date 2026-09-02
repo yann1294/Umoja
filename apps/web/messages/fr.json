@@ -22,15 +22,17 @@
     "talent": "Talents",
     "africit": "AfricIT",
     "about": "À propos",
+    "contact": "Contact",
+    "hire": "Recruter",
     "startProject": "Démarrer un projet",
     "join": "Rejoindre Umoja"
   },
   "Home": {
     "eyebrow": "Plateforme Umoja",
     "title": "L’expertise africaine. Une force unie.",
-    "metadataDescription": "Umoja réunit des spécialistes africains sélectionnés au sein d’équipes responsables de la réalisation numérique et du développement de capacités partagées.",
-    "introduction": "Umoja réunit des spécialistes sélectionnés au sein d’équipes responsables pour concevoir, construire et exploiter des produits numériques dans un réseau africain bilingue.",
-    "primaryAction": "Démarrer un projet",
+    "metadataDescription": "Demandez un professionnel africain de la technologie approuvé ou confiez à Umoja la constitution d’une équipe d’experts qualifiée.",
+    "introduction": "Recrutez un professionnel africain de la technologie approuvé ou demandez à Umoja de constituer l’équipe d’experts adaptée à votre besoin. Chaque demande est qualifiée humainement, sans appel d’offres public.",
+    "primaryAction": "Recruter un professionnel",
     "secondaryAction": "Rejoindre le réseau",
     "trust": {
       "eyebrow": "La confiance avant l’échelle",
@@ -43,26 +45,33 @@
     },
     "operating": {
       "eyebrow": "Le fonctionnement d’Umoja",
-      "title": "D’un besoin réel à une capacité commune renforcée.",
-      "description": "Le modèle opérationnel relie les résultats du client, la progression des contributeurs et une documentation utile tout au long de la réalisation.",
+      "title": "Un parcours qualifié, du besoin à l’engagement.",
+      "description": "Umoja confirme le besoin, les personnes et le modèle de responsabilité avant le début du travail.",
       "steps": [
         {
-          "title": "Découvrir",
-          "description": "Comprendre le besoin, le contexte, les contraintes et les preuves nécessaires à une décision responsable."
+          "title": "Qualifier",
+          "description": "Présentez le résultat attendu, le contexte, le calendrier et les contraintes pour permettre un examen responsable."
         },
         {
-          "title": "Assembler",
-          "description": "Structurer le travail en modules clairs et réunir les bonnes expertises en produit, ingénierie, design et croissance."
+          "title": "Mettre en relation ou assembler",
+          "description": "Umoja examine les expertises approuvées pour un professionnel ou une équipe complète, sans appel d’offres public."
         },
         {
-          "title": "Réaliser",
-          "description": "Travailler comme une seule équipe responsable, avec des interfaces, des critères d’acceptation et une documentation explicites."
-        },
-        {
-          "title": "Progresser",
-          "description": "Transformer la réalisation en apprentissage, en connaissances réutilisables et en capacité collective renforcée."
+          "title": "Confirmer le modèle",
+          "description": "Les parties, responsabilités, périmètre et modalités d’acceptation sont convenus pour l’engagement concerné."
         }
       ]
+    },
+    "engagement": {
+      "eyebrow": "Deux parcours d’engagement sélectionnés",
+      "title": "Choisissez la forme d’accompagnement adaptée.",
+      "description": "Les deux parcours commencent par une demande qualifiée et gardent les coordonnées professionnelles confidentielles.",
+      "individualTitle": "Recruter un professionnel",
+      "individualDescription": "Demandez un spécialiste approuvé pour une mission individuelle définie, selon l’adéquation et les limites contractuelles convenues.",
+      "individualAction": "Demander un professionnel",
+      "teamTitle": "Constituer ou demander une équipe",
+      "teamDescription": "Demandez à Umoja de réunir des expertises complémentaires autour d’un objectif commun et d’un modèle de responsabilité approuvé.",
+      "teamAction": "Demander une équipe"
     },
     "capabilities": {
       "eyebrow": "Domaines de compétence",
@@ -131,12 +140,12 @@
     },
     "talent": {
       "eyebrow": "Talents",
-      "title": "Une visibilité professionnelle, toujours choisie.",
-      "description": "Les profils publics peuvent présenter un nom professionnel choisi, une région, des compétences, un niveau d’expérience et une disponibilité. Les coordonnées et informations professionnelles privées restent confidentielles.",
+      "title": "Des expertises approuvées, présentées avec consentement.",
+      "description": "Découvrez des profils professionnels modérés, sans coordonnées publiques, tarifs privés, dossiers RH ni classement automatique.",
       "status": "Profils fondés sur le consentement",
       "emptyTitle": "Les profils paraîtront après validation volontaire.",
       "emptyDescription": "Umoja ne créera pas de faux spécialistes et n’exposera pas de données personnelles pour remplir cet espace.",
-      "action": "Comprendre les profils publics"
+      "action": "Explorer les talents approuvés"
     },
     "africit": {
       "eyebrow": "AfricIT par Umoja",
@@ -154,15 +163,37 @@
       "action": "Découvrir le modèle"
     },
     "final": {
-      "eyebrow": "Deux voies vers le réseau",
-      "title": "Apportez le travail. Apportez votre expertise.",
-      "buildTitle": "Construire avec Umoja",
-      "buildDescription": "Présentez-nous ce que votre organisation doit concevoir, construire ou exploiter. Nous commencerons par le contexte et la faisabilité.",
-      "buildAction": "Démarrer un projet",
-      "growTitle": "Progresser avec Umoja",
-      "growDescription": "Rejoignez un parcours fondé sur le consentement vers des projets utiles, l’apprentissage, le mentorat et une contribution de confiance.",
+      "eyebrow": "Commencer par le bon parcours",
+      "title": "Demandez une expertise ou proposez la vôtre.",
+      "buildTitle": "Trouver le bon engagement",
+      "buildDescription": "Choisissez un professionnel, une équipe complète ou le parcours structuré de projet existant.",
+      "buildAction": "Voir les options client",
+      "growTitle": "Rejoindre le réseau",
+      "growDescription": "Candidatez par un parcours privé et consenti vers des opportunités validées et une contribution de confiance.",
       "growAction": "Rejoindre le réseau"
     }
+  },
+  "Engagement": {
+    "eyebrow": "Travailler avec Umoja",
+    "title": "Commencez par l’engagement adapté à votre objectif.",
+    "summary": "Demandez un professionnel approuvé, confiez à Umoja la constitution d’une équipe complète ou poursuivez avec un dossier de projet structuré. Chaque parcours commence par une qualification humaine.",
+    "individualTitle": "Recruter un professionnel",
+    "individualDescription": "Décrivez le rôle, le résultat attendu, le contexte et le calendrier. Umoja examinera les expertises approuvées sans exposer de coordonnées privées ni de tarifs.",
+    "individualAction": "Commencer une demande individuelle",
+    "teamTitle": "Constituer ou demander une équipe complète",
+    "teamDescription": "Décrivez l’objectif commun et les compétences nécessaires. La direction de l’équipe et la responsabilité de réalisation suivront le modèle d’engagement et le contrat approuvés.",
+    "teamAction": "Commencer une demande d’équipe",
+    "projectTitle": "Démarrer un projet structuré",
+    "projectDescription": "Utilisez le parcours de projet existant pour un besoin plus large de produit, service ou réalisation, avec contexte, contraintes, calendrier et pièces utiles.",
+    "projectAction": "Démarrer un projet",
+    "boundaryTitle": "Qualifier avant de mettre en relation",
+    "boundaryDescription": "Umoja ne propose ni appel d’offres public, ni coordonnées privées directes, ni contrat automatique, séquestre ou paiement. Les parties et responsabilités sont convenues pour chaque engagement approuvé.",
+    "contactTitle": "Choisissez le parcours le plus utile",
+    "contactDescription": "Les demandes de recrutement et de projet utilisent les parcours qualifiés. Le formulaire général reste une préversion explicitement non persistante pour les partenariats et autres questions.",
+    "contactHire": "Recruter un professionnel",
+    "contactTeam": "Demander une équipe ou un projet",
+    "contactJoin": "Rejoindre le réseau",
+    "contactGeneral": "Écrire une demande générale"
   },
   "PublicContent": {
     "breadcrumbLabel": "Fil d’Ariane",
@@ -211,6 +242,7 @@
     "model": "Modèle",
     "governance": "Gouvernance",
     "manifesto": "Manifeste",
+    "africit": "AfricIT par Umoja",
     "readMore": "Lire la suite",
     "loadingTitle": "Chargement du contenu",
     "loadingDescription": "Le dossier public vérifié est en préparation.",

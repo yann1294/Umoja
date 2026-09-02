@@ -200,7 +200,7 @@
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
   padding: 0;
   border-block: 1px solid var(--u-color-slate);
@@ -494,6 +494,46 @@
 
 .talentPlaceholder {
   background: var(--u-color-sand);
+}
+
+.profileList {
+  display: grid;
+  gap: var(--u-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profileCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--u-space-4);
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-card);
+  background: var(--u-color-sand);
+}
+
+.profileCard h3 {
+  margin: var(--u-space-2) 0 0;
+  font-family: var(--u-font-heading);
+  font-size: var(--u-font-h3);
+  line-height: var(--u-leading-h3);
+}
+
+.profileCard p,
+.profileCard small {
+  color: var(--u-color-slate);
+  line-height: var(--u-leading-body);
+}
+
+.profileCard p {
+  margin: var(--u-space-2) 0;
+}
+
+.profileCard small {
+  margin-bottom: var(--u-space-3);
 }
 
 .profileModules {

@@ -57,6 +57,9 @@ export async function EditorialRoute({
                   {t(topic)}
                 </LinkButton>
               ))}
+              <LinkButton href={`/${locale}/africit`} variant="secondary">
+                {t("africit")}
+              </LinkButton>
             </div>
           </Container>
         </Section>

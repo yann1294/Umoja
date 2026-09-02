@@ -62,8 +62,9 @@ const projectStepSchemas = [
 export function IntakeJourney({
   copy,
   kind,
+  lead,
   locale,
-}: Readonly<{ copy: IntakeCopy; kind: IntakeKind; locale: "en" | "fr" }>) {
+}: Readonly<{ copy: IntakeCopy; kind: IntakeKind; lead?: ReactNode; locale: "en" | "fr" }>) {
   const persisted = kind !== "contact";
   const french = locale === "fr";
   const activeCopy: IntakeCopy = persisted
@@ -129,12 +130,15 @@ export function IntakeJourney({
           </div>
         </Container>
       </section>
+      {lead}
       {kind === "project" ? (
         <ProjectJourney copy={activeCopy} />
       ) : kind === "talent" ? (
         <TalentJourney copy={activeCopy} />
       ) : (
-        <ContactJourney copy={activeCopy} />
+        <div id="contact-form">
+          <ContactJourney copy={activeCopy} />
+        </div>
       )}
     </div>
   );
