@@ -6,15 +6,7 @@ import {
   expectNoPageHorizontalOverflow,
 } from "./helpers/visual";
 
-const publicSlugs = [
-  "services",
-  "work",
-  "talent",
-  "africit",
-  "about",
-  "start-a-project",
-  "join",
-] as const;
+const publicSlugs = ["services", "work", "talent", "about", "contact", "hire", "join"] as const;
 
 test("switches the current page between complete English and French shells", async ({ page }) => {
   await page.goto("/en", { waitUntil: "networkidle" });
@@ -27,7 +19,7 @@ test("switches the current page between complete English and French shells", asy
   await expect(
     page.getByRole("heading", {
       level: 2,
-      name: "From a real need to a stronger shared capability.",
+      name: "A qualified path from need to engagement.",
     }),
   ).toBeVisible();
   await expect(page.locator('[data-content-state="empty"]')).toHaveCount(2);
@@ -54,7 +46,7 @@ test("switches the current page between complete English and French shells", asy
   await expect(
     page.getByRole("heading", {
       level: 2,
-      name: "D’un besoin réel à une capacité commune renforcée.",
+      name: "Un parcours qualifié, du besoin à l’engagement.",
     }),
   ).toBeVisible();
   await expectNoTranslationKeys(page);
@@ -67,7 +59,9 @@ test("switches the current page between complete English and French shells", asy
     await menuButton.click();
     const dialog = page.getByRole("dialog", { name: "Navigation principale" });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("link", { name: "Démarrer un projet" })).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "Recruter", exact: true })).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "Contact", exact: true })).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "AfricIT", exact: true })).toHaveCount(0);
     await expect(dialog.getByRole("link", { name: "Rejoindre Umoja" })).toBeVisible();
     await expectMinimumTouchTargets(page, "dialog a:visible, dialog button:visible");
     await expect(dialog).toHaveScreenshot("public-mobile-navigation-fr.png", {
@@ -103,15 +97,7 @@ test("uses a coherent landmark and heading hierarchy with resolving calls to act
       ...new Set(links.map((link) => (link as HTMLAnchorElement).getAttribute("href"))),
     ]);
   expect(mainLinks).toEqual(
-    expect.arrayContaining([
-      "/en/start-a-project",
-      "/en/join",
-      "/en/services",
-      "/en/work",
-      "/en/talent",
-      "/en/africit",
-      "/en/about",
-    ]),
+    expect.arrayContaining(["/en/hire", "/en/join", "/en/services", "/en/work", "/en/talent"]),
   );
   for (const href of mainLinks) {
     expect(href).not.toBeNull();
@@ -120,6 +106,29 @@ test("uses a coherent landmark and heading hierarchy with resolving calls to act
   }
 
   await expectNoPageHorizontalOverflow(page);
+});
+
+test("keeps the reviewed homepage section order and curated engagement boundaries", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "width-1280", "One project verifies reviewed composition.");
+  await page.goto("/en", { waitUntil: "networkidle" });
+
+  const headings = await page
+    .locator("main h2")
+    .evaluateAll((elements) => elements.map((element) => element.textContent?.trim()));
+  expect(headings.slice(0, 5)).toEqual([
+    "Approved expertise, presented with consent.",
+    "Disciplines connected around the product, not sold in isolation.",
+    "Choose the shape of support you need.",
+    "A qualified path from need to engagement.",
+    "Evidence deserves consent and context.",
+  ]);
+  await expect(page.getByRole("link", { name: "Hire a professional" })).toHaveAttribute(
+    "href",
+    "/en/hire",
+  );
+  await expect(page.getByText("public bidding", { exact: false }).first()).toBeVisible();
 });
 
 test("contains long translated and loading-state fixtures without clipping", async ({
