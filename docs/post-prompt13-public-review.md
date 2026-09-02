@@ -1,6 +1,6 @@
 # Post-Prompt-13 public review
 
-Status: implementation and automated verification complete; final genuine 200% Chrome reflow measurement pending.
+Status: technically complete and ready for development integration review; private-preview and production gates remain controlled separately.
 
 ## Product reconciliation
 
@@ -36,19 +36,26 @@ Editable page copy and CTA fields use the existing CMS field-block mechanism whe
 ## Verification
 
 - Formatting, zero-warning lint, strict TypeScript, and the production build pass.
-- Unit tests: 148 passed and 7 skipped across workspaces.
+- Unit tests: 146 passed and 7 skipped across workspaces.
 - Public Playwright suites pass at 320, 360, 390, 768, 1024, 1280, 1440, 1920, and 2560px, plus phone and tablet landscape.
 - Revised Home, About, Hire, Contact, Services, Work, long-content states, navigation, and affected intake screenshots were reviewed individually before accepting baselines.
 - Revised Home, About, Hire, and Contact report no serious or critical Axe findings at the representative desktop audit.
 - Automated checks confirm no unintended page-level horizontal overflow, at least 44px relevant public targets, semantic headings/landmarks, localized navigation, keyboard-contained mobile navigation, and focus restoration.
 - The 1280px representative intake regression passes after the shared-header and Contact baselines were reviewed and updated.
+- A reported 200% zoom crowding defect in the bilingual Contact engagement cards was reproduced at the measured 729px CSS viewport. Compact cards now stack at and below 48rem. The focused regression verifies that all four French actions remain within their cards and viewport, preserve 44px targets, and do not create horizontal overflow. The affected 768px Contact baseline was updated and reviewed individually.
 
-The Chrome integration measured the stable task window at 100% as 1470 × 923 outer, 1458 × 829 CSS/visual viewport, DPR 2, visual scale 1, and no horizontal overflow. The integration does not expose browser zoom and its page keyboard channel does not change Chrome zoom. The isolated task tab is retained for the owner to select Chrome menu Zoom 200%; the final measurement and visual review must be recorded before this review is technically complete.
+Google Chrome 152.0.7977.65 was used with a normal headed window and no device emulation. With owner participation limited to selecting actual browser zoom, the paired measurement recorded a stable 1470 × 923 outer window: 100% produced a 1458 × 829 CSS/visual viewport at DPR 2, while 200% produced a 729 × 414 CSS viewport (729 × 414.5 visual viewport) at DPR 4. Visual viewport scale remained 1, confirming browser zoom rather than pinch/page scaling, and neither state reported horizontal document overflow.
+
+After the Contact fix, the live 200% browser audit recorded all four French CTA widths between 184px and 294px, each 45px high, with every action inside its card and the 729px viewport and with no internal text overflow. Mobile navigation at 200% also retained complete EN/FR labels, 44px controls, keyboard focus on open, and focus restoration on close. Home, About, Hire, and Contact were checked in both locales at the reduced CSS viewport.
+
+Evidence is stored in `docs/evidence/post-prompt13-public/`. `public-home-zoom-100.png` records the baseline; `public-contact-fr-zoom-200-control-capture.jpg` is the genuine-zoom browser-control capture. The integration's image encoder crops that capture horizontally at 200%, so it is retained only as evidence of the visible fixed CTA region and is not used to infer full-page layout. `public-contact-fr-reflow-729.png` is the separately reviewed full-width reflow reference at the exact measured CSS width. The measured live DOM bounds and the focused Playwright regression provide the full-width overflow assertion.
 
 ## Remaining controlled decisions
 
 - Approve engagement-specific legal, delivery, tax, subcontracting, and jurisdiction language before preview or production publication.
 - Supply only verified and consented professionals, case studies, testimonials, logos, contact details, and outcomes through the CMS.
 - Complete private-preview and production operational gates separately. Finance, public bidding, automated contracting, escrow, payouts, and production activation remain disabled.
+
+Gate B/C restrictions remain unchanged. Technical completion and development integration readiness do not authorize preview publication, deployment, production activation, or any deferred finance/legal capability.
 
 Prompt 14 and later operational domains are planned in `docs/roadmap/post-prompt13-roadmap-v1.md`; none is implemented by this review.
