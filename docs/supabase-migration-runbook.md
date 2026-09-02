@@ -183,32 +183,92 @@ Roles remain `admin`, `cms-editor`, `reviewer`, `core`, `extended`, and `project
 
 The hosted project must use token-hash links so the application verifies each link server-side and
 sets HttpOnly SSR cookies before returning a token-free URL. Preserve the existing translated email
-copy and replace only the link target in each Dashboard template:
+copy and use the following flow-specific targets:
 
 ```html
 <!-- Confirm signup / verification -->
 <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=signup">Confirm email</a>
 
 <!-- Invite user -->
-<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=invite">Accept invitation</a>
+<a href="{{ .SiteURL }}/api/supabase-auth/confirm?flow=invite&token_hash={{ .TokenHash }}&type=invite">Accept invitation</a>
 
 <!-- Reset password -->
 <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
 ```
 
-`RedirectTo` is generated only from `APP_URL` and the exact locale/flow pairs above. Successful
-verification ends at `/{locale}/verify-email?verified=1`, invitation at
-`/{locale}/accept-invite?accepted=1`, and recovery at
-`/{locale}/recover-password?recovery=1`. Invalid, expired, replayed, wrong-flow, or disabled-account
-links end in a neutral `state=invalid` page. Confirmation responses are no-store/no-referrer and no
-token or code remains in the final URL. Email-provider link tracking must be disabled; providers
-that prefetch one-time links require a separately reviewed user-confirmation/OTP design.
+`RedirectTo` is supplied by Umoja for verification and recovery and is generated only from the
+canonical `APP_URL` plus an exact locale/flow pair. A Supabase Dashboard invitation is different:
+the Dashboard action does not reliably provide Umoja's localized `RedirectTo`, so the invite
+template deliberately enters through `SiteURL`; the server resolves the locale from protected
+application-issued invitation metadata when present and otherwise defaults a Dashboard invitation
+to English. Successful verification ends at `/{locale}/verify-email?verified=1`; invitation and
+recovery end at clean `/{locale}/accept-invite` and `/{locale}/recover-password` URLs. A signed,
+HttpOnly, 30-minute flow context binds password setup to the exchanged Auth user and purpose.
+Invalid, expired, replayed, wrong-flow, or disabled-account links end in a localized `state=invalid`
+page. Confirmation responses are private/no-store/no-referrer and no token or code remains in the
+final URL. Email-provider link tracking must be disabled; providers that prefetch one-time links
+require a separately reviewed user-confirmation/OTP design.
+
+### Local administrator onboarding and Auth destination setup
+
+Use one exact origin throughout a run. The repository's canonical local Auth origin is
+`http://127.0.0.1:3000`; start it with `APP_URL=http://127.0.0.1:3000` and bind the Next.js server to
+`127.0.0.1:3000`. Do not mix `localhost`, port `4173`, HTTP and HTTPS during an email-flow run.
+Supabase compares redirect URLs to the allow-list and an unlisted redirect can fall back to the Site
+URL, which presents as a link opening the homepage.
+
+For the hosted development project, the owner must make these Dashboard changes before live inbox
+acceptance testing:
+
+1. Set **Authentication → URL Configuration → Site URL** to the exact development `APP_URL` origin.
+2. Add the six exact `APP_URL/api/supabase-auth/confirm?locale={en|fr}&flow={verification|invite|recovery}` destinations. Do not add wildcards or a different host spelling.
+3. Install the bilingual invite and recovery templates versioned in `supabase/templates/`. The invite template must use `SiteURL`; recovery must use the application-supplied `RedirectTo`.
+4. Disable email-provider click tracking for these one-time links and verify whether mailbox scanners consume them before changing token handling.
+
+Supported administrator first-login procedure:
+
+1. Identify the intended existing administrator by immutable Auth user ID; do not create a second administrator merely to repair a password.
+2. Confirm the Auth account is active. Complete a valid invitation setup or request recovery from Umoja. Neither flow requires the old password while its exchanged context remains valid.
+3. Verify `user_roles` contains a current protected `admin` assignment and verify active `membership_history` separately. An Auth invitation creates an account only: it never grants a role or Core membership.
+4. Sign in. When privileged MFA is required, complete the rendered TOTP challenge so the current session reaches AAL2; having an enrolled factor alone is insufficient.
+5. Open `/{locale}/admin`. An active account without the protected role/membership is shown as access pending, not as an incorrect password.
+
+Normal onboarding should use the authorized Umoja invitation operation because it records the
+application source and preferred locale. Dashboard invitation remains a supported development-owner
+recovery/bootstrap tool, defaults to English, and still grants no Umoja permissions. Never paste a
+password, token-bearing link, recovery code, or service credential into chat or an evidence artifact.
+
+The observed failures had two demonstrated repository causes: the ignored local environment used
+`http://localhost:3000` while accepted test serving used `http://127.0.0.1:4173` and the local Auth
+configuration used `http://127.0.0.1:3000`; and the old invite/recovery screens trusted query markers
+then permitted any active session to update its password. A third authorization defect assigned
+every application invite `tier='core'`. The implementation now requires matching session plus signed
+flow context, removes the unconditional membership write, and routes sign-in by protected relational
+authorization and current MFA assurance.
 
 Implement invitation-led Supabase Auth with email verification, recovery, sign-out, session refresh, account-state checks, and MFA-ready privileged access. Preserve the refined authenticated shell and all Prompt 9 policy behavior.
 
 Do not attempt to migrate live Appwrite sessions. If only synthetic/development users exist, create fresh Supabase users and re-invite the initial administrator. If real users exist, require an approved account migration and communication plan; do not copy password material without a documented supported method.
 
 ### Email-link validation evidence
+
+- 2026-09-02: the synthetic no-email rehearsal passed Dashboard-style invite exchange (English
+  default), application locale metadata (French), first password setup, sign-in, explicit
+  membership-required status, recovery, old-password rejection, new-password sign-in, and
+  used/malformed/disabled-link rejection. Both disposable Auth users were hard-deleted and a paged
+  Auth readback found zero matching leftovers. This proves the application exchange and password
+  boundaries, not SMTP delivery or an owner-installed hosted template. Safe evidence is recorded in
+  [`docs/evidence/auth-onboarding/auth-flow-rehearsal.json`](evidence/auth-onboarding/auth-flow-rehearsal.json).
+- The rehearsal demonstrated that comparing an Auth handler's request origin to `APP_URL` rejects a
+  valid token when a proxy presents an internal origin. Handlers now accept only their exact fixed
+  callback/confirmation paths and construct every destination from canonical `APP_URL`; no supplied
+  origin or return target is reused.
+- Chrome 149 genuine 200% review passed the valid French invitation, recovery, and administrator MFA
+  fixtures without viewport emulation: 1458 × 869 outer dimensions, 729 × 434 CSS viewport, DPR 4,
+  `visualViewport.scale=1`, no horizontal overflow, reachable actions through ordinary vertical
+  scrolling, and a visible 3px keyboard-focus outline. The owner-assisted 100% measurement at the
+  same physical window size remains pending, so stable outer dimensions are not yet claimed. See
+  [`docs/evidence/auth-onboarding/auth-zoom-measurements.json`](evidence/auth-onboarding/auth-zoom-measurements.json).
 
 - 2026-08-26: the controlled English verification email was received and clicked, but
   landed on the Umoja homepage rather than `/en/verify-email`. This is an **unresolved
