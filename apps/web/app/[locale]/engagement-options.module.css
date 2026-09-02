@@ -65,7 +65,7 @@
   }
 }
 
-@media (max-width: 40rem) {
+@media (max-width: 48rem) {
   .compactGrid {
     grid-template-columns: 1fr;
   }
