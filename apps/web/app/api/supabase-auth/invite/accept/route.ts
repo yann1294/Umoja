@@ -1,15 +1,29 @@
 import { NextResponse } from "next/server";
-import { resetSupabasePassword } from "@/lib/supabase/auth";
+import { completeSupabasePasswordFlow } from "@/lib/supabase/auth";
+import { PRIVATE_RESPONSE_HEADERS } from "@/lib/http/private-response";
+import { getSupabaseEnvironment } from "@/lib/supabase/env";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export async function POST(request: Request) {
+  const locale = new URL(request.url).searchParams.get("locale") === "fr" ? "fr" : "en";
+  const response = NextResponse.redirect(
+    new URL(`/${locale}/account-state`, getSupabaseEnvironment().APP_URL),
+    { status: 303, headers: PRIVATE_RESPONSE_HEADERS },
+  );
   try {
-    await resetSupabasePassword((await request.json()).password);
-    return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
+    const next = await completeSupabasePasswordFlow(
+      request,
+      response,
+      "invite",
+      await request.json(),
+      locale,
+    );
+    response.headers.set("Location", new URL(next, getSupabaseEnvironment().APP_URL).toString());
+    return response;
   } catch {
     return NextResponse.json(
       { error: "Invitation unavailable." },
-      { status: 400, headers: { "Cache-Control": "no-store" } },
+      { status: 400, headers: PRIVATE_RESPONSE_HEADERS },
     );
   }
 }

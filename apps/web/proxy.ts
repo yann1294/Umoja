@@ -28,6 +28,10 @@ function isCanonicalSupabaseWorkspacePath(pathname: string) {
 function isPrivateResponsePath(pathname: string) {
   return (
     isCanonicalSupabaseWorkspacePath(pathname) ||
+    /^\/(en|fr)\/(?:sign-in|forgot-password|recover-password|accept-invite|account-state|mfa-challenge)(?:\/|$)/.test(
+      pathname,
+    ) ||
+    /^\/api\/supabase-auth(?:\/|$)/.test(pathname) ||
     pathname === "/api/cms/media" ||
     /^\/api\/cms\/media\/private(?:\/|$)/.test(pathname) ||
     /^\/api\/cms\/preview(?:\/|$)/.test(pathname) ||
@@ -64,5 +68,6 @@ export const config = {
     "/api/cms/media/:path*",
     "/api/cms/preview/:path*",
     "/api/intake/admin/:path*",
+    "/api/supabase-auth/:path*",
   ],
 };

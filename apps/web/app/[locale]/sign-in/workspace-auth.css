@@ -32,6 +32,13 @@
 .auth-form .u-button {
   justify-self: start;
 }
+.auth-password-field {
+  display: grid;
+  gap: var(--u-space-1);
+}
+.auth-password-field > .u-button {
+  min-width: 5.5rem;
+}
 .auth-error {
   padding: 1rem;
   border-inline-start: 0.25rem solid var(--u-color-danger);

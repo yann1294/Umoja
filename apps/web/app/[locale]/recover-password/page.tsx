@@ -2,21 +2,19 @@ import { Container, LinkButton } from "@umoja/ui";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
+import { hasValidSupabasePasswordFlow } from "@/lib/supabase/auth";
 import { RecoveryConfirmForm } from "../sign-in/auth-action-forms";
 import "../sign-in/workspace-auth.css";
 
 export default async function RecoverPasswordPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ recovery?: string; state?: string }>;
 }) {
   const { locale } = await params;
-  const { recovery, state } = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
   const french = locale === "fr";
-  const valid = recovery === "1" && state !== "invalid";
+  const valid = await hasValidSupabasePasswordFlow("recovery");
   return (
     <section className="auth-page" aria-labelledby="recovery-confirm-title">
       <Container size="narrow">

@@ -15,8 +15,32 @@ type CallbackContext = Readonly<{
 
 function finalPath(locale: z.infer<typeof localeSchema>, flow: SupabaseAuthFlow) {
   if (flow === "verification") return `/${locale}/verify-email?verified=1`;
-  if (flow === "invite") return `/${locale}/accept-invite?accepted=1`;
-  return `/${locale}/recover-password?recovery=1`;
+  if (flow === "invite") return `/${locale}/accept-invite`;
+  return `/${locale}/recover-password`;
+}
+
+export function supabaseAuthFinalTarget(locale: "en" | "fr", flow: SupabaseAuthFlow) {
+  return new URL(finalPath(localeSchema.parse(locale), flow), getSupabaseEnvironment().APP_URL);
+}
+
+export function supabaseAuthInvalidTarget(locale: "en" | "fr", flow: SupabaseAuthFlow) {
+  const page =
+    flow === "verification"
+      ? "verify-email"
+      : flow === "invite"
+        ? "accept-invite"
+        : "recover-password";
+  return new URL(`/${locale}/${page}?state=invalid`, getSupabaseEnvironment().APP_URL);
+}
+
+/** Chooses only a localized, flow-specific failure page; all other URL material is discarded. */
+export function supabaseAuthFailureTargetFromRequest(requestUrl: string) {
+  const request = new URL(requestUrl);
+  const locale = request.searchParams.get("locale") === "fr" ? "fr" : "en";
+  const flow = flowSchema.safeParse(request.searchParams.get("flow"));
+  return flow.success
+    ? supabaseAuthInvalidTarget(locale, flow.data)
+    : new URL(`/${locale}/sign-in?auth=invalid`, getSupabaseEnvironment().APP_URL);
 }
 
 /** Builds the only redirect target supplied to Supabase Auth. */
@@ -36,43 +60,54 @@ export function supabaseAuthConfirmationUrl(locale: "en" | "fr", flow: SupabaseA
 }
 
 export function parseSupabaseAuthConfirmation(requestUrl: string) {
-  const appUrl = new URL(getSupabaseEnvironment().APP_URL);
   const request = new URL(requestUrl);
-  if (request.origin !== appUrl.origin) return null;
-  const locale = localeSchema.safeParse(request.searchParams.get("locale"));
+  // The deployment proxy may expose an internal request origin. Never use it as a destination;
+  // accept only this fixed handler path and build every redirect from canonical APP_URL below.
+  if (request.pathname !== "/api/supabase-auth/confirm") return null;
   const flow = flowSchema.safeParse(request.searchParams.get("flow"));
   const tokenHash = z.string().min(16).max(2048).safeParse(request.searchParams.get("token_hash"));
   const suppliedType = z
     .enum(["signup", "email", "invite", "recovery"])
     .safeParse(request.searchParams.get("type"));
-  if (!locale.success || !flow.success || !tokenHash.success || !suppliedType.success) return null;
+  if (!flow.success || !tokenHash.success || !suppliedType.success) return null;
+  const locale = localeSchema.safeParse(request.searchParams.get("locale"));
+  if (!locale.success && flow.data !== "invite") return null;
   const validType =
     (flow.data === "verification" && ["signup", "email"].includes(suppliedType.data)) ||
     (flow.data === "invite" && suppliedType.data === "invite") ||
     (flow.data === "recovery" && suppliedType.data === "recovery");
   if (!validType) return null;
   return {
-    locale: locale.data,
+    locale: locale.success ? locale.data : "en",
     flow: flow.data,
     tokenHash: tokenHash.data,
     type: suppliedType.data,
-    target: new URL(finalPath(locale.data, flow.data), appUrl),
   } as const;
 }
 
 /** Rejects attacker-controlled targets and returns a clean, token-free final route. */
 export function parseSupabaseAuthCallback(requestUrl: string): CallbackContext | null {
-  const appUrl = new URL(getSupabaseEnvironment().APP_URL);
   const request = new URL(requestUrl);
-  if (request.origin !== appUrl.origin) return null;
+  if (request.pathname !== "/api/supabase-auth/callback") return null;
   const locale = localeSchema.safeParse(request.searchParams.get("locale"));
   const flow = flowSchema.safeParse(request.searchParams.get("flow"));
   if (!locale.success || !flow.success) return null;
   return {
     locale: locale.data,
     flow: flow.data,
-    target: new URL(finalPath(locale.data, flow.data), appUrl),
+    target: supabaseAuthFinalTarget(locale.data, flow.data),
   };
+}
+
+export function resolveSupabaseInviteLocale(
+  metadata: Record<string, unknown> | null | undefined,
+  fallback: "en" | "fr" = "en",
+) {
+  return metadata?.umoja_invite_locale === "fr"
+    ? "fr"
+    : metadata?.umoja_invite_locale === "en"
+      ? "en"
+      : fallback;
 }
 
 export function resolveSupabaseAuthCallback(requestUrl: string) {

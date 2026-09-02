@@ -19,10 +19,15 @@ export function SignInForm({ locale, next }: Readonly<{ locale: "en" | "fr"; nex
       const response = await fetch("/api/supabase-auth/sign-in", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: data.get("email"), password: data.get("password") }),
+        body: JSON.stringify({
+          email: data.get("email"),
+          password: data.get("password"),
+          locale,
+          next,
+        }),
       });
       if (!response.ok) throw new Error("sign-in");
-      router.replace(next);
+      router.replace(response.headers.get("X-Umoja-Next") ?? `/${locale}/account-state`);
       router.refresh();
     } catch {
       setError(

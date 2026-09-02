@@ -2,8 +2,22 @@ import { z } from "zod";
 
 const optionalSecret = z.string().trim().min(1).optional();
 
+const applicationOrigin = z
+  .url()
+  .transform((value) => new URL(value))
+  .refine(
+    (value) =>
+      (value.protocol === "http:" || value.protocol === "https:") &&
+      value.username === "" &&
+      value.password === "" &&
+      value.pathname === "/" &&
+      value.search === "" &&
+      value.hash === "",
+  )
+  .transform((value) => value.origin);
+
 const applicationEnvironmentSchema = z.object({
-  APP_URL: z.url(),
+  APP_URL: applicationOrigin,
   NEXT_REVALIDATION_SECRET: optionalSecret,
   UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION: z
     .string()

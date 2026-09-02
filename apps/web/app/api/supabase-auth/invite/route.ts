@@ -5,7 +5,7 @@ export const revalidate = 0;
 export async function POST(request: Request) {
   try {
     const input = await request.json();
-    await issueSupabaseInvite(input.email, input.roles, input.locale === "fr" ? "fr" : "en");
+    await issueSupabaseInvite(input.email, input.locale === "fr" ? "fr" : "en");
     return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json(

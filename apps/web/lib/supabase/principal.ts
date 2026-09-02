@@ -9,6 +9,8 @@ type Factors = Readonly<{
   webauthn?: readonly Readonly<{ status: string }>[];
 }>;
 
+type Assurance = Readonly<{ currentLevel: string | null }>;
+
 function hasVerifiedFactor(factors: Factors | null | undefined) {
   return Boolean(
     factors?.totp?.some((factor) => factor.status === "verified") ||
@@ -22,6 +24,7 @@ export function toSupabaseServerPrincipal(
   assignments: readonly RoleAssignment[],
   memberships: readonly Membership[],
   factors?: Factors | null,
+  assurance?: Assurance | null,
   now = new Date(),
 ): ServerPrincipal | null {
   const bannedUntil = user.banned_until ? new Date(user.banned_until) : null;
@@ -41,6 +44,7 @@ export function toSupabaseServerPrincipal(
     roles,
     membershipActive,
     emailVerified: true,
-    mfaVerified: hasVerifiedFactor(factors),
+    // Enrollment alone is not proof that this session completed its MFA challenge.
+    mfaVerified: hasVerifiedFactor(factors) && assurance?.currentLevel === "aal2",
   };
 }
