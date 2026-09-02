@@ -18,7 +18,10 @@ describe("Supabase Auth callback", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-test-key");
     vi.stubEnv("SUPABASE_SECRET_KEY", "server-only-test-key");
     vi.stubEnv("APP_URL", "https://umoja.example.test");
-    exchangeCodeForSession.mockReset().mockResolvedValue({ error: null });
+    exchangeCodeForSession.mockReset().mockResolvedValue({
+      data: { user: { id: "00000000-0000-4000-8000-000000000001" } },
+      error: null,
+    });
   });
 
   it("exchanges the one-time code server-side then redirects to a clean localized verified state", async () => {
@@ -33,7 +36,7 @@ describe("Supabase Auth callback", () => {
     expect(response.headers.get("location")).toBe(
       "https://umoja.example.test/en/verify-email?verified=1",
     );
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toContain("no-store");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
     const log = JSON.parse(String(info.mock.calls[0]?.[0]));
     expect(log).toMatchObject({
@@ -50,13 +53,16 @@ describe("Supabase Auth callback", () => {
     info.mockRestore();
   });
 
-  it("rejects an unallow-listed callback origin before exchanging a code", async () => {
+  it("never uses a proxy-supplied origin as the final destination", async () => {
     const response = await GET(
       new Request(
         "https://attacker.example/api/supabase-auth/callback?locale=en&flow=verification&code=one-time-code",
       ),
     );
-    expect(response.status).toBe(400);
-    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "https://umoja.example.test/en/verify-email?verified=1",
+    );
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("one-time-code");
   });
 });

@@ -14,7 +14,7 @@ const now = new Date("2026-08-26T12:00:00.000Z");
 
 describe("Supabase SSR principal", () => {
   it("refreshes protected relational roles and active membership rather than metadata", () => {
-    const principal = toSupabaseServerPrincipal(user, role, membership, null, now);
+    const principal = toSupabaseServerPrincipal(user, role, membership, null, null, now);
     expect(principal).toMatchObject({
       actorId: user.id,
       roles: ["cms-editor"],
@@ -30,6 +30,7 @@ describe("Supabase SSR principal", () => {
         [{ role: "cms-editor", revoked_at: "2026-08-26T00:00:00.000Z" }],
         membership,
         null,
+        null,
         now,
       ),
     ).toBeNull();
@@ -38,6 +39,7 @@ describe("Supabase SSR principal", () => {
         user,
         role,
         [{ effective_from: "2026-08-01T00:00:00.000Z", effective_to: "2026-08-20T00:00:00.000Z" }],
+        null,
         null,
         now,
       ),
@@ -48,6 +50,7 @@ describe("Supabase SSR principal", () => {
         role,
         membership,
         null,
+        null,
         now,
       ),
     ).toBeNull();
@@ -56,6 +59,7 @@ describe("Supabase SSR principal", () => {
         { ...user, banned_until: "2026-08-27T00:00:00.000Z" },
         role,
         membership,
+        null,
         null,
         now,
       ),
@@ -68,6 +72,7 @@ describe("Supabase SSR principal", () => {
       [{ role: "admin", revoked_at: null }],
       membership,
       null,
+      null,
       now,
     );
     const withMfa = toSupabaseServerPrincipal(
@@ -75,9 +80,19 @@ describe("Supabase SSR principal", () => {
       [{ role: "admin", revoked_at: null }],
       membership,
       { totp: [{ status: "verified" }] },
+      { currentLevel: "aal2" },
+      now,
+    );
+    const enrolledButUnchallenged = toSupabaseServerPrincipal(
+      user,
+      [{ role: "admin", revoked_at: null }],
+      membership,
+      { totp: [{ status: "verified" }] },
+      { currentLevel: "aal1" },
       now,
     );
     expect(withoutMfa?.mfaVerified).toBe(false);
     expect(withMfa?.mfaVerified).toBe(true);
+    expect(enrolledButUnchallenged?.mfaVerified).toBe(false);
   });
 });

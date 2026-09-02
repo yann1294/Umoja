@@ -40,5 +40,17 @@ describe("provider-neutral application environment", () => {
     expect(() => getApplicationEnvironment({ APP_URL: "not-an-origin" })).toThrow(
       ApplicationEnvironmentError,
     );
+    expect(() => getApplicationEnvironment({ APP_URL: "https://umoja.example/path" })).toThrow(
+      ApplicationEnvironmentError,
+    );
+    expect(() => getApplicationEnvironment({ APP_URL: "javascript:alert(1)" })).toThrow(
+      ApplicationEnvironmentError,
+    );
+  });
+
+  it("normalizes a valid HTTP application origin", () => {
+    expect(getApplicationEnvironment({ APP_URL: "http://127.0.0.1:3000/" }).APP_URL).toBe(
+      "http://127.0.0.1:3000",
+    );
   });
 });

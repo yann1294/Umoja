@@ -87,6 +87,29 @@ test("recovery remains private and responsive", async ({ page }, testInfo) => {
   );
 });
 
+test("invitation, reset, and administrator MFA forms remain usable", async ({ page }, testInfo) => {
+  const locale = ["width-390", "width-768", "width-1440"].includes(testInfo.project.name)
+    ? "fr"
+    : "en";
+  for (const state of ["invite", "recovery", "mfa"] as const) {
+    await page.goto(`/design-system/auth?state=${state}&locale=${locale}`, {
+      waitUntil: "networkidle",
+    });
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectNoPageHorizontalOverflow(page);
+    await expectMinimumTouchTargets(page, ".auth-card input:visible, .auth-card button:visible");
+    if (state !== "mfa") {
+      await expect(page.locator('input[autocomplete="new-password"]')).toHaveCount(2);
+      await expect(
+        page.getByRole("button", { name: locale === "fr" ? "Afficher" : "Show" }),
+      ).toHaveCount(2);
+    }
+    if (["width-320", "width-1280"].includes(testInfo.project.name)) {
+      await expectDeterministicScreenshot(page, `auth-${state}-${locale}.png`);
+    }
+  }
+});
+
 test("role-aware workspace and admin fixtures are responsive", async ({ page }, testInfo) => {
   const admin = ["width-390", "width-1024", "width-1920", "tablet-landscape"].includes(
     testInfo.project.name,
@@ -219,6 +242,9 @@ test("auth and shell fixtures have no serious accessibility violations", async (
   test.skip(testInfo.project.name !== "width-1280", "One desktop project runs the axe audit.");
   for (const path of [
     "/en/sign-in",
+    "/design-system/auth?state=invite&locale=fr",
+    "/design-system/auth?state=recovery&locale=en",
+    "/design-system/auth?state=mfa&locale=fr",
     "/design-system/workspace?role=admin&locale=en",
     "/design-system/workspace?state=error&roles=reviewer&locale=fr",
   ]) {

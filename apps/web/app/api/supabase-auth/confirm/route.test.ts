@@ -19,7 +19,13 @@ describe("token-hash confirmation", () => {
     vi.stubEnv("SUPABASE_SECRET_KEY", "server-only-test-key");
     vi.stubEnv("APP_URL", "https://umoja.example.test");
     verifyOtp.mockReset().mockResolvedValue({
-      data: { user: { banned_until: null } },
+      data: {
+        user: {
+          id: "00000000-0000-4000-8000-000000000001",
+          banned_until: null,
+          user_metadata: {},
+        },
+      },
       error: null,
     });
   });
@@ -35,12 +41,20 @@ describe("token-hash confirmation", () => {
       type: "recovery",
     });
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe(
-      "https://umoja.example.test/fr/recover-password?recovery=1",
-    );
+    expect(response.headers.get("location")).toBe("https://umoja.example.test/fr/recover-password");
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
     expect(response.headers.get("location")).not.toContain("token");
+  });
+
+  it("accepts a Dashboard invitation without locale and defaults it to English", async () => {
+    const response = await GET(
+      new Request(
+        "https://umoja.example.test/api/supabase-auth/confirm?flow=invite&type=invite&token_hash=redacted-test-token-hash",
+      ),
+    );
+    expect(response.headers.get("location")).toBe("https://umoja.example.test/en/accept-invite");
+    expect(response.headers.get("set-cookie")).toContain("umoja-auth-flow=");
   });
 
   it("fails closed for a wrong flow and type combination", async () => {
@@ -51,7 +65,7 @@ describe("token-hash confirmation", () => {
     );
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe(
-      "https://umoja.example.test/en/sign-in?auth=invalid",
+      "https://umoja.example.test/en/accept-invite?state=invalid",
     );
     expect(verifyOtp).not.toHaveBeenCalled();
   });

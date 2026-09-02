@@ -18,12 +18,12 @@ describe("Supabase Auth redirect boundary", () => {
     );
   });
 
-  it("rejects foreign origins and unrecognised destinations", () => {
+  it("canonicalizes proxy origins and rejects unrecognised destinations", () => {
     expect(
       resolveSupabaseAuthCallback(
         "https://attacker.example/api/supabase-auth/callback?locale=en&flow=verification",
-      ),
-    ).toBeNull();
+      )?.toString(),
+    ).toBe("https://umoja.example.test/en/verify-email?verified=1");
     expect(
       resolveSupabaseAuthCallback(
         "https://umoja.example.test/api/supabase-auth/callback?locale=en&flow=workspace",
