@@ -201,8 +201,8 @@ export function InvitationPasswordForm({ locale }: LocaleProps) {
     } catch {
       setError(
         french
-          ? "Cette invitation est invalide, expirée ou déjà utilisée."
-          : "This invitation is invalid, expired, or already used.",
+          ? "Cette invitation est invalide, expirée ou déjà utilisée. Si le compte existe déjà, utilisez la récupération de mot de passe."
+          : "This invitation is invalid, expired, or already used. If the account already exists, use password recovery.",
       );
     } finally {
       setPending(false);

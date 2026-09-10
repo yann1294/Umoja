@@ -124,7 +124,11 @@ try {
   const setup = await fetch(`${appUrl}/api/supabase-auth/invite/accept?locale=fr`, {
     method: "POST",
     redirect: "manual",
-    headers: { "content-type": "application/json", cookie: invitation.jar.header() },
+    headers: {
+      "content-type": "application/json",
+      cookie: invitation.jar.header(),
+      origin: appUrl,
+    },
     body: JSON.stringify({ password: firstPassword, confirmation: firstPassword }),
   });
   assert(setup.status === 303, "invite-password-save");
@@ -149,7 +153,11 @@ try {
   const reset = await fetch(`${appUrl}/api/supabase-auth/recovery/confirm?locale=en`, {
     method: "POST",
     redirect: "manual",
-    headers: { "content-type": "application/json", cookie: recovery.jar.header() },
+    headers: {
+      "content-type": "application/json",
+      cookie: recovery.jar.header(),
+      origin: appUrl,
+    },
     body: JSON.stringify({ password: resetPassword, confirmation: resetPassword }),
   });
   assert(reset.status === 303, "recovery-password-save");

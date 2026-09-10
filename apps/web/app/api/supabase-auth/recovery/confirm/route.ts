@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { completeSupabasePasswordFlow } from "@/lib/supabase/auth";
 import { PRIVATE_RESPONSE_HEADERS } from "@/lib/http/private-response";
 import { getSupabaseEnvironment } from "@/lib/supabase/env";
+import { isCanonicalMutationRequest } from "@/lib/http/same-origin";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export async function POST(request: Request) {
@@ -11,6 +12,7 @@ export async function POST(request: Request) {
     { status: 303, headers: PRIVATE_RESPONSE_HEADERS },
   );
   try {
+    if (!isCanonicalMutationRequest(request)) throw new Error("untrusted-origin");
     const next = await completeSupabasePasswordFlow(
       request,
       response,
