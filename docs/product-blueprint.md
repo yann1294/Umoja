@@ -310,6 +310,9 @@ Use opaque IDs, timestamps, actor IDs, status history, and soft archival on all 
 - `availability_snapshots`: weekly capacity, next available date, preferences, expiry.
 - `assessments`: type, rubric version, reviewer, outcome, evidence, appeal state.
 - `membership_history`: applicant/extended/core/lead states with effective dates and approvals.
+- `account_invitations`: encrypted target address, address blind index, intended locale/access,
+  expiry/revocation/acceptance state, and a one-time token digest. Raw invitation tokens and
+  plaintext addresses never enter relational rows or audit logs.
 
 ### Organizations and projects
 

@@ -57,15 +57,16 @@ Use synthetic development data. If any real user or applicant data exists, stop 
 Create one Supabase development project in an appropriate available region. Record the region and project reference without committing secrets. In the Supabase dashboard:
 
 - Keep public signup disabled or enforce invitation-only onboarding in the server flow.
-- Set Site URL to the exact `APP_URL` origin. Add these six exact Redirect URLs, substituting the
+- Set Site URL to the exact `APP_URL` origin. Add these four canonical Redirect URLs, substituting the
   same origin and changing nothing after it:
   - `APP_URL/api/supabase-auth/confirm?locale=en&flow=verification`
   - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=verification`
-  - `APP_URL/api/supabase-auth/confirm?locale=en&flow=invite`
-  - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=invite`
   - `APP_URL/api/supabase-auth/confirm?locale=en&flow=recovery`
   - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=recovery`
   Keep `APP_URL/api/supabase-auth/callback` allow-listed only for genuine PKCE code exchange.
+  Umoja-owned invitations do not require a Supabase invite redirect. Dashboard invites are
+  deprecated for normal onboarding; retain their legacy destinations only during a controlled
+  transition if an existing unexpired Dashboard invitation must be honored.
 - Set the global Storage upload limit no higher than 10 MB for the pilot, even though Free supports up to 50 MB.
 - Do not create permissive tables, buckets, or policies manually; migrations should remain the source of truth.
 - Do not add real applicant data.
@@ -87,6 +88,11 @@ UMOJA_LOOKUP_HMAC_KEY_V1=
 UMOJA_ACTIVE_ENCRYPTION_KEY_VERSION=v1
 
 NEXT_REVALIDATION_SECRET=
+
+UMOJA_EMAIL_PROVIDER=brevo
+UMOJA_EMAIL_FROM=
+UMOJA_EMAIL_FROM_NAME=Umoja
+BREVO_API_KEY=
 ```
 
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
@@ -179,7 +185,7 @@ Roles remain `admin`, `cms-editor`, `reviewer`, `core`, `extended`, and `project
 
 ## 6. Auth migration
 
-### Canonical remote email templates
+### Canonical remote recovery templates and Umoja-owned invitations
 
 The hosted project must use token-hash links so the application verifies each link server-side and
 sets HttpOnly SSR cookies before returning a token-free URL. Preserve the existing translated email
@@ -189,20 +195,17 @@ copy and use the following flow-specific targets:
 <!-- Confirm signup / verification -->
 <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=signup">Confirm email</a>
 
-<!-- Invite user -->
-<a href="{{ .SiteURL }}/api/supabase-auth/confirm?flow=invite&token_hash={{ .TokenHash }}&type=invite">Accept invitation</a>
-
 <!-- Reset password -->
 <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
 ```
 
 `RedirectTo` is supplied by Umoja for verification and recovery and is generated only from the
-canonical `APP_URL` plus an exact locale/flow pair. A Supabase Dashboard invitation is different:
-the Dashboard action does not reliably provide Umoja's localized `RedirectTo`, so the invite
-template deliberately enters through `SiteURL`; the server resolves the locale from protected
-application-issued invitation metadata when present and otherwise defaults a Dashboard invitation
-to English. Successful verification ends at `/{locale}/verify-email?verified=1`; invitation and
-recovery end at clean `/{locale}/accept-invite` and `/{locale}/recover-password` URLs. A signed,
+canonical `APP_URL` plus an exact locale/flow pair. Normal onboarding now uses the encrypted,
+digest-only Umoja invitation workflow documented in
+[`umoja-auth-email-runbook.md`](umoja-auth-email-runbook.md); it does not use
+`inviteUserByEmail` or the Dashboard invite template. Successful verification ends at
+`/{locale}/verify-email?verified=1`; invitation and recovery end at clean
+`/{locale}/accept-invite` and `/{locale}/recover-password` URLs. A signed,
 HttpOnly, 30-minute flow context binds password setup to the exchanged Auth user and purpose.
 Invalid, expired, replayed, wrong-flow, or disabled-account links end in a localized `state=invalid`
 page. Confirmation responses are private/no-store/no-referrer and no token or code remains in the
@@ -221,8 +224,8 @@ For the hosted development project, the owner must make these Dashboard changes 
 acceptance testing:
 
 1. Set **Authentication → URL Configuration → Site URL** to the exact development `APP_URL` origin.
-2. Add the six exact `APP_URL/api/supabase-auth/confirm?locale={en|fr}&flow={verification|invite|recovery}` destinations. Do not add wildcards or a different host spelling.
-3. Install the bilingual invite and recovery templates versioned in `supabase/templates/`. The invite template must use `SiteURL`; recovery must use the application-supplied `RedirectTo`.
+2. Add the four exact `APP_URL/api/supabase-auth/confirm?locale={en|fr}&flow={verification|recovery}` destinations. Do not add wildcards or a different host spelling. Retain the two legacy invite destinations only while honoring an already-issued Dashboard invitation.
+3. Install the bilingual recovery template versioned in `supabase/templates/`; it must use the application-supplied `RedirectTo`. Configure the Brevo API adapter for Umoja invitations and Brevo custom SMTP for Supabase recovery as documented in the Auth email runbook.
 4. Disable email-provider click tracking for these one-time links and verify whether mailbox scanners consume them before changing token handling.
 
 Supported administrator first-login procedure:
@@ -233,9 +236,9 @@ Supported administrator first-login procedure:
 4. Sign in. When privileged MFA is required, complete the rendered TOTP challenge so the current session reaches AAL2; having an enrolled factor alone is insufficient.
 5. Open `/{locale}/admin`. An active account without the protected role/membership is shown as access pending, not as an incorrect password.
 
-Normal onboarding should use the authorized Umoja invitation operation because it records the
-application source and preferred locale. Dashboard invitation remains a supported development-owner
-recovery/bootstrap tool, defaults to English, and still grants no Umoja permissions. Never paste a
+Normal onboarding uses `/{locale}/admin/invitations`, encrypted email storage and Umoja's
+transactional adapter. Dashboard invitation is deprecated; an owner may retain it only as a
+temporary emergency development recovery tool, and it still grants no Umoja permissions. Never paste a
 password, token-bearing link, recovery code, or service credential into chat or an evidence artifact.
 
 The observed failures had two demonstrated repository causes: the ignored local environment used
@@ -275,9 +278,10 @@ Do not attempt to migrate live Appwrite sessions. If only synthetic/development 
   redirect mismatch**, not a successful verification test. The corrected callback flow
   is implemented but has not been manually exchanged successfully.
 - Manual delivery/exchange verification is deferred for all six required flows: English
-  and French verification, invitation acceptance/password setup, and recovery/reset.
+  and French verification, Umoja/Brevo invitation acceptance/password setup, and Supabase/Brevo
+  SMTP recovery/reset.
   No real user invitation, verification, or recovery may launch until every flow has
-  been manually re-tested successfully against the configured dashboard URLs.
+  been manually re-tested successfully against its configured delivery and exchange boundary.
 - This remains a required development/private-preview gate and a production-cutover
   blocker. Automated tests use only confirmed disposable Auth Admin users and cannot
   replace an inbox delivery/link-exchange check.
@@ -691,7 +695,7 @@ requirements are recorded in the Prompt 13 readiness checklist. Gate B/C restric
 unchanged.
 
 - configure and validate a real malware scanner before any quarantined applicant file is released;
-- manually complete all six English/French verification, invitation, and recovery inbox flows;
+- manually complete all six English/French verification, Umoja invitation, and Supabase recovery inbox flows;
 - rehearse restoration into an explicitly empty disposable project and rerun RLS/Storage probes;
 - configure production SMTP and manually test high-latency/intermittent connectivity, interrupted
   upload, retry, and session expiry.
@@ -707,8 +711,9 @@ production deployment, real applicant-file release, or real-data migration is au
 
 ### Manual checklists
 
-- Gate B email: verify Site URL/allow-list/template format; run EN/FR verification, invitation, and
-  recovery serially; confirm localized token-free final URLs and record the final success state.
+- Gate B email: verify Site URL/allow-list/recovery-template format plus Brevo API/SMTP sender
+  configuration; run EN/FR verification, Umoja invitation, and Supabase recovery serially; confirm
+  localized token-free final URLs and record the final success state.
 - Gate B restore/network: authorize an empty target, restore, rerun policy/Storage checks, then test
   slow/intermittent sessions and interrupted uploads without real files.
 - Gate C devices/launch: record one supported Android and iPhone, complete legal/operations review,

@@ -1,7 +1,13 @@
 # Supabase SSR authentication cutover checklist
 
-Until the CMS atomic switch, every listed route remains **Appwrite identity + Appwrite CMS/media**.
-No active route may pair an Appwrite session with a Supabase repository or authorization decision.
+Historical cutover note: the listed routes now use the accepted Supabase-only runtime. Appwrite is
+retained only as migration and rollback history. No active route may restore an Appwrite identity or
+repository dependency.
+
+Normal account onboarding uses the encrypted `account_invitations` model and the server-only
+transactional email adapter. Supabase Dashboard invitations and `inviteUserByEmail` are deprecated
+for Umoja onboarding. Password recovery continues through Supabase Auth with custom SMTP and the
+localized token-hash confirmation route.
 
 | Call site | Current boundary | Target boundary | Status |
 | --- | --- | --- | --- |
