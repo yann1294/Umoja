@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const optionalSecret = z.string().trim().min(1).optional();
 
+const emailAddress = z.email().trim().toLowerCase();
+
 const applicationOrigin = z
   .url()
   .transform((value) => new URL(value))
@@ -70,4 +72,43 @@ export function getIntakeCryptographyEnvironment(
     fileKeys: { [activeVersion]: file },
     lookupKeys: { [activeVersion]: lookup },
   } as const;
+}
+
+export type TransactionalEmailEnvironment =
+  | Readonly<{
+      provider: "log";
+      from: string;
+      fromName: string;
+    }>
+  | Readonly<{
+      provider: "brevo";
+      from: string;
+      fromName: string;
+      apiKey: string;
+    }>;
+
+/** Server-only delivery configuration. The log adapter is deliberately unavailable in production. */
+export function getTransactionalEmailEnvironment(
+  source: Readonly<Record<string, string | undefined>> = process.env,
+): TransactionalEmailEnvironment {
+  const provider =
+    source.UMOJA_EMAIL_PROVIDER ?? (source.NODE_ENV === "production" ? undefined : "log");
+  const fromName = z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .catch("Umoja")
+    .parse(source.UMOJA_EMAIL_FROM_NAME);
+  const from = emailAddress.safeParse(source.UMOJA_EMAIL_FROM);
+  if (!from.success) throw new ApplicationEnvironmentError();
+  if (provider === "log" && source.NODE_ENV !== "production") {
+    return { provider, from: from.data, fromName };
+  }
+  if (provider === "brevo") {
+    const apiKey = z.string().trim().min(20).safeParse(source.BREVO_API_KEY);
+    if (!apiKey.success) throw new ApplicationEnvironmentError();
+    return { provider, from: from.data, fromName, apiKey: apiKey.data };
+  }
+  throw new ApplicationEnvironmentError();
 }

@@ -3,6 +3,7 @@ import {
   ApplicationEnvironmentError,
   getApplicationEnvironment,
   getIntakeCryptographyEnvironment,
+  getTransactionalEmailEnvironment,
 } from "./environment";
 
 const key = (byte: number) => Buffer.alloc(32, byte).toString("base64");
@@ -52,5 +53,29 @@ describe("provider-neutral application environment", () => {
     expect(getApplicationEnvironment({ APP_URL: "http://127.0.0.1:3000/" }).APP_URL).toBe(
       "http://127.0.0.1:3000",
     );
+  });
+
+  it("validates the server-only Brevo email contract", () => {
+    expect(
+      getTransactionalEmailEnvironment({
+        NODE_ENV: "production",
+        UMOJA_EMAIL_PROVIDER: "brevo",
+        UMOJA_EMAIL_FROM: "hello@example.test",
+        BREVO_API_KEY: "test-api-key-with-enough-length",
+      }),
+    ).toMatchObject({ provider: "brevo", from: "hello@example.test" });
+    expect(() =>
+      getTransactionalEmailEnvironment({
+        NODE_ENV: "production",
+        UMOJA_EMAIL_FROM: "hello@example.test",
+      }),
+    ).toThrow(ApplicationEnvironmentError);
+    expect(() =>
+      getTransactionalEmailEnvironment({
+        NODE_ENV: "production",
+        UMOJA_EMAIL_PROVIDER: "brevo",
+        UMOJA_EMAIL_FROM: "hello@example.test",
+      }),
+    ).toThrow(ApplicationEnvironmentError);
   });
 });
