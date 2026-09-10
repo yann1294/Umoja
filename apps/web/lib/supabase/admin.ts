@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../../../supabase/database.types";
 import { getSupabaseEnvironment } from "./env";
 
-/** Privileged boundary for Auth invitations and test setup only; never import this in browser code. */
+/** Privileged Auth/service boundary; every caller must authorize and validate first. Server-only. */
 export function createSupabaseAdminClient() {
   const env = getSupabaseEnvironment();
   return createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY, {

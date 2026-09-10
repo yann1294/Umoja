@@ -17,6 +17,7 @@ type Props = Readonly<{
     | "portfolio"
     | "availability"
     | "admin"
+    | "invitations"
     | "content"
     | "intake";
   locale: "en" | "fr";
@@ -39,35 +40,37 @@ export function AuthenticatedShell({
   const drawerTriggerRef = useRef<HTMLButtonElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const pageLabel =
-    current === "intake"
-      ? french
-        ? "Demandes"
-        : "Intakes"
-      : current === "content"
+    current === "invitations"
+      ? "Invitations"
+      : current === "intake"
         ? french
-          ? "Contenu public"
-          : "Public content"
-        : current === "profile"
+          ? "Demandes"
+          : "Intakes"
+        : current === "content"
           ? french
-            ? "Profil"
-            : "Profile"
-          : current === "skills"
+            ? "Contenu public"
+            : "Public content"
+          : current === "profile"
             ? french
-              ? "Compétences"
-              : "Skills"
-            : current === "portfolio"
-              ? "Portfolio"
-              : current === "availability"
-                ? french
-                  ? "Disponibilité"
-                  : "Availability"
-                : current === "admin"
+              ? "Profil"
+              : "Profile"
+            : current === "skills"
+              ? french
+                ? "Compétences"
+                : "Skills"
+              : current === "portfolio"
+                ? "Portfolio"
+                : current === "availability"
                   ? french
-                    ? "Opérations"
-                    : "Operations"
-                  : french
-                    ? "Vue d’ensemble"
-                    : "Overview";
+                    ? "Disponibilité"
+                    : "Availability"
+                  : current === "admin"
+                    ? french
+                      ? "Opérations"
+                      : "Operations"
+                    : french
+                      ? "Vue d’ensemble"
+                      : "Overview";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -235,6 +238,7 @@ function WorkspaceNavigation({
     | "portfolio"
     | "availability"
     | "admin"
+    | "invitations"
     | "content"
     | "intake";
   idPrefix: string;
@@ -272,7 +276,9 @@ function WorkspaceNavigation({
                 const active =
                   current === "content"
                     ? item.href === "/admin/content"
-                    : current === item.href.slice(1);
+                    : current === "invitations"
+                      ? item.href === "/admin/invitations"
+                      : current === item.href.slice(1);
                 return (
                   <li key={item.href}>
                     <a

@@ -3,7 +3,9 @@ import type { UmojaRole } from "@/lib/auth/policy";
 
 import { AdminOverview } from "@/components/workspace/workspace-overviews";
 import { WorkspaceShell, type WorkspaceShellUser } from "@/components/workspace/workspace-shell";
+import { InvitationAdmin } from "../../[locale]/admin/invitations/invitation-admin";
 import "../../[locale]/admin/content/content.css";
+import "../../[locale]/admin/invitations/invitations.css";
 
 export const dynamic = "force-dynamic";
 
@@ -35,13 +37,14 @@ export default async function WorkspaceFixturePage({
   const query = await searchParams;
   const locale = query.locale === "fr" ? "fr" : "en";
   const content = query.view === "content";
+  const invitations = query.view === "invitations";
   const admin = query.view === "admin" || query.role === "admin";
   const requestedRoles = (query.roles ?? "")
     .split(",")
     .filter((role): role is UmojaRole => validRoles.includes(role as UmojaRole));
   const roles: UmojaRole[] = requestedRoles.length
     ? requestedRoles
-    : admin
+    : admin || invitations
       ? ["admin"]
       : content
         ? ["admin", "cms-editor"]
@@ -62,7 +65,7 @@ export default async function WorkspaceFixturePage({
 
   return (
     <WorkspaceShell
-      current={content ? "content" : admin ? "admin" : "workspace"}
+      current={content ? "content" : invitations ? "invitations" : admin ? "admin" : "workspace"}
       locale={locale}
       sessionState={query.session === "stale" ? "stale" : "active"}
       user={user}
@@ -75,12 +78,50 @@ export default async function WorkspaceFixturePage({
         <FixtureState locale={locale} state="permission" />
       ) : content ? (
         <CmsFixture locale={locale} state={query.state} />
+      ) : invitations ? (
+        <InvitationFixture locale={locale} />
       ) : admin ? (
         <AdminOverview locale={locale} user={user} />
       ) : (
         <FixtureWorkspaceOverview locale={locale} user={user} />
       )}
     </WorkspaceShell>
+  );
+}
+
+function InvitationFixture({ locale }: { locale: "en" | "fr" }) {
+  const french = locale === "fr";
+  return (
+    <>
+      <header className="workspace-page-header">
+        <div>
+          <p className="workspace-eyebrow">Administration</p>
+          <h1>{french ? "Invitations de compte" : "Account invitations"}</h1>
+          <p className="workspace-page-summary">
+            {french
+              ? "Invitez une personne sans lui accorder automatiquement des privilèges élevés."
+              : "Invite someone without automatically granting elevated privileges."}
+          </p>
+        </div>
+      </header>
+      <InvitationAdmin
+        locale={locale}
+        invitations={[
+          {
+            id: "10000000-0000-4000-8000-000000000091",
+            email: "candidate-with-a-long-address@example.invalid",
+            locale,
+            intended_role: null,
+            intended_membership_tier: "applicant",
+            intended_membership_status: "pending",
+            expires_at: "2030-01-02T00:00:00.000Z",
+            lifecycle: "pending",
+            delivery_state: "sent",
+            resend_count: 0,
+          },
+        ]}
+      />
+    </>
   );
 }
 

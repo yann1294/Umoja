@@ -14,7 +14,6 @@ import {
   type WorkspaceAccessReason,
 } from "@/lib/auth/policy";
 import { createSupabaseServerClient } from "./server";
-import { createSupabaseAdminClient } from "./admin";
 import { createSupabaseRouteClient } from "./route-client";
 import { toSupabaseServerPrincipal } from "./principal";
 import { supabaseAuthConfirmationUrl } from "./redirects";
@@ -55,7 +54,7 @@ export const supabasePasswordSchema = z
   .regex(/[A-Z]/)
   .regex(/[0-9]/);
 
-const passwordCompletionSchema = z
+export const passwordCompletionSchema = z
   .object({
     password: supabasePasswordSchema,
     confirmation: z.string().max(256),
@@ -334,15 +333,4 @@ export async function requestSupabaseRecovery(email: unknown, locale: "en" | "fr
   await client.auth.resetPasswordForEmail(value, {
     redirectTo: supabaseAuthConfirmationUrl(locale, "recovery"),
   });
-}
-
-export async function issueSupabaseInvite(email: unknown, locale: "en" | "fr" = "en") {
-  await requireSupabaseWorkspaceCapability("admin.operations", locale);
-  const recipient = z.email().parse(email);
-  const admin = createSupabaseAdminClient();
-  const { error } = await admin.auth.admin.inviteUserByEmail(recipient, {
-    redirectTo: supabaseAuthConfirmationUrl(locale, "invite"),
-    data: { umoja_invite_locale: locale, umoja_invite_source: "application" },
-  });
-  if (error) throw new Error("Invitation unavailable.");
 }

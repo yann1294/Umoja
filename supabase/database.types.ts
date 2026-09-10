@@ -33,6 +33,81 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_invitations: {
+        Row: {
+          accepted_at: string | null;
+          accepted_user_id: string | null;
+          audit_metadata: Json;
+          created_at: string;
+          delivery_provider: string | null;
+          delivery_state: Database["public"]["Enums"]["invitation_delivery_state"];
+          email_lookup: string;
+          encrypted_email: string;
+          encryption_key_version: string;
+          expires_at: string;
+          id: string;
+          intended_membership_status: Database["public"]["Enums"]["invitation_membership_status"];
+          intended_membership_tier: Database["public"]["Enums"]["membership_tier"];
+          intended_role: Database["public"]["Enums"]["umoja_role"] | null;
+          invited_by: string;
+          last_sent_at: string | null;
+          locale: string;
+          resend_count: number;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          token_digest: string;
+          updated_at: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          accepted_user_id?: string | null;
+          audit_metadata?: Json;
+          created_at?: string;
+          delivery_provider?: string | null;
+          delivery_state?: Database["public"]["Enums"]["invitation_delivery_state"];
+          email_lookup: string;
+          encrypted_email: string;
+          encryption_key_version: string;
+          expires_at: string;
+          id?: string;
+          intended_membership_status?: Database["public"]["Enums"]["invitation_membership_status"];
+          intended_membership_tier?: Database["public"]["Enums"]["membership_tier"];
+          intended_role?: Database["public"]["Enums"]["umoja_role"] | null;
+          invited_by: string;
+          last_sent_at?: string | null;
+          locale: string;
+          resend_count?: number;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          token_digest: string;
+          updated_at?: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_user_id?: string | null;
+          audit_metadata?: Json;
+          created_at?: string;
+          delivery_provider?: string | null;
+          delivery_state?: Database["public"]["Enums"]["invitation_delivery_state"];
+          email_lookup?: string;
+          encrypted_email?: string;
+          encryption_key_version?: string;
+          expires_at?: string;
+          id?: string;
+          intended_membership_status?: Database["public"]["Enums"]["invitation_membership_status"];
+          intended_membership_tier?: Database["public"]["Enums"]["membership_tier"];
+          intended_role?: Database["public"]["Enums"]["umoja_role"] | null;
+          invited_by?: string;
+          last_sent_at?: string | null;
+          locale?: string;
+          resend_count?: number;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          token_digest?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       audit_logs: {
         Row: {
           action: string;
@@ -966,6 +1041,15 @@ export type Database = {
       };
     };
     Functions: {
+      accept_account_invitation: {
+        Args: {
+          p_after_digest: string;
+          p_invitation_id: string;
+          p_token_digest: string;
+          p_user_id: string;
+        };
+        Returns: Database["public"]["Tables"]["account_invitations"]["Row"];
+      };
       archive_intake_file: {
         Args: { p_after_digest: string; p_file_id: string };
         Returns: string;
@@ -1022,6 +1106,21 @@ export type Database = {
           p_token_digest: string;
         };
         Returns: string;
+      };
+      create_account_invitation: {
+        Args: {
+          p_after_digest: string;
+          p_email_lookup: string;
+          p_encrypted_email: string;
+          p_encryption_key_version: string;
+          p_expires_at: string;
+          p_intended_membership_status: Database["public"]["Enums"]["invitation_membership_status"];
+          p_intended_membership_tier: Database["public"]["Enums"]["membership_tier"];
+          p_intended_role: Database["public"]["Enums"]["umoja_role"] | null;
+          p_locale: string;
+          p_token_digest: string;
+        };
+        Returns: Database["public"]["Tables"]["account_invitations"]["Row"];
       };
       create_encrypted_project_intake: {
         Args: {
@@ -1403,6 +1502,28 @@ export type Database = {
         };
         Returns: string;
       };
+      prepare_account_invitation_resend: {
+        Args: {
+          p_after_digest: string;
+          p_expires_at: string;
+          p_invitation_id: string;
+          p_token_digest: string;
+        };
+        Returns: Database["public"]["Tables"]["account_invitations"]["Row"];
+      };
+      record_account_invitation_delivery: {
+        Args: {
+          p_after_digest: string;
+          p_delivery_provider: string;
+          p_delivery_state: Database["public"]["Enums"]["invitation_delivery_state"];
+          p_invitation_id: string;
+        };
+        Returns: undefined;
+      };
+      revoke_account_invitation: {
+        Args: { p_after_digest: string; p_invitation_id: string };
+        Returns: Database["public"]["Tables"]["account_invitations"]["Row"];
+      };
       validate_cms_preview_token: {
         Args: { p_locale: string; p_page_id: string; p_token_hash: string };
         Returns: {
@@ -1424,6 +1545,8 @@ export type Database = {
         | "archived";
       intake_status:
         "new" | "triage" | "in_review" | "contacted" | "accepted" | "closed" | "duplicate";
+      invitation_delivery_state: "pending" | "sent" | "failed" | "suppressed";
+      invitation_membership_status: "pending" | "active";
       language_verification: "self_reported" | "verified";
       membership_tier: "applicant" | "extended" | "core" | "lead";
       portfolio_publication_state:

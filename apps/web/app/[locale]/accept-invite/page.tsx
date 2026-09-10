@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { hasValidSupabasePasswordFlow } from "@/lib/supabase/auth";
+import { hasValidUmojaInvitation } from "@/lib/invitations/service";
 import { InvitationPasswordForm } from "../sign-in/auth-action-forms";
 import "../sign-in/workspace-auth.css";
 
@@ -14,7 +15,7 @@ export default async function AcceptInvitePage({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const french = locale === "fr";
-  const valid = await hasValidSupabasePasswordFlow("invite");
+  const valid = (await hasValidUmojaInvitation()) || (await hasValidSupabasePasswordFlow("invite"));
   return (
     <section className="auth-page" aria-labelledby="invite-title">
       <Container size="narrow">

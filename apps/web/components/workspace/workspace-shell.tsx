@@ -13,6 +13,7 @@ export type WorkspaceNavigationItem = Readonly<{
     | "/workspace/portfolio"
     | "/workspace/availability"
     | "/admin"
+    | "/admin/invitations"
     | "/admin/content"
     | "/admin/intake"
     | "/admin/profiles";
@@ -75,6 +76,12 @@ export function getWorkspaceNavigation(
       capability: "admin.operations",
     },
     {
+      href: "/admin/invitations",
+      label: french ? "Invitations" : "Invitations",
+      section: "administration",
+      capability: "admin.operations",
+    },
+    {
       href: "/admin/intake",
       label: french ? "Demandes" : "Intakes",
       section: "administration",
@@ -116,6 +123,7 @@ export function WorkspaceShell({
     | "portfolio"
     | "availability"
     | "admin"
+    | "invitations"
     | "content"
     | "intake";
   locale: "en" | "fr";

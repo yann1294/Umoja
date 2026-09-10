@@ -219,6 +219,7 @@ export function AdminOverview({
         ? "Les invitations et rôles sont contrôlés par les attributions relationnelles Umoja."
         : "Invitations and roles are controlled through Umoja’s relational assignments.",
       status: french ? "Gestion assistée" : "Console-assisted",
+      href: `/${locale}/admin/invitations`,
     },
     {
       title: french ? "Opérations de contenu" : "Content operations",
