@@ -11,7 +11,7 @@ import {
   decryptIntakeValue,
   encryptIntakeValue,
 } from "@/lib/intake/encryption";
-import { logError } from "@/lib/observability/structured-log";
+import { logError, logWarn } from "@/lib/observability/structured-log";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getSupabasePostAuthenticationContinuation,
@@ -34,6 +34,7 @@ import {
   invitationLifecycle,
   invitationToken,
 } from "./core";
+import { classifyInvitationListQueryError, InvitationListUnavailableError } from "./errors";
 
 type InvitationRow = {
   id: string;
@@ -196,24 +197,32 @@ export async function revokeUmojaInvitation(id: string, locale: "en" | "fr") {
 export async function listUmojaInvitations(locale: "en" | "fr") {
   await requireSupabaseWorkspaceCapability("admin.operations", locale);
   const client = await createSupabaseServerClient();
-  const { data, error } = await client
-    .from("account_invitations")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
-  if (error) throw new Error("invitation-list-unavailable");
-  return ((data ?? []) as unknown as InvitationRow[]).map((row) => ({
-    id: row.id,
-    email: decryptEmail(row),
-    locale: row.locale,
-    intended_role: row.intended_role,
-    intended_membership_tier: row.intended_membership_tier,
-    intended_membership_status: row.intended_membership_status,
-    expires_at: row.expires_at,
-    delivery_state: row.delivery_state,
-    resend_count: row.resend_count,
-    lifecycle: invitationLifecycle(row),
-  }));
+  const { data, error } = await client.rpc("list_account_invitations");
+  if (error) {
+    const reason = classifyInvitationListQueryError(error);
+    logWarn("invitation-list-unavailable", {
+      reason,
+      code: "code" in error ? error.code : undefined,
+    });
+    throw new InvitationListUnavailableError(reason);
+  }
+  try {
+    return ((data ?? []) as unknown as InvitationRow[]).map((row) => ({
+      id: row.id,
+      email: decryptEmail(row),
+      locale: row.locale,
+      intended_role: row.intended_role,
+      intended_membership_tier: row.intended_membership_tier,
+      intended_membership_status: row.intended_membership_status,
+      expires_at: row.expires_at,
+      delivery_state: row.delivery_state,
+      resend_count: row.resend_count,
+      lifecycle: invitationLifecycle(row),
+    }));
+  } catch {
+    logError("invitation-list-unavailable", { reason: "encryption-unavailable" });
+    throw new InvitationListUnavailableError("encryption-unavailable");
+  }
 }
 
 async function invitationByContext(context: { id: string; digest: string }) {

@@ -17,7 +17,9 @@ describe("account invitation migration contract", () => {
 
   it("enforces operations RLS, bounded resend and governance-safe assignments", () => {
     expect(migration).toContain("alter table public.account_invitations enable row level security");
+    expect(migration).toContain("create function public.list_account_invitations()");
     expect(migration).toContain("private.active_membership(auth.uid())");
+    expect(migration).toContain("grant execute on function public.list_account_invitations()");
     expect(migration).toContain("invitation.resend_count >= 5");
     expect(migration).toContain("interval '5 minutes'");
     expect(migration).toContain("p_intended_membership_tier in ('core', 'lead')");

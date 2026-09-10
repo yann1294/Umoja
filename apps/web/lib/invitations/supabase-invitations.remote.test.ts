@@ -108,6 +108,9 @@ suite("remote account invitation lifecycle", () => {
       p_after_digest: audit(created.data!.id, "sent"),
     });
     expect(delivery.error).toBeNull();
+    const listed = await operator.rpc("list_account_invitations");
+    expect(listed.error).toBeNull();
+    expect(listed.data?.some((row) => row.id === created.data!.id)).toBe(true);
     const blocked = await operator.rpc("prepare_account_invitation_resend", {
       p_invitation_id: created.data!.id,
       p_token_digest: token().digest,

@@ -58,6 +58,22 @@ create policy account_invitations_operations_read
     and private.active_membership(auth.uid())
   );
 
+create function public.list_account_invitations()
+returns setof public.account_invitations
+language plpgsql security definer set search_path = '' as $$
+begin
+  if not private.active_verified_account(auth.uid())
+    or not private.has_role('admin')
+    or not private.active_membership(auth.uid()) then
+    raise exception 'not authorized' using errcode = '42501';
+  end if;
+  return query
+    select *
+    from public.account_invitations
+    order by created_at desc
+    limit 100;
+end $$;
+
 create function public.create_account_invitation(
   p_email_lookup text,
   p_encrypted_email text,
@@ -237,11 +253,13 @@ begin
 end $$;
 
 revoke all on function public.create_account_invitation(text, text, text, text, public.umoja_role, public.membership_tier, public.invitation_membership_status, text, timestamptz, text) from public, anon, authenticated;
+revoke all on function public.list_account_invitations() from public, anon, authenticated;
 revoke all on function public.prepare_account_invitation_resend(uuid, text, timestamptz, text) from public, anon, authenticated;
 revoke all on function public.record_account_invitation_delivery(uuid, public.invitation_delivery_state, text, text) from public, anon, authenticated;
 revoke all on function public.revoke_account_invitation(uuid, text) from public, anon, authenticated;
 revoke all on function public.accept_account_invitation(uuid, text, uuid, text) from public, anon, authenticated;
 grant execute on function public.create_account_invitation(text, text, text, text, public.umoja_role, public.membership_tier, public.invitation_membership_status, text, timestamptz, text) to authenticated;
+grant execute on function public.list_account_invitations() to authenticated;
 grant execute on function public.prepare_account_invitation_resend(uuid, text, timestamptz, text) to authenticated;
 grant execute on function public.revoke_account_invitation(uuid, text) to authenticated;
 grant execute on function public.record_account_invitation_delivery(uuid, public.invitation_delivery_state, text, text) to service_role;
