@@ -110,6 +110,31 @@ test("invitation, reset, and administrator MFA forms remain usable", async ({ pa
   }
 });
 
+test("Umoja-owned invitation administration is bilingual and responsive", async ({
+  page,
+}, testInfo) => {
+  const locale = ["width-360", "width-768", "width-1440", "wide-2560"].includes(
+    testInfo.project.name,
+  )
+    ? "fr"
+    : "en";
+  await page.goto(`/design-system/workspace?view=invitations&locale=${locale}`, {
+    waitUntil: "networkidle",
+  });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    locale === "fr" ? "Invitations de compte" : "Account invitations",
+  );
+  await expect(page.getByRole("option", { name: /Core|Admin|Lead/ })).toHaveCount(0);
+  await expectNoPageHorizontalOverflow(page);
+  await expectMinimumTouchTargets(
+    page,
+    "main input:visible, main select:visible, main button:visible",
+  );
+  if (["width-320", "width-360", "width-1280"].includes(testInfo.project.name)) {
+    await expectDeterministicScreenshot(page, `auth-invitations-admin-${locale}.png`);
+  }
+});
+
 test("role-aware workspace and admin fixtures are responsive", async ({ page }, testInfo) => {
   const admin = ["width-390", "width-1024", "width-1920", "tablet-landscape"].includes(
     testInfo.project.name,
@@ -245,6 +270,7 @@ test("auth and shell fixtures have no serious accessibility violations", async (
     "/design-system/auth?state=invite&locale=fr",
     "/design-system/auth?state=recovery&locale=en",
     "/design-system/auth?state=mfa&locale=fr",
+    "/design-system/workspace?view=invitations&locale=fr",
     "/design-system/workspace?role=admin&locale=en",
     "/design-system/workspace?state=error&roles=reviewer&locale=fr",
   ]) {
