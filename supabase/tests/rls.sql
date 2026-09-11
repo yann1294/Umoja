@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(21);
 
 select ok(has_table_privilege('anon', 'public.project_intakes', 'select') = false, 'anon has no intake table grant');
 select ok(has_table_privilege('anon', 'public.project_intakes', 'insert') = false, 'anon cannot insert intake rows');
@@ -15,6 +15,7 @@ select ok(has_function_privilege('service_role', 'public.record_account_invitati
 select ok(has_function_privilege('service_role', 'public.accept_account_invitation(uuid,text,uuid,text)', 'execute'), 'service role can run the validated acceptance transaction');
 select ok(has_table_privilege('anon', 'public.public_profiles', 'select'), 'anon can read only the approved public profile projection');
 select ok(has_table_privilege('anon', 'public.public_profile_availability', 'select'), 'anon can read only consented public availability projection');
+select ok(has_function_privilege('anon', 'private.public_profile_visible(uuid)', 'execute'), 'anon can execute the narrow public profile visibility predicate');
 
 set local role anon;
 select is((select count(*) from public.profiles), 1::bigint, 'anon sees only consented public profile');

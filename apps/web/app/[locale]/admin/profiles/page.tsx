@@ -16,7 +16,7 @@ export default async function AdminProfilesPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   const user = await requireSupabaseWorkspaceCapability("admin.operations", locale);
   const client = await createSupabaseServerClient();
-  const { data, error } = await client
+  const { data: submittedProfiles, error } = await client
     .from("profiles")
     .select(
       "user_id,professional_name,public_headline,public_avatar_url,public_website_url,public_professional_links,public_bio,country_code,publication_state,public_consent_at,updated_at",
@@ -25,7 +25,34 @@ export default async function AdminProfilesPage({
     .is("archived_at", null)
     .order("updated_at", { ascending: true });
   if (error) throw error;
-  const profileIds = data?.map((profile) => profile.user_id) ?? [];
+  const { data: submittedPortfolio, error: submittedPortfolioError } = await client
+    .from("portfolio_items")
+    .select(
+      "id,profile_id,title,role_summary,external_url,category,technologies,publication_state,public_consent_at",
+    )
+    .eq("publication_state", "submitted")
+    .not("public_consent_at", "is", null)
+    .is("archived_at", null)
+    .order("updated_at", { ascending: true });
+  if (submittedPortfolioError) throw submittedPortfolioError;
+  const submittedProfileIds = submittedProfiles?.map((profile) => profile.user_id) ?? [];
+  const portfolioProfileIds = (submittedPortfolio ?? []).map((item) => item.profile_id);
+  const profileIds = Array.from(new Set([...submittedProfileIds, ...portfolioProfileIds]));
+  const missingPortfolioProfileIds = portfolioProfileIds.filter(
+    (profileId) => !submittedProfileIds.includes(profileId),
+  );
+  const { data: portfolioOnlyProfiles, error: portfolioProfileError } =
+    missingPortfolioProfileIds.length
+      ? await client
+          .from("profiles")
+          .select(
+            "user_id,professional_name,public_headline,public_avatar_url,public_website_url,public_professional_links,public_bio,country_code,publication_state,public_consent_at,updated_at",
+          )
+          .in("user_id", missingPortfolioProfileIds)
+          .is("archived_at", null)
+      : { data: [], error: null };
+  if (portfolioProfileError) throw portfolioProfileError;
+  const data = [...(submittedProfiles ?? []), ...(portfolioOnlyProfiles ?? [])];
   const { data: skills } = profileIds.length
     ? await client
         .from("profile_skills")
