@@ -115,6 +115,12 @@ approved skills, consented languages, fresh consented availability and a link to
 must not render full private profile data, contact channels, rates, hidden files, or unapproved
 portfolio content.
 
+Public website editing now uses the surface-oriented CMS workflow documented in
+[`cms-public-content-runbook.md`](cms-public-content-runbook.md). The CMS dashboard groups Homepage,
+About Model/Governance/Manifesto, Work index/case studies, Services, Contact, and Talent public
+copy by bilingual surface, while the underlying Supabase CMS tables, revisions, previews, rollback,
+RLS and publication restrictions remain the authority.
+
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
 
 Shared application configuration is provider-neutral. `APP_URL`, `NEXT_REVALIDATION_SECRET`, and
