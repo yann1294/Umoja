@@ -80,18 +80,20 @@ development Dashboard under Authentication SMTP settings:
 
 Set Authentication → URL Configuration:
 
-- Site URL: the exact `APP_URL` origin;
+- Site URL: the exact `APP_URL` origin. For the current Vercel preview, use
+  `https://umoja-appwrite-preview.vercel.app`;
 - Redirect URLs: exact
-  `APP_URL/api/supabase-auth/confirm?locale=en&flow=recovery` and French equivalent;
+  `APP_URL/api/supabase-auth/callback?locale=en&flow=recovery` and French equivalent;
 - retain the two exact verification destinations if email verification is used;
-- keep the PKCE callback only for a real code-producing flow. Do not use wildcard origins.
+- keep the PKCE callback for the real code-producing recovery flow. Do not use wildcard origins.
 
 Install the versioned recovery template from `supabase/templates/recovery.html`. It must construct
-the application route from `{{ .RedirectTo }}`, `{{ .TokenHash }}`, and `type=recovery`. The server
-verifies the hash, writes the session only to secure cookies, and redirects to a clean
-`/{locale}/recover-password` URL. Invalid, expired, replayed, wrong-flow, and disabled-user links
-show a localized restart path rather than the homepage. Recovery requests always return the same
-generic response, including malformed or unknown addresses.
+the application route from `{{ .ConfirmationURL }}` or preserve the code-producing `{{ .RedirectTo }}`
+callback URL configured above. The application also retains a token-hash compatibility bridge for
+older custom templates. The server writes the session only to secure cookies and redirects to a clean
+`/{locale}/recover-password` URL. Invalid, expired, replayed, wrong-flow, and disabled-user links show
+a localized restart path rather than the homepage. Recovery requests always return the same generic
+response, including malformed or unknown addresses.
 
 ## First development administrator
 
