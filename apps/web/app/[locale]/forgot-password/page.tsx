@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { RecoveryRequestForm } from "../sign-in/auth-action-forms";
+import { RecoveryLinkBridge } from "../recover-password/recovery-link-bridge";
 import "../sign-in/workspace-auth.css";
 
 export default async function ForgotPasswordPage({
@@ -24,6 +25,7 @@ export default async function ForgotPasswordPage({
               ? "Nous renvoyons toujours la même réponse afin de protéger la confidentialité des comptes."
               : "We always return the same response to protect account privacy."}
           </p>
+          <RecoveryLinkBridge locale={locale} />
           <RecoveryRequestForm locale={locale} />
         </div>
       </Container>

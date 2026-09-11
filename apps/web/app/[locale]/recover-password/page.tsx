@@ -4,6 +4,7 @@ import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { hasValidSupabasePasswordFlow } from "@/lib/supabase/auth";
 import { RecoveryConfirmForm } from "../sign-in/auth-action-forms";
+import { RecoveryLinkBridge } from "./recovery-link-bridge";
 import "../sign-in/workspace-auth.css";
 
 export default async function RecoverPasswordPage({
@@ -22,6 +23,7 @@ export default async function RecoverPasswordPage({
           <h1 id="recovery-confirm-title">
             {french ? "Choisir un nouveau mot de passe" : "Choose a new password"}
           </h1>
+          <RecoveryLinkBridge locale={locale} />
           {valid ? (
             <RecoveryConfirmForm locale={locale} />
           ) : (

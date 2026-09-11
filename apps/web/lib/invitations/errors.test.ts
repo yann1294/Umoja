@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { classifyInvitationListQueryError } from "./errors";
+import {
+  InvitationActionUnavailableError,
+  classifyInvitationListQueryError,
+  invitationActionUnavailableReason,
+  invitationCreateUnavailableReason,
+} from "./errors";
 
 describe("invitation list error classification", () => {
   it("identifies an unapplied account invitation migration", () => {
@@ -36,5 +41,44 @@ describe("invitation list error classification", () => {
         message: "new row violates row-level security policy",
       }),
     ).toBe("permission-denied");
+  });
+});
+
+describe("invitation create error classification", () => {
+  it("maps expected invitation failures to safe response reasons", () => {
+    expect(
+      invitationCreateUnavailableReason(new Error("invitation-account-exists-use-recovery")),
+    ).toBe("account-exists");
+    expect(invitationCreateUnavailableReason(new Error("untrusted-origin"))).toBe(
+      "origin-mismatch",
+    );
+    expect(invitationCreateUnavailableReason(new Error("invitation-delivery-unavailable"))).toBe(
+      "delivery-unavailable",
+    );
+    expect(invitationCreateUnavailableReason(new Error("invitation-create-unavailable"))).toBe(
+      "database-unavailable",
+    );
+  });
+
+  it("does not expose unexpected provider or database details", () => {
+    expect(invitationCreateUnavailableReason(new Error("provider said token=secret"))).toBe(
+      "unavailable",
+    );
+  });
+});
+
+describe("invitation action error classification", () => {
+  it("maps resend and revoke failures to safe UI reasons", () => {
+    expect(
+      invitationActionUnavailableReason(
+        new InvitationActionUnavailableError("cooldown-or-terminal"),
+      ),
+    ).toBe("cooldown-or-terminal");
+    expect(invitationActionUnavailableReason(new Error("invitation-delivery-unavailable"))).toBe(
+      "delivery-unavailable",
+    );
+    expect(invitationActionUnavailableReason(new Error("provider said token=secret"))).toBe(
+      "unavailable",
+    );
   });
 });

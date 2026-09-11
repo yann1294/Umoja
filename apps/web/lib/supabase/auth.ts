@@ -16,7 +16,7 @@ import {
 import { createSupabaseServerClient } from "./server";
 import { createSupabaseRouteClient } from "./route-client";
 import { toSupabaseServerPrincipal } from "./principal";
-import { supabaseAuthConfirmationUrl } from "./redirects";
+import { supabaseAuthCallbackUrl } from "./redirects";
 import { isUmojaRole } from "@/lib/auth/policy";
 import { resolveSupabaseAuthContinuation } from "./auth-continuation";
 import {
@@ -331,6 +331,6 @@ export async function requestSupabaseRecovery(email: unknown, locale: "en" | "fr
   const value = z.email().parse(email);
   const client = await createSupabaseServerClient();
   await client.auth.resetPasswordForEmail(value, {
-    redirectTo: supabaseAuthConfirmationUrl(locale, "recovery"),
+    redirectTo: supabaseAuthCallbackUrl(locale, "recovery"),
   });
 }

@@ -31,7 +31,7 @@ describe("Umoja account invitation route", () => {
   });
 
   it("returns a private generic failure without leaking service details", async () => {
-    issueUmojaInvitation.mockRejectedValueOnce(new Error("secret-provider-detail"));
+    issueUmojaInvitation.mockRejectedValueOnce(new Error("invitation-delivery-unavailable"));
     const response = await POST(
       new Request("https://umoja.example.test/api/supabase-auth/invite", {
         method: "POST",
@@ -40,7 +40,22 @@ describe("Umoja account invitation route", () => {
       }),
     );
     expect(response.status).toBe(403);
-    expect(await response.text()).not.toContain("secret-provider-detail");
+    const body = await response.text();
+    expect(body).toContain("delivery-unavailable");
+    expect(body).not.toContain("secret-provider-detail");
     expect(response.headers.get("cache-control")).toContain("no-store");
+  });
+
+  it("reports a safe local origin mismatch reason", async () => {
+    const response = await POST(
+      new Request("https://umoja.example.test/api/supabase-auth/invite", {
+        method: "POST",
+        headers: { origin: "http://127.0.0.1:4173" },
+        body: JSON.stringify({}),
+      }),
+    );
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ reason: "origin-mismatch" });
+    expect(issueUmojaInvitation).not.toHaveBeenCalled();
   });
 });

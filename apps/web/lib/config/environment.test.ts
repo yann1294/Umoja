@@ -77,5 +77,13 @@ describe("provider-neutral application environment", () => {
         UMOJA_EMAIL_FROM: "hello@example.test",
       }),
     ).toThrow(ApplicationEnvironmentError);
+    expect(() =>
+      getTransactionalEmailEnvironment({
+        NODE_ENV: "production",
+        UMOJA_EMAIL_PROVIDER: "brevo",
+        UMOJA_EMAIL_FROM: "Umoja <hello@example.test>",
+        BREVO_API_KEY: "test-api-key-with-enough-length",
+      }),
+    ).toThrow(ApplicationEnvironmentError);
   });
 });

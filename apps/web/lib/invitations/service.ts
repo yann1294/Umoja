@@ -34,7 +34,11 @@ import {
   invitationLifecycle,
   invitationToken,
 } from "./core";
-import { classifyInvitationListQueryError, InvitationListUnavailableError } from "./errors";
+import {
+  classifyInvitationListQueryError,
+  InvitationActionUnavailableError,
+  InvitationListUnavailableError,
+} from "./errors";
 
 type InvitationRow = {
   id: string;
@@ -179,7 +183,15 @@ export async function resendUmojaInvitation(id: string, locale: "en" | "fr") {
     p_expires_at: new Date(Date.now() + EXPIRY_MILLISECONDS).toISOString(),
     p_after_digest: invitationAuditDigest(invitationId, "resend"),
   });
-  if (error || !data) throw new Error("invitation-resend-unavailable");
+  if (error || !data) {
+    logWarn("invitation-resend-unavailable", {
+      code: error?.code,
+      reason: error?.code === "U1302" ? "cooldown-or-terminal" : "database-unavailable",
+    });
+    throw new InvitationActionUnavailableError(
+      error?.code === "U1302" ? "cooldown-or-terminal" : "database-unavailable",
+    );
+  }
   await deliver(data as unknown as InvitationRow, token.token);
 }
 
@@ -191,7 +203,15 @@ export async function revokeUmojaInvitation(id: string, locale: "en" | "fr") {
     p_invitation_id: invitationId,
     p_after_digest: invitationAuditDigest(invitationId, "revoke"),
   });
-  if (error) throw new Error("invitation-revoke-unavailable");
+  if (error) {
+    logWarn("invitation-revoke-unavailable", {
+      code: error.code,
+      reason: error.code === "U1304" ? "cooldown-or-terminal" : "database-unavailable",
+    });
+    throw new InvitationActionUnavailableError(
+      error.code === "U1304" ? "cooldown-or-terminal" : "database-unavailable",
+    );
+  }
 }
 
 export async function listUmojaInvitations(locale: "en" | "fr") {
