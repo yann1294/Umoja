@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
-import { createClient, type User } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ProjectIntake, TalentIntake } from "@umoja/validation";
 import type { ServerPrincipal } from "@/lib/auth/principal";
@@ -34,18 +34,16 @@ function environment() {
   return { ...process.env, ...file };
 }
 
-const env = enabled ? environment() : process.env;
-const service = createClient<Database>(
-  env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1",
-  env.SUPABASE_SECRET_KEY ?? "test",
-  { auth: { autoRefreshToken: false, persistSession: false } },
-);
-const publicClient = createClient<Database>(
-  env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1",
-  env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "test",
-  { auth: { autoRefreshToken: false, persistSession: false } },
-);
-const keyring = enabled ? createIntakeEncryptionKeyringFromEnvironment(env) : (null as never);
+function requiredEnv(name: string) {
+  const value = env[name];
+  if (!value) throw new Error(`${name} is required for RUN_SUPABASE_REMOTE_INTAKE`);
+  return value;
+}
+
+let env: ReturnType<typeof environment>;
+let service: SupabaseClient<Database>;
+let publicClient: SupabaseClient<Database>;
+let keyring: ReturnType<typeof createIntakeEncryptionKeyringFromEnvironment>;
 const marker = randomUUID();
 const password = `Umoja-${randomUUID()}-A9!`;
 const users: User[] = [];
@@ -165,6 +163,17 @@ async function cleanup() {
 remote("dormant Supabase intake claim boundary", () => {
   beforeAll(async () => {
     try {
+      env = environment();
+      const url = requiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+      const publishableKey = requiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+      const secretKey = requiredEnv("SUPABASE_SECRET_KEY");
+      service = createClient<Database>(url, secretKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      publicClient = createClient<Database>(url, publishableKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      keyring = createIntakeEncryptionKeyringFromEnvironment(env);
       admin = await createUser("admin");
       intended = await createUser("intended");
       other = await createUser("other");
