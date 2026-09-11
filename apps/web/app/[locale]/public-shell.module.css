@@ -75,7 +75,8 @@
 }
 
 .logoLink :global(.u-logo) {
-  width: clamp(8.25rem, 19vw, 10.5rem);
+  width: clamp(9rem, 20vw, 12rem);
+  height: auto;
 }
 
 .headerActions {

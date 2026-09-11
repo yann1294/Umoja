@@ -1,0 +1,29 @@
+<!-- Deprecated for normal onboarding. Retained only for controlled legacy Dashboard invitations. -->
+<!doctype html>
+<html lang="en">
+  <body>
+    <h1>Set up your Umoja account</h1>
+    <p>
+      Use this single-use link to choose your first password. An account invitation does not grant
+      an Umoja role or membership.
+    </p>
+    <p>
+      <a
+        href="{{ .SiteURL }}/api/supabase-auth/confirm?flow=invite&amp;token_hash={{ .TokenHash }}&amp;type=invite"
+        >Set up my password</a
+      >
+    </p>
+    <hr />
+    <h1 lang="fr">Configurer votre compte Umoja</h1>
+    <p lang="fr">
+      Utilisez ce lien à usage unique pour choisir votre premier mot de passe. Une invitation de
+      compte n’accorde aucun rôle ni aucune adhésion Umoja.
+    </p>
+    <p lang="fr">
+      <a
+        href="{{ .SiteURL }}/api/supabase-auth/confirm?flow=invite&amp;token_hash={{ .TokenHash }}&amp;type=invite"
+        >Choisir mon mot de passe</a
+      >
+    </p>
+  </body>
+</html>

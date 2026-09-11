@@ -1,0 +1,86 @@
+{
+  "date": "2026-08-31",
+  "browser": "Google Chrome 151.0.7922.174",
+  "browserControl": "supported Chrome extension integration",
+  "viewportOverride": false,
+  "manualParticipation": "The owner used Chrome's browser toolbar controls and visibly confirmed 100% and 200%; automation recorded measurements, screenshots, focus, clipping, overflow and interaction state.",
+  "profile": {
+    "route": "/en/workspace/profile",
+    "zoom100": {
+      "outerWidth": 1200,
+      "outerHeight": 879,
+      "innerWidth": 1200,
+      "innerHeight": 702,
+      "devicePixelRatio": 2,
+      "visualViewportWidth": 1200,
+      "visualViewportHeight": 702,
+      "visualViewportScale": 1,
+      "documentClientWidth": 1200,
+      "documentScrollWidth": 1200,
+      "horizontalOverflow": false
+    },
+    "zoom200": {
+      "outerWidth": 1200,
+      "outerHeight": 879,
+      "innerWidth": 600,
+      "innerHeight": 351,
+      "devicePixelRatio": 4,
+      "visualViewportWidth": 600,
+      "visualViewportHeight": 351,
+      "visualViewportScale": 1,
+      "documentClientWidth": 600,
+      "documentScrollWidth": 600,
+      "horizontalOverflow": false
+    },
+    "review": {
+      "clippedElements": 0,
+      "navigationDialogUsable": true,
+      "keyboardFocusVisible": true,
+      "englishAndFrenchLabelsReviewed": true
+    }
+  },
+  "moderation": {
+    "route": "/en/admin/profiles",
+    "zoom100": {
+      "outerWidth": 1200,
+      "outerHeight": 879,
+      "innerWidth": 1200,
+      "innerHeight": 702,
+      "devicePixelRatio": 2,
+      "visualViewportWidth": 1200,
+      "visualViewportHeight": 702,
+      "visualViewportScale": 1,
+      "documentClientWidth": 1200,
+      "documentScrollWidth": 1200,
+      "horizontalOverflow": false
+    },
+    "zoom200": {
+      "outerWidth": 1200,
+      "outerHeight": 879,
+      "innerWidth": 600,
+      "innerHeight": 351,
+      "devicePixelRatio": 4,
+      "visualViewportWidth": 600,
+      "visualViewportHeight": 351,
+      "visualViewportScale": 1,
+      "documentClientWidth": 600,
+      "documentScrollWidth": 600,
+      "horizontalOverflow": false
+    },
+    "review": {
+      "clippedElements": 0,
+      "keyboardFocusVisible": true,
+      "englishAndFrenchLabelsReviewed": true,
+      "approveButtonHeight": 44,
+      "requestChangesButtonHeight": 44,
+      "revokeButtonHeight": 44
+    }
+  },
+  "cleanup": {
+    "runId": "934c9c70-818d-4dcd-b9a7-5b7f084d6668",
+    "exactSyntheticUsersRemoved": 2,
+    "matchingUsersAfterCleanup": 0,
+    "matchingProfilesAfterCleanup": 0,
+    "credentialFilePresentAfterCleanup": false
+  }
+}

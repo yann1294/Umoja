@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
-import { requireWorkspaceCapability } from "@/lib/appwrite/auth";
-import { createSessionServices } from "@/lib/appwrite/session";
-import { createCmsEditorRepository } from "@/lib/cms/service";
+import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
 
 export const dynamic = "force-dynamic";
 export default async function PreviewContent({
@@ -13,10 +12,8 @@ export default async function PreviewContent({
 }: Readonly<{ params: Promise<{ locale: string; pageId: string }> }>) {
   const { locale, pageId } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const user = await requireWorkspaceCapability("cms.manage", locale);
-  const services = await createSessionServices();
-  if (!services) notFound();
-  const page = await createCmsEditorRepository(services.tables).getDraft(pageId);
+  const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
+  const page = await (await createSupabaseCmsEditorRepository()).getDraft(pageId);
   if (!page) notFound();
   const french = locale === "fr";
   return (

@@ -18,9 +18,9 @@ const navigation = [
   ["services", "/services"],
   ["work", "/work"],
   ["talent", "/talent"],
-  ["africit", "/africit"],
   ["about", "/about"],
-  ["startProject", "/start-a-project"],
+  ["contact", "/contact"],
+  ["hire", "/hire"],
   ["join", "/join"],
 ] as const;
 
@@ -32,6 +32,10 @@ export async function PublicShell({ children, locale }: PublicShellProps) {
     label: nav(key),
     emphasis: index >= navigation.length - 2,
   }));
+  const footerExploreItems: PublicNavigationItem[] = [
+    ...items.slice(0, 5),
+    { href: "/africit", label: nav("africit"), emphasis: false },
+  ];
 
   const headerLabels = {
     home: shell("homeLabel"),
@@ -57,7 +61,7 @@ export async function PublicShell({ children, locale }: PublicShellProps) {
           </div>
           <FooterNavigation
             title={shell("footerExplore")}
-            items={items.slice(0, 5)}
+            items={footerExploreItems}
             label={shell("menuTitle")}
           />
           <FooterNavigation

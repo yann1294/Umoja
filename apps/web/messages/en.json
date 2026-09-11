@@ -22,15 +22,17 @@
     "talent": "Talent",
     "africit": "AfricIT",
     "about": "About",
+    "contact": "Contact",
+    "hire": "Hire",
     "startProject": "Start a project",
     "join": "Join"
   },
   "Home": {
     "eyebrow": "Umoja Platform",
     "title": "African expertise. One trusted force.",
-    "metadataDescription": "Umoja assembles vetted African specialists into accountable teams for digital delivery and shared capability building.",
-    "introduction": "Umoja assembles vetted specialists into accountable teams to design, build, and operate digital products across a bilingual African network.",
-    "primaryAction": "Start a project",
+    "metadataDescription": "Request an approved African technology professional or ask Umoja to help assemble a qualified expert team.",
+    "introduction": "Hire an approved African technology professional or ask Umoja to help assemble the expert team your work needs. Every request is qualified by people, not opened to public bidding.",
+    "primaryAction": "Hire a professional",
     "secondaryAction": "Join the network",
     "trust": {
       "eyebrow": "Trust before scale",
@@ -43,26 +45,33 @@
     },
     "operating": {
       "eyebrow": "How Umoja works",
-      "title": "From a real need to a stronger shared capability.",
-      "description": "The operating model keeps client outcomes, contributor growth, and useful documentation connected throughout delivery.",
+      "title": "A qualified path from need to engagement.",
+      "description": "Umoja confirms the need, the people, and the responsibility model before work begins.",
       "steps": [
         {
-          "title": "Discover",
-          "description": "Understand the need, context, constraints, and evidence required for a responsible project decision."
+          "title": "Qualify",
+          "description": "Share the outcome, context, timing, and constraints so Umoja can review the request responsibly."
         },
         {
-          "title": "Assemble",
-          "description": "Shape the work into clear modules and bring together the right product, engineering, design, and growth expertise."
+          "title": "Match or assemble",
+          "description": "Umoja reviews approved expertise for one professional or a complete team; there is no public bidding."
         },
         {
-          "title": "Deliver",
-          "description": "Work as one accountable team with explicit interfaces, acceptance criteria, and documentation."
-        },
-        {
-          "title": "Grow",
-          "description": "Turn delivery into learning, reusable knowledge, contributor progression, and stronger collective capability."
+          "title": "Confirm the model",
+          "description": "The parties, responsibilities, scope, and acceptance process are agreed for the specific engagement."
         }
       ]
+    },
+    "engagement": {
+      "eyebrow": "Two curated engagement paths",
+      "title": "Choose the shape of support you need.",
+      "description": "Both routes begin with a qualified request and keep professional contact details private.",
+      "individualTitle": "Hire a professional",
+      "individualDescription": "Request one approved specialist for a defined individual engagement, subject to fit and agreed contract boundaries.",
+      "individualAction": "Request a professional",
+      "teamTitle": "Build or request a team",
+      "teamDescription": "Ask Umoja to help assemble complementary expertise around a shared outcome and an approved responsibility model.",
+      "teamAction": "Request a team"
     },
     "capabilities": {
       "eyebrow": "Capability areas",
@@ -131,12 +140,12 @@
     },
     "talent": {
       "eyebrow": "Talent",
-      "title": "Professional visibility, always by choice.",
-      "description": "Public profiles can show a chosen professional name, region, skills, seniority, and availability. Contact details and private employment information stay private.",
+      "title": "Approved expertise, presented with consent.",
+      "description": "Explore moderated professional profiles without public contact details, private rates, HR records, or automatic ranking.",
       "status": "Consent-led profiles",
       "emptyTitle": "Profiles will appear after opt-in review.",
       "emptyDescription": "Umoja will not create fictional specialists or expose contributor data to fill this space.",
-      "action": "Understand public talent"
+      "action": "Explore approved talent"
     },
     "africit": {
       "eyebrow": "AfricIT by Umoja",
@@ -154,15 +163,37 @@
       "action": "Read about the model"
     },
     "final": {
-      "eyebrow": "Two ways into the network",
-      "title": "Bring the work. Bring your expertise.",
-      "buildTitle": "Build with Umoja",
-      "buildDescription": "Tell us what your organization needs to design, build, or operate. We’ll begin with context and feasibility.",
-      "buildAction": "Start a project",
-      "growTitle": "Grow with Umoja",
-      "growDescription": "Join a consent-led path toward meaningful projects, learning, mentorship, and trusted contribution.",
+      "eyebrow": "Start with the right path",
+      "title": "Request expertise or contribute yours.",
+      "buildTitle": "Find the right engagement",
+      "buildDescription": "Choose an individual professional, a complete team, or the existing structured project journey.",
+      "buildAction": "See client options",
+      "growTitle": "Join the network",
+      "growDescription": "Apply through a private, consent-led path toward reviewed opportunities and trusted contribution.",
       "growAction": "Join the network"
     }
+  },
+  "Engagement": {
+    "eyebrow": "Work with Umoja",
+    "title": "Start with the engagement your outcome needs.",
+    "summary": "Request one approved professional, ask Umoja to help assemble a complete team, or continue with a structured project brief. Every route begins with human qualification.",
+    "individualTitle": "Hire an individual professional",
+    "individualDescription": "Describe the role, outcome, context, and timing. Umoja will review approved expertise without exposing private contact details or rates.",
+    "individualAction": "Start an individual request",
+    "teamTitle": "Build or request a complete team",
+    "teamDescription": "Describe the shared outcome and capability mix. Team direction and delivery responsibility will follow the approved engagement and contract model.",
+    "teamAction": "Start a team request",
+    "projectTitle": "Start a structured project",
+    "projectDescription": "Use the existing project-intake journey for a broader product, service, or delivery need with context, constraints, timing, and supporting files.",
+    "projectAction": "Start a project",
+    "boundaryTitle": "Qualification before connection",
+    "boundaryDescription": "Umoja does not provide public bidding, direct private contact, automatic contracting, escrow, or payouts. The parties and responsibility boundaries are agreed for each approved engagement.",
+    "contactTitle": "Choose the most useful route",
+    "contactDescription": "Hiring and project requests use the qualified intake paths. The general message form remains an explicit non-persistent preview for partnerships and other enquiries.",
+    "contactHire": "Hire a professional",
+    "contactTeam": "Request a team or project",
+    "contactJoin": "Join the network",
+    "contactGeneral": "Write a general enquiry"
   },
   "PublicContent": {
     "breadcrumbLabel": "Breadcrumb",
@@ -211,6 +242,7 @@
     "model": "Model",
     "governance": "Governance",
     "manifesto": "Manifesto",
+    "africit": "AfricIT by Umoja",
     "readMore": "Read more",
     "loadingTitle": "Content is loading",
     "loadingDescription": "The verified public record is being prepared.",

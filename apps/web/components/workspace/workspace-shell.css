@@ -201,6 +201,61 @@
   font-size: var(--u-font-body-large);
 }
 
+.workspace-form {
+  display: grid;
+  gap: var(--u-space-5);
+  max-width: 68rem;
+}
+.workspace-form label {
+  display: grid;
+  gap: var(--u-space-1);
+  margin-top: var(--u-space-3);
+  font-weight: 700;
+}
+.workspace-form input:not([type="radio"]):not([type="checkbox"]),
+.workspace-form textarea,
+.workspace-form select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--u-space-2);
+  border: 1px solid var(--u-color-mist);
+  border-radius: 0.35rem;
+  background: var(--u-color-white);
+  color: inherit;
+  font: inherit;
+}
+.workspace-form textarea {
+  resize: vertical;
+}
+.workspace-help {
+  color: var(--u-color-slate);
+  max-width: 60ch;
+}
+.workspace-primary-action {
+  min-height: 2.75rem;
+  margin-top: var(--u-space-4);
+  padding-inline: var(--u-space-4);
+  border: 0;
+  border-radius: 999px;
+  background: var(--u-color-canopy);
+  color: var(--u-color-white);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.workspace-panel button {
+  min-height: 2.75rem;
+  padding-inline: var(--u-space-3);
+}
+
+.workspace-panel input:not([type="radio"]):not([type="checkbox"]),
+.workspace-panel textarea,
+.workspace-panel select {
+  min-height: 2.75rem;
+  padding: var(--u-space-2);
+}
+
 .workspace-notice {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

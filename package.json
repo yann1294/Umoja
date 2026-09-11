@@ -22,6 +22,25 @@
     "appwrite:health": "pnpm --filter @umoja/appwrite appwrite:health",
     "appwrite:seed": "pnpm --filter @umoja/appwrite appwrite:seed",
     "appwrite:integration": "pnpm --filter @umoja/appwrite appwrite:integration",
+    "supabase:start": "supabase start",
+    "supabase:status": "node scripts/supabase-health.mjs --local",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset --local",
+    "supabase:lint": "supabase db lint --local",
+    "supabase:migration:status": "supabase migration list --local",
+    "supabase:types": "supabase gen types typescript --local > supabase/database.types.ts",
+    "supabase:types:check": "git diff --exit-code -- supabase/database.types.ts",
+    "supabase:seed": "supabase db reset --local",
+    "supabase:health": "node scripts/supabase-health.mjs --local",
+    "supabase:test:rls": "supabase test db --local supabase/tests/rls.sql",
+    "supabase:test:storage": "supabase test db --local supabase/tests/storage.sql",
+    "supabase:test:parity": "pnpm --filter @umoja/web test:unit -- --run lib/cms/repository.test.ts lib/intake/repository.test.ts lib/appwrite/encryption.test.ts",
+    "supabase:test:remote-policy-smoke": "node scripts/supabase-remote-policy-smoke.mjs",
+    "supabase:test:remote-policy-matrix": "node scripts/supabase-remote-policy-matrix.mjs",
+    "supabase:test:remote-auth-lifecycle": "node scripts/supabase-remote-auth-lifecycle.mjs",
+    "supabase:test:remote-cms-media-matrix": "node scripts/supabase-remote-cms-media-matrix.mjs",
+    "supabase:export": "supabase db dump --local --schema public --schema private --file supabase/.temp/umoja-local-schema.sql",
+    "supabase:push:dev": "node scripts/supabase-push-dev.mjs",
     "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:e2e && pnpm build"
   },
   "devDependencies": {
@@ -31,6 +50,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.2",
     "prettier": "^3.9.6",
+    "supabase": "^2.115.0",
     "typescript": "^5.9.3"
   }
 }

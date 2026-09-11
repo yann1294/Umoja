@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-02",
+  "environment": "existing Supabase development project and loopback production build",
+  "method": "admin-generated single-use links; no email sent",
+  "dashboardInviteExchange": "pass",
+  "applicationLocaleMetadata": "pass",
+  "firstPasswordSetup": "pass",
+  "accountWithoutRole": "membership-required",
+  "recoveryPasswordSetup": "pass",
+  "oldPasswordRejected": true,
+  "newPasswordAccepted": true,
+  "usedLinkRejected": true,
+  "malformedLinkRejected": true,
+  "disabledAccountRejected": true,
+  "fixtureCleanup": "zero matching Auth users",
+  "tokensOrCredentialsRecorded": false,
+  "mailboxDelivery": "not run; owner-controlled Dashboard templates and redirects remain a manual gate"
+}

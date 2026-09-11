@@ -332,15 +332,32 @@ const editorialPages = EditorialPageSchema.array().parse([
       fr: "Un collectif de réalisation conçu pour renforcer les capacités communes.",
     },
     summary: {
-      en: "Umoja connects managed digital delivery, contributor progression, learning, and independent African organizations.",
-      fr: "Umoja relie réalisation numérique encadrée, progression des contributeurs, apprentissage et organisations africaines indépendantes.",
+      en: "Umoja connects curated individual and team engagements with contributor progression, learning, and independent African organizations.",
+      fr: "Umoja relie des engagements individuels et collectifs sélectionnés à la progression des contributeurs, à l’apprentissage et aux organisations africaines indépendantes.",
     },
     sections: [
       {
+        title: {
+          en: "Two curated engagement paths",
+          fr: "Deux parcours d’engagement sélectionnés",
+        },
+        body: {
+          en: "A client can request one approved technology professional or ask Umoja to help assemble a complete expert team. Both paths require human qualification and an engagement-specific agreement; neither opens public bidding or exposes private contacts and rates.",
+          fr: "Un client peut demander un professionnel de la technologie approuvé ou confier à Umoja la constitution d’une équipe d’experts complète. Les deux parcours exigent une qualification humaine et un accord propre à l’engagement ; aucun n’ouvre d’appel d’offres public ni n’expose les coordonnées et tarifs privés.",
+        },
+      },
+      {
         title: { en: "Trust before scale", fr: "La confiance avant l’échelle" },
         body: {
-          en: "People, organizations, and public content are verified before discovery. Delivery responsibility stays visible.",
-          fr: "Les personnes, organisations et contenus publics sont vérifiés avant d’être découverts. La responsabilité de réalisation reste visible.",
+          en: "People, organizations, and public content are verified before discovery. The parties, authority, and delivery responsibility must be explicit for each approved contract model.",
+          fr: "Les personnes, organisations et contenus publics sont vérifiés avant d’être découverts. Les parties, l’autorité et la responsabilité de réalisation doivent être explicites pour chaque modèle contractuel approuvé.",
+        },
+      },
+      {
+        title: { en: "Core, Extended, and partners", fr: "Core, Extended et partenaires" },
+        body: {
+          en: "Core contributors may lead and review within active projects. Extended specialists receive only assigned modules and explicit dependency outputs. Verified partner organizations remain independent and keep their own approved responsibilities.",
+          fr: "Les contributeurs Core peuvent diriger et valider au sein de projets actifs. Les spécialistes Extended ne reçoivent que leurs modules attribués et les livrables de dépendance explicites. Les organisations partenaires vérifiées restent indépendantes et conservent leurs responsabilités approuvées.",
         },
       },
       {
@@ -348,6 +365,26 @@ const editorialPages = EditorialPageSchema.array().parse([
         body: {
           en: "Stable policy comes before automated decisions, finance, or open marketplace mechanics.",
           fr: "Une politique stable précède les décisions automatisées, la finance ou les mécanismes de marché ouvert.",
+        },
+      },
+      {
+        title: {
+          en: "AfricIT strengthens the talent pool",
+          fr: "AfricIT renforce le vivier de talents",
+        },
+        body: {
+          en: "AfricIT by Umoja connects continued learning, practical workshops, public resources, and research to the skills revealed through real delivery. It is a capability programme within Umoja, not a separate master brand.",
+          fr: "AfricIT par Umoja relie formation continue, ateliers pratiques, ressources publiques et recherche aux compétences révélées par les réalisations concrètes. C’est un programme de développement des capacités au sein d’Umoja, pas une marque maîtresse distincte.",
+        },
+      },
+      {
+        title: {
+          en: "Work should leave capability behind",
+          fr: "Le travail doit renforcer les capacités",
+        },
+        body: {
+          en: "Umoja’s manifesto connects documented delivery with learning, mentorship, reusable knowledge, and a clearer path for the next contributor.",
+          fr: "Le manifeste d’Umoja relie la réalisation documentée à l’apprentissage, au mentorat, aux connaissances réutilisables et à une voie plus claire pour le prochain contributeur.",
         },
       },
     ],

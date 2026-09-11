@@ -10,3 +10,5 @@ work/
 public/brand/
 apps/web/public/brand/
 tests/e2e/__screenshots__/
+supabase/.temp/
+supabase/.branches/

@@ -20,13 +20,17 @@ export function PublicShellBoundary({
 
   return (
     <>
-      <a className={styles.skipLink} href="#main-content">
+      <a className={styles.skipLink} href={privateRoute ? "#workspace-main" : "#main-content"}>
         {skipLabel}
       </a>
       {privateRoute ? null : header}
-      <main id="main-content" tabIndex={-1} className={styles.main}>
-        {children}
-      </main>
+      {privateRoute ? (
+        children
+      ) : (
+        <main id="main-content" tabIndex={-1} className={styles.main}>
+          {children}
+        </main>
+      )}
       {privateRoute ? null : footer}
     </>
   );

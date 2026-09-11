@@ -1,0 +1,3 @@
+-- Intentionally empty. Never insert into auth.users from SQL.
+-- Remote synthetic users and all dependent test records are created and removed by the
+-- server-only remote policy test helper through the supported Supabase Auth Admin API.

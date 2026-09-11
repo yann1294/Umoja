@@ -24,3 +24,7 @@ blob-report/
 *.log
 .pnpm-debug.log*
 .vercel/
+
+# Supabase CLI local/link state and generated local runtime files
+supabase/.temp/
+supabase/.branches/

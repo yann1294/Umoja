@@ -8,6 +8,8 @@ import "@umoja/ui/styles.css";
 import "../globals.css";
 import { fontVariables } from "../fonts";
 import { routing } from "@/i18n/routing";
+import { getApplicationEnvironment } from "@/lib/config/environment";
+import { publicIndexingEnabled } from "@/lib/config/release-security";
 
 import { PublicShell } from "./public-shell";
 
@@ -25,13 +27,20 @@ export async function generateMetadata({ params }: LocaleLayoutProps): Promise<M
   if (!hasLocale(routing.locales, locale)) notFound();
 
   const t = await getTranslations({ locale, namespace: "Metadata" });
+  const publicIndexing = publicIndexingEnabled();
 
   return {
+    metadataBase: new URL(getApplicationEnvironment().APP_URL),
     title: {
       default: t("title"),
       template: `%s | ${t("title")}`,
     },
     description: t("description"),
+    robots: {
+      index: publicIndexing,
+      follow: publicIndexing,
+      noarchive: !publicIndexing,
+    },
   };
 }
 

@@ -1,0 +1,25 @@
+.invitation-form {
+  gap: var(--u-space-3);
+}
+
+.invitation-form label {
+  margin-top: 0;
+}
+
+.invitation-list {
+  display: grid;
+  gap: var(--u-space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.invitation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-1);
+  margin-top: var(--u-space-1);
+}
+
+.invitation-list h3 {
+  overflow-wrap: anywhere;
+}

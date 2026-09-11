@@ -26,9 +26,9 @@ const items: PublicNavigationItem[] = [
   { href: "/services", label: "Services", emphasis: false },
   { href: "/work", label: "Work", emphasis: false },
   { href: "/talent", label: "Talent", emphasis: false },
-  { href: "/africit", label: "AfricIT", emphasis: false },
   { href: "/about", label: "About", emphasis: false },
-  { href: "/start-a-project", label: "Start a project", emphasis: true },
+  { href: "/contact", label: "Contact", emphasis: false },
+  { href: "/hire", label: "Hire", emphasis: true },
   { href: "/join", label: "Join", emphasis: true },
 ];
 
@@ -48,6 +48,8 @@ describe("PublicHeader", () => {
     for (const item of items) {
       expect(screen.getAllByRole("link", { name: item.label }).length).toBeGreaterThan(0);
     }
+    expect(screen.queryByRole("link", { name: "AfricIT" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Contact" }).length).toBeGreaterThan(0);
 
     expect(screen.getByRole("link", { name: "Language: Français" })).toHaveAttribute(
       "href",

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import {
   honeypotWasFilled,
   normalizeEmail,
@@ -8,7 +8,7 @@ import {
   normalizeUrl,
   type IntakeIdempotencyStore,
   type IntakeRateLimiter,
-} from "@umoja/appwrite/intake-security";
+} from "./security";
 import {
   IntakeSchemas,
   type ContactIntake,
@@ -76,7 +76,15 @@ export async function prepareIntakeSubmission<K extends IntakeKind>(
   if (!decision.allowed)
     return { status: "rate_limited" as const, retryAfterSeconds: decision.retryAfterSeconds };
   const parsed = IntakeSchemas[options.kind].safeParse(options.input);
-  if (!parsed.success) return { status: "validation_error" as const, issues: parsed.error.issues };
+  if (!parsed.success)
+    return {
+      status: "validation_error" as const,
+      fieldErrors: parsed.error.issues.reduce<Record<string, string[]>>((errors, issue) => {
+        const path = issue.path.join(".") || "root";
+        errors[path] = [...(errors[path] ?? []), issue.message];
+        return errors;
+      }, {}),
+    };
   const payload = normalize(options.kind, parsed.data as PayloadByKind[K]);
   const keyHash = options.createLookup(
     emailFor(options.kind, payload),
@@ -90,6 +98,11 @@ export async function prepareIntakeSubmission<K extends IntakeKind>(
   return {
     status: "ready" as const,
     submissionId: randomUUID(),
+    publicReference: `${options.kind === "project" ? "UP" : "UT"}-${randomBytes(9)
+      .toString("base64url")
+      .replace(/[-_]/g, "A")
+      .slice(0, 12)
+      .toUpperCase()}`,
     keyHash,
     payload,
     policyVersion: options.policyVersion,

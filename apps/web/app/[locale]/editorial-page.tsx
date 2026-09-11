@@ -1,6 +1,6 @@
 import { Container, LinkButton, Section } from "@umoja/ui";
 import type { EditorialPage } from "@umoja/validation";
-import type { CmsPage } from "@umoja/appwrite/cms";
+import type { CmsPage } from "@/lib/cms/domain";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import {
@@ -57,6 +57,9 @@ export async function EditorialRoute({
                   {t(topic)}
                 </LinkButton>
               ))}
+              <LinkButton href={`/${locale}/africit`} variant="secondary">
+                {t("africit")}
+              </LinkButton>
             </div>
           </Container>
         </Section>

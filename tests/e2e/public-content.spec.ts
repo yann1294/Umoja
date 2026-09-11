@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import axe from "axe-core";
 
 import {
   expectDeterministicScreenshot,
@@ -26,6 +27,8 @@ const routes = [
   "about/model",
   "about/governance",
   "about/manifesto",
+  "hire",
+  "contact",
 ] as const;
 
 test("renders representative bilingual content and empty states across the viewport matrix", async ({
@@ -43,6 +46,89 @@ test("renders representative bilingual content and empty states across the viewp
   await expect(page.getByText("No verified case studies are published yet.")).toBeVisible();
   await expectNoPageHorizontalOverflow(page);
   await expectDeterministicScreenshot(page, "work-empty-en.png");
+});
+
+test("renders reviewed About, client-choice, and Contact surfaces across the viewport matrix", async ({
+  page,
+}) => {
+  for (const [route, screenshot] of [
+    ["/en/about", "about-reviewed-en.png"],
+    ["/fr/hire", "client-choice-fr.png"],
+    ["/en/contact", "contact-paths-en.png"],
+  ] as const) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectNoPageHorizontalOverflow(page);
+    await expectMinimumTouchTargets(page, "main a:visible, main button:visible");
+    await expectDeterministicScreenshot(page, screenshot);
+  }
+});
+
+test("stacks translated Contact actions inside the genuine-zoom CSS viewport", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "width-1280",
+    "One project verifies the exact CSS viewport measured at genuine Chrome 200% zoom.",
+  );
+
+  await page.setViewportSize({ width: 729, height: 414 });
+  await page.goto("/fr/contact", { waitUntil: "domcontentloaded" });
+
+  const actions = [
+    "Recruter un professionnel",
+    "Demander une équipe ou un projet",
+    "Rejoindre le réseau",
+    "Écrire une demande générale",
+  ];
+  const cards = actions.map((action) =>
+    page.locator("main article").filter({ has: page.getByRole("link", { name: action }) }),
+  );
+
+  for (const [index, card] of cards.entries()) {
+    await expect(card, actions[index]).toHaveCount(1);
+    const cardBox = await card.boundingBox();
+    const actionBox = await card.getByRole("link", { name: actions[index] }).boundingBox();
+    expect(cardBox).not.toBeNull();
+    expect(actionBox).not.toBeNull();
+    expect(actionBox!.x).toBeGreaterThanOrEqual(cardBox!.x);
+    expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(cardBox!.x + cardBox!.width);
+    if (index > 0) {
+      const previousBox = await cards[index - 1]!.boundingBox();
+      expect(previousBox).not.toBeNull();
+      expect(cardBox!.y).toBeGreaterThanOrEqual(previousBox!.y + previousBox!.height);
+    }
+  }
+
+  await expectNoPageHorizontalOverflow(page);
+  await expectMinimumTouchTargets(page, "main a:visible, main button:visible");
+});
+
+test("has no serious or critical axe findings on revised public routes", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "width-1280", "One desktop project runs the axe audit.");
+
+  for (const route of ["/en", "/en/about", "/en/hire", "/en/contact"]) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await page.addScriptTag({ content: axe.source });
+    const violations = await page.evaluate(async () => {
+      const result = await (
+        window as typeof window & {
+          axe: {
+            run: (
+              root: Document,
+              options: { resultTypes: string[] },
+            ) => Promise<{ violations: { impact: string | null; id: string }[] }>;
+          };
+        }
+      ).axe.run(document, { resultTypes: ["violations"] });
+      return result.violations.filter(
+        (violation) => violation.impact === "serious" || violation.impact === "critical",
+      );
+    });
+    expect(violations, `${route}: ${JSON.stringify(violations)}`).toEqual([]);
+  }
 });
 
 test("serves every public content route in both locales with metadata", async ({

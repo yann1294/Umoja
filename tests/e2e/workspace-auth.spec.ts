@@ -49,7 +49,7 @@ test("workspace route is protected on the server", async ({ page }, testInfo) =>
     "A single project verifies the server redirect.",
   );
   await page.goto("/en/workspace");
-  await expect(page).toHaveURL(/\/en\/sign-in$/);
+  await expect(page).toHaveURL(/\/en\/sign-in\?next=%2Fen%2Fworkspace$/);
 });
 
 test("admin route is protected on the server", async ({ page }, testInfo) => {
@@ -58,7 +58,7 @@ test("admin route is protected on the server", async ({ page }, testInfo) => {
     "A single project verifies the server redirect.",
   );
   await page.goto("/en/admin");
-  await expect(page).toHaveURL(/\/en\/sign-in$/);
+  await expect(page).toHaveURL(/\/en\/sign-in\?next=%2Fen%2Fadmin$/);
 });
 
 test("there is no public account registration route", async ({ request }, testInfo) => {
@@ -66,7 +66,7 @@ test("there is no public account registration route", async ({ request }, testIn
     testInfo.project.name !== "width-1280",
     "A single project verifies invite-only routing.",
   );
-  const response = await request.post("/api/auth/sign-up", {
+  const response = await request.post("/api/supabase-auth/sign-up", {
     data: { email: "person@example.com", password: "not-a-real-password" },
   });
   expect(response.status()).toBe(404);
@@ -85,6 +85,54 @@ test("recovery remains private and responsive", async ({ page }, testInfo) => {
     page,
     "main input:visible, main button:visible, header a:visible",
   );
+});
+
+test("invitation, reset, and administrator MFA forms remain usable", async ({ page }, testInfo) => {
+  const locale = ["width-390", "width-768", "width-1440"].includes(testInfo.project.name)
+    ? "fr"
+    : "en";
+  for (const state of ["invite", "recovery", "mfa"] as const) {
+    await page.goto(`/design-system/auth?state=${state}&locale=${locale}`, {
+      waitUntil: "networkidle",
+    });
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectNoPageHorizontalOverflow(page);
+    await expectMinimumTouchTargets(page, ".auth-card input:visible, .auth-card button:visible");
+    if (state !== "mfa") {
+      await expect(page.locator('input[autocomplete="new-password"]')).toHaveCount(2);
+      await expect(
+        page.getByRole("button", { name: locale === "fr" ? "Afficher" : "Show" }),
+      ).toHaveCount(2);
+    }
+    if (["width-320", "width-1280"].includes(testInfo.project.name)) {
+      await expectDeterministicScreenshot(page, `auth-${state}-${locale}.png`);
+    }
+  }
+});
+
+test("Umoja-owned invitation administration is bilingual and responsive", async ({
+  page,
+}, testInfo) => {
+  const locale = ["width-360", "width-768", "width-1440", "wide-2560"].includes(
+    testInfo.project.name,
+  )
+    ? "fr"
+    : "en";
+  await page.goto(`/design-system/workspace?view=invitations&locale=${locale}`, {
+    waitUntil: "networkidle",
+  });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    locale === "fr" ? "Invitations de compte" : "Account invitations",
+  );
+  await expect(page.getByRole("option", { name: /Core|Admin|Lead/ })).toHaveCount(0);
+  await expectNoPageHorizontalOverflow(page);
+  await expectMinimumTouchTargets(
+    page,
+    "main input:visible, main select:visible, main button:visible",
+  );
+  if (["width-320", "width-360", "width-1280"].includes(testInfo.project.name)) {
+    await expectDeterministicScreenshot(page, `auth-invitations-admin-${locale}.png`);
+  }
 });
 
 test("role-aware workspace and admin fixtures are responsive", async ({ page }, testInfo) => {
@@ -219,6 +267,10 @@ test("auth and shell fixtures have no serious accessibility violations", async (
   test.skip(testInfo.project.name !== "width-1280", "One desktop project runs the axe audit.");
   for (const path of [
     "/en/sign-in",
+    "/design-system/auth?state=invite&locale=fr",
+    "/design-system/auth?state=recovery&locale=en",
+    "/design-system/auth?state=mfa&locale=fr",
+    "/design-system/workspace?view=invitations&locale=fr",
     "/design-system/workspace?role=admin&locale=en",
     "/design-system/workspace?state=error&roles=reviewer&locale=fr",
   ]) {
@@ -247,14 +299,14 @@ test("account menu announces stale-session refresh, offline state, and sign-out"
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "width-1280", "One project verifies session controls.");
-  await page.route("**/api/auth/session/refresh", async (route) => {
+  await page.route("**/api/supabase-auth/session/refresh", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: '{"reason":"allowed"}',
     });
   });
-  await page.route("**/api/auth/sign-out", async (route) => {
+  await page.route("**/api/supabase-auth/sign-out", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: '{"success":true}' });
   });
   await page.goto("/design-system/workspace?view=admin&roles=admin&locale=en&session=stale", {

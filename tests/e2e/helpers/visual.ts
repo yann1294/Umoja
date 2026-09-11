@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 export async function expectNoPageHorizontalOverflow(page: Page): Promise<void> {
   const dimensions = await page.evaluate(() => ({
@@ -23,7 +23,12 @@ export async function expectNoPageHorizontalOverflow(page: Page): Promise<void> 
   ).toBeLessThanOrEqual(dimensions.viewportWidth);
 }
 
-export async function expectDeterministicScreenshot(page: Page, name: string): Promise<void> {
+export async function expectDeterministicScreenshot(
+  page: Page,
+  name: string,
+  maxDiffPixelRatio?: number,
+  mask: Locator[] = [],
+): Promise<void> {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
   await page.evaluate(async () => {
     await document.fonts.ready;
@@ -36,6 +41,8 @@ export async function expectDeterministicScreenshot(page: Page, name: string): P
     animations: "disabled",
     caret: "hide",
     fullPage: true,
+    mask,
+    maxDiffPixelRatio,
   });
 }
 

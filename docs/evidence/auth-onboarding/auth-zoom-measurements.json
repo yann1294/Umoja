@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-02",
+  "browser": "Google Chrome 149.0.7827.201",
+  "browserZoom": 200,
+  "outerWidth": 1458,
+  "outerHeight": 869,
+  "innerWidth": 729,
+  "innerHeight": 434,
+  "devicePixelRatio": 4,
+  "visualViewportWidth": 729,
+  "visualViewportHeight": 434.5,
+  "visualViewportScale": 1,
+  "documentClientWidth": 729,
+  "documentScrollWidth": 729,
+  "horizontalOverflow": false,
+  "screens": ["invitation", "recovery", "administrator MFA"],
+  "locale": "fr",
+  "focusOutline": "3px solid",
+  "viewportEmulation": false,
+  "baseline100": "pending owner Chrome zoom reset; do not treat outer-dimension stability as accepted yet"
+}

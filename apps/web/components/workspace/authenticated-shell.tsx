@@ -4,13 +4,22 @@ import { Logo, VisuallyHidden } from "@umoja/ui";
 import type { ReactNode, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
-import type { WorkspaceUser } from "@/lib/appwrite/auth";
+import type { SupabaseWorkspaceUser as WorkspaceUser } from "@/lib/supabase/auth";
 import { AccountMenu } from "./session-controls";
 import type { WorkspaceNavigationItem } from "./workspace-shell";
 
 type Props = Readonly<{
   children: ReactNode;
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "invitations"
+    | "content"
+    | "intake";
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
   sessionState: "active" | "stale";
@@ -31,21 +40,37 @@ export function AuthenticatedShell({
   const drawerTriggerRef = useRef<HTMLButtonElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const pageLabel =
-    current === "intake"
-      ? french
-        ? "Demandes"
-        : "Intakes"
-      : current === "content"
-      ? french
-        ? "Contenu public"
-        : "Public content"
-      : current === "admin"
+    current === "invitations"
+      ? "Invitations"
+      : current === "intake"
         ? french
-          ? "Opérations"
-          : "Operations"
-        : french
-          ? "Vue d’ensemble"
-          : "Overview";
+          ? "Demandes"
+          : "Intakes"
+        : current === "content"
+          ? french
+            ? "Contenu public"
+            : "Public content"
+          : current === "profile"
+            ? french
+              ? "Profil"
+              : "Profile"
+            : current === "skills"
+              ? french
+                ? "Compétences"
+                : "Skills"
+              : current === "portfolio"
+                ? "Portfolio"
+                : current === "availability"
+                  ? french
+                    ? "Disponibilité"
+                    : "Availability"
+                  : current === "admin"
+                    ? french
+                      ? "Opérations"
+                      : "Operations"
+                    : french
+                      ? "Vue d’ensemble"
+                      : "Overview";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -206,7 +231,16 @@ function WorkspaceNavigation({
   navigation,
   onNavigate,
 }: Readonly<{
-  current: "workspace" | "admin" | "content" | "intake";
+  current:
+    | "workspace"
+    | "profile"
+    | "skills"
+    | "portfolio"
+    | "availability"
+    | "admin"
+    | "invitations"
+    | "content"
+    | "intake";
   idPrefix: string;
   locale: "en" | "fr";
   navigation: readonly WorkspaceNavigationItem[];
@@ -242,7 +276,9 @@ function WorkspaceNavigation({
                 const active =
                   current === "content"
                     ? item.href === "/admin/content"
-                    : current === item.href.slice(1);
+                    : current === "invitations"
+                      ? item.href === "/admin/invitations"
+                      : current === item.href.slice(1);
                 return (
                   <li key={item.href}>
                     <a

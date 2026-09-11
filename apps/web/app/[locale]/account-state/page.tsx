@@ -1,9 +1,9 @@
 import { Container, LinkButton } from "@umoja/ui";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
-import type { WorkspaceAccessReason } from "@umoja/appwrite";
+import type { WorkspaceAccessReason } from "@/lib/auth/policy";
 import { routing } from "@/i18n/routing";
-import { getWorkspaceAccessState } from "@/lib/appwrite/auth";
+import { getSupabaseWorkspaceAccessState } from "@/lib/supabase/auth";
 import { AccountActions } from "./account-actions";
 import "../sign-in/workspace-auth.css";
 
@@ -11,8 +11,8 @@ const visibleReasons = new Set<WorkspaceAccessReason>([
   "account-disabled",
   "email-unverified",
   "membership-required",
-  "invite-pending",
   "forbidden",
+  "mfa-required",
   "governance-policy-required",
 ]);
 
@@ -50,16 +50,6 @@ const copy: Record<
       "Ce compte n’a pas d’adhésion active aux opérations Umoja. Une candidature ne donne pas automatiquement accès à l’espace.",
     ],
   },
-  "invite-pending": {
-    en: [
-      "Invitation not accepted",
-      "Accept the current Umoja Team invitation before entering the workspace.",
-    ],
-    fr: [
-      "Invitation non acceptée",
-      "Acceptez l’invitation actuelle à l’équipe Umoja avant d’ouvrir l’espace.",
-    ],
-  },
   forbidden: {
     en: [
       "Permission denied",
@@ -68,6 +58,16 @@ const copy: Record<
     fr: [
       "Permission refusée",
       "Votre compte est actif, mais votre rôle Umoja actuel n’autorise pas cet espace.",
+    ],
+  },
+  "mfa-required": {
+    en: [
+      "Additional verification required",
+      "This privileged area requires an approved MFA factor before access can continue.",
+    ],
+    fr: [
+      "Vérification supplémentaire requise",
+      "Cette zone privilégiée exige un facteur MFA approuvé avant de poursuivre.",
     ],
   },
   "governance-policy-required": {
@@ -94,7 +94,7 @@ export default async function AccountStatePage({
   const { locale } = await params;
   const query = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const actual = await getWorkspaceAccessState();
+  const actual = await getSupabaseWorkspaceAccessState();
   const requested = visibleReasons.has(query.reason as WorkspaceAccessReason)
     ? (query.reason as WorkspaceAccessReason)
     : null;

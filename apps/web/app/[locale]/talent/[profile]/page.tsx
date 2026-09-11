@@ -7,8 +7,11 @@ import { getTranslations } from "next-intl/server";
 import { getPublicProfile, localize, PROFILE_SLUGS } from "@/content/public-content";
 import { publicMetadata } from "@/content/public-metadata";
 import { routing, type AppLocale } from "@/i18n/routing";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { Breadcrumbs, ContentHero, publicContentStyles as styles } from "../../public-content";
 type Props = Readonly<{ params: Promise<{ locale: string; profile: string }> }>;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export function generateStaticParams() {
   return PROFILE_SLUGS.map((profile) => ({ profile }));
 }
@@ -16,6 +19,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, profile } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const item = getPublicProfile(profile);
+  const { data: published } = await createSupabasePublicClient({ noStore: true })
+    .from("public_profiles")
+    .select("public_slug,professional_name,public_bio")
+    .eq("public_slug", profile)
+    .maybeSingle();
+  if (!item && !published) notFound();
+  if (published)
+    return publicMetadata(
+      locale,
+      `talent/${profile}`,
+      published.professional_name ?? "",
+      published.public_bio ?? "",
+    );
   if (!item) notFound();
   return publicMetadata(
     locale,
@@ -64,8 +80,37 @@ export default async function ProfilePage({ params }: Props) {
   const { locale, profile } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const item = getPublicProfile(profile);
-  if (!item) notFound();
   const t = await getTranslations({ locale, namespace: "PublicContent" });
+  const { data: published } = await createSupabasePublicClient({ noStore: true })
+    .from("public_profiles")
+    .select("public_slug,professional_name,locale,country_code,public_bio")
+    .eq("public_slug", profile)
+    .maybeSingle();
+  if (published) {
+    return (
+      <>
+        <Breadcrumbs
+          ariaLabel={t("breadcrumbLabel")}
+          items={[
+            { label: t("home"), href: `/${locale}` },
+            { label: t("talentTitle"), href: `/${locale}/talent` },
+            { label: published.professional_name ?? "" },
+          ]}
+        />
+        <ContentHero
+          eyebrow={t("talentEyebrow")}
+          title={published.professional_name ?? ""}
+          summary={published.public_bio ?? ""}
+        />
+        <Section aria-label={published.professional_name ?? ""}>
+          <Container>
+            <p>{published.country_code ?? ""}</p>
+          </Container>
+        </Section>
+      </>
+    );
+  }
+  if (!item) notFound();
   const title = localize(item.publicName, locale);
   return (
     <>
