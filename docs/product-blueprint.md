@@ -258,6 +258,24 @@ vocabulary and its compatibility mapping.
 3. Candidate completes a short structured interview and role-appropriate assessment.
 4. Approved candidate enters Extended with a review date.
 5. Candidate completes one or more supervised modules/trial projects.
+
+### Public talent profile publication
+
+Public talent pages may show only allow-listed, contributor-consented, moderation-approved fields:
+professional display name, public slug, short headline, public biography, country/region code,
+approved skills, consented language badges, current public availability summary, public avatar/logo
+URL, public website URL, consented professional links, and approved portfolio examples. Portfolio
+examples may include title, role/contribution summary, public URL, category, technologies, and
+public date/year metadata when the contributor has consented and Umoja has approved publication.
+
+The public projection must not expose private contact channels, emails, phone numbers, legal names,
+rates, internal notes, hidden attachment paths, encrypted private details, applicant-only intake
+fields, unapproved portfolio records, or unmoderated workspace edits. Website, avatar/logo, links,
+skills, languages, availability, and portfolio entered in the workspace remain non-public until the
+profile and each relevant public item satisfy explicit consent and moderation gates. Availability
+must also be fresh and separately consented before a public summary can appear. The public talent pool is
+curated discovery for qualified Umoja intake, not direct private messaging, public bidding, or an
+unrestricted freelancer directory.
 6. Lead records evidence across delivery, communication, documentation, quality, and reliability.
 7. Knowledge Group reviews the promotion packet.
 8. Promotion to Core is approved, deferred with a growth plan, or declined with an appeal path.

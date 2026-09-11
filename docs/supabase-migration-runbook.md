@@ -97,6 +97,18 @@ UMOJA_EMAIL_FROM_NAME=Umoja
 BREVO_API_KEY=
 ```
 
+### Public talent profile enrichment
+
+The public talent pages use the `public_profiles` and `public_profile_availability` projections plus
+RLS-protected public skill, language, and portfolio rows. Contributors may enter headline, avatar or
+logo URL, website URL, professional links, skills, language consent, availability, and portfolio
+metadata in the workspace, but publication remains consent-led and moderation-gated. Profile approval
+publishes only the allow-listed profile projection; portfolio examples require their own
+`public_consent_at` and approved `publication_state`; availability requires a fresh snapshot with
+`public_consent_at` before the public summary view returns it. Never read `private_profile_details`,
+encrypted intake rows, private contact fields, hidden attachment paths, or internal notes from public
+routes.
+
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
 
 Shared application configuration is provider-neutral. `APP_URL`, `NEXT_REVALIDATION_SECRET`, and
