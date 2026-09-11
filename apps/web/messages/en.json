@@ -69,9 +69,37 @@
       "individualTitle": "Hire a professional",
       "individualDescription": "Request one approved specialist for a defined individual engagement, subject to fit and agreed contract boundaries.",
       "individualAction": "Request a professional",
+      "individualDetails": [
+        {
+          "label": "Best for",
+          "value": "One focused capability, advisory support, or a defined delivery role."
+        },
+        {
+          "label": "Qualified by",
+          "value": "Human review of fit, availability, evidence, and engagement boundaries."
+        },
+        {
+          "label": "Private by default",
+          "value": "Contact details, rates, and HR context stay outside public discovery."
+        }
+      ],
       "teamTitle": "Build or request a team",
       "teamDescription": "Ask Umoja to help assemble complementary expertise around a shared outcome and an approved responsibility model.",
-      "teamAction": "Request a team"
+      "teamAction": "Request a team",
+      "teamDetails": [
+        {
+          "label": "Best for",
+          "value": "A product, workflow, or project needing several coordinated disciplines."
+        },
+        {
+          "label": "Qualified by",
+          "value": "Umoja reviews scope, roles, interfaces, delivery risk, and responsibility model."
+        },
+        {
+          "label": "Next step",
+          "value": "Share the outcome so Umoja can propose the right engagement path."
+        }
+      ]
     },
     "capabilities": {
       "eyebrow": "Capability areas",

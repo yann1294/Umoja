@@ -69,9 +69,37 @@
       "individualTitle": "Recruter un professionnel",
       "individualDescription": "Demandez un spécialiste approuvé pour une mission individuelle définie, selon l’adéquation et les limites contractuelles convenues.",
       "individualAction": "Demander un professionnel",
+      "individualDetails": [
+        {
+          "label": "Idéal pour",
+          "value": "Une compétence ciblée, un appui conseil ou un rôle de réalisation défini."
+        },
+        {
+          "label": "Qualifié par",
+          "value": "Une revue humaine de l’adéquation, disponibilité, preuves et limites d’engagement."
+        },
+        {
+          "label": "Privé par défaut",
+          "value": "Coordonnées, tarifs et contexte RH restent hors de la découverte publique."
+        }
+      ],
       "teamTitle": "Constituer ou demander une équipe",
       "teamDescription": "Demandez à Umoja de réunir des expertises complémentaires autour d’un objectif commun et d’un modèle de responsabilité approuvé.",
-      "teamAction": "Demander une équipe"
+      "teamAction": "Demander une équipe",
+      "teamDetails": [
+        {
+          "label": "Idéal pour",
+          "value": "Un produit, processus ou projet nécessitant plusieurs disciplines coordonnées."
+        },
+        {
+          "label": "Qualifié par",
+          "value": "Umoja examine périmètre, rôles, interfaces, risques et modèle de responsabilité."
+        },
+        {
+          "label": "Prochaine étape",
+          "value": "Décrivez l’objectif afin qu’Umoja propose le bon parcours d’engagement."
+        }
+      ]
     },
     "capabilities": {
       "eyebrow": "Domaines de compétence",

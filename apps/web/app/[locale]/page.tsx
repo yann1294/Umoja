@@ -7,7 +7,11 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import type { CmsPage } from "@/lib/cms/domain";
 import { cmsField, getSupabasePublishedCmsPage } from "@/lib/cms/service";
-import { createSupabasePublicClient } from "@/lib/supabase/public";
+import {
+  listPublicTalentProfiles,
+  publicTalentInitials,
+  type PublicTalentProfile,
+} from "@/lib/profile/public";
 
 import { EngagementOptions } from "./engagement-options";
 import styles from "./page.module.css";
@@ -15,12 +19,10 @@ import styles from "./page.module.css";
 type HomePageProps = Readonly<{ params: Promise<{ locale: string }> }>;
 type OperatingStep = Readonly<{ title: string; description: string }>;
 type Capability = Readonly<{ title: string; description: string }>;
-type FeaturedProfile = Readonly<{
-  country_code: string | null;
-  professional_name: string;
-  public_bio: string;
-  public_slug: string;
-}>;
+type EngagementDetail = Readonly<{ label: string; value: string }>;
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -51,12 +53,7 @@ export default async function HomePage({ params }: HomePageProps) {
   const field = (key: string, fallback: string) => cmsField(cms, key, fallback);
   const operatingSteps = t.raw("operating.steps") as OperatingStep[];
   const capabilities = t.raw("capabilities.items") as Capability[];
-  const { data } = await createSupabasePublicClient({ noStore: true })
-    .from("public_profiles")
-    .select("public_slug,professional_name,public_bio,country_code")
-    .order("professional_name")
-    .limit(3);
-  const featuredProfiles = (data ?? []) as FeaturedProfile[];
+  const featuredProfiles = (await listPublicTalentProfiles()).slice(0, 3);
   const engagementOptions = [
     {
       title: field("engagement.individual.title", t("engagement.individualTitle")),
@@ -66,12 +63,14 @@ export default async function HomePage({ params }: HomePageProps) {
       ),
       action: field("engagement.individual.action", t("engagement.individualAction")),
       href: `/${locale}/hire#individual`,
+      details: t.raw("engagement.individualDetails") as EngagementDetail[],
     },
     {
       title: field("engagement.team.title", t("engagement.teamTitle")),
       description: field("engagement.team.description", t("engagement.teamDescription")),
       action: field("engagement.team.action", t("engagement.teamAction")),
       href: `/${locale}/hire#team`,
+      details: t.raw("engagement.teamDetails") as EngagementDetail[],
     },
   ] as const;
 
@@ -121,18 +120,13 @@ export default async function HomePage({ params }: HomePageProps) {
             {featuredProfiles.length ? (
               <ul className={styles.profileList} aria-label={t("talent.title")}>
                 {featuredProfiles.map((profile) => (
-                  <li className={styles.profileCard} key={profile.public_slug}>
-                    <Badge variant="neutral">{t("talent.status")}</Badge>
-                    <h3>{profile.professional_name}</h3>
-                    <p>{profile.public_bio}</p>
-                    {profile.country_code ? <small>{profile.country_code}</small> : null}
-                    <LinkButton
-                      href={`/${locale}/talent/${profile.public_slug}`}
-                      variant="secondary"
-                    >
-                      {field("talent.action", t("talent.action"))}
-                    </LinkButton>
-                  </li>
+                  <HomeTalentCard
+                    action={field("talent.action", t("talent.action"))}
+                    french={locale === "fr"}
+                    key={profile.slug}
+                    locale={locale}
+                    profile={profile}
+                  />
                 ))}
               </ul>
             ) : (
@@ -278,6 +272,88 @@ export default async function HomePage({ params }: HomePageProps) {
       </Section>
     </>
   );
+}
+
+function HomeTalentCard({
+  action,
+  french,
+  locale,
+  profile,
+}: Readonly<{
+  action: string;
+  french: boolean;
+  locale: "en" | "fr";
+  profile: PublicTalentProfile;
+}>) {
+  const summary = profile.headline || profile.biography;
+  const languageLabels = profile.languages
+    .slice(0, 3)
+    .map((language) => (french ? language.labelFr : language.labelEn));
+
+  return (
+    <li className={styles.profileCard}>
+      <div className={styles.profileCardHeader}>
+        <span className={styles.profileAvatar} aria-hidden="true">
+          {profile.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profile.avatarUrl} alt="" loading="lazy" />
+          ) : (
+            publicTalentInitials(profile.name)
+          )}
+        </span>
+        <div>
+          <Badge variant="neutral">
+            {profile.availability?.workMode
+              ? french
+                ? "Disponible avec consentement"
+                : "Consented availability"
+              : french
+                ? "Profil approuvé"
+                : "Approved profile"}
+          </Badge>
+          <h3>{profile.name}</h3>
+        </div>
+      </div>
+      <p className={styles.profileSummary}>{summary}</p>
+      <dl className={styles.profileFacts}>
+        {profile.countryCode ? (
+          <div>
+            <dt>{french ? "Région" : "Region"}</dt>
+            <dd>{profile.countryCode}</dd>
+          </div>
+        ) : null}
+        {languageLabels.length ? (
+          <div>
+            <dt>{french ? "Langues" : "Languages"}</dt>
+            <dd>{languageLabels.join(" · ")}</dd>
+          </div>
+        ) : null}
+        {profile.availability?.workMode ? (
+          <div>
+            <dt>{french ? "Mode" : "Mode"}</dt>
+            <dd>{workModeLabel(profile.availability.workMode, french)}</dd>
+          </div>
+        ) : null}
+      </dl>
+      {profile.skills.length ? (
+        <ul className={styles.profileTags} aria-label={french ? "Compétences" : "Skills"}>
+          {profile.skills.slice(0, 4).map((skill) => (
+            <li key={skill.name}>{skill.name}</li>
+          ))}
+        </ul>
+      ) : null}
+      <LinkButton href={`/${locale}/talent/${profile.slug}`} variant="secondary">
+        {action}
+      </LinkButton>
+    </li>
+  );
+}
+
+function workModeLabel(value: string, french: boolean) {
+  const labels: Record<string, string> = french
+    ? { remote: "À distance", hybrid: "Hybride", onsite: "Sur site", flexible: "Flexible" }
+    : { remote: "Remote", hybrid: "Hybrid", onsite: "On site", flexible: "Flexible" };
+  return labels[value] ?? value;
 }
 
 function SectionHeading({
