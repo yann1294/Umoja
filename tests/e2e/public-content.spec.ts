@@ -53,6 +53,8 @@ test("renders reviewed About, client-choice, and Contact surfaces across the vie
 }) => {
   for (const [route, screenshot] of [
     ["/en/about", "about-reviewed-en.png"],
+    ["/en/talent", "talent-index-public-en.png"],
+    ["/fr/talent/illustrative-public-profile", "talent-detail-public-fr.png"],
     ["/fr/hire", "client-choice-fr.png"],
     ["/en/contact", "contact-paths-en.png"],
   ] as const) {
@@ -109,7 +111,14 @@ test("has no serious or critical axe findings on revised public routes", async (
 }, testInfo) => {
   test.skip(testInfo.project.name !== "width-1280", "One desktop project runs the axe audit.");
 
-  for (const route of ["/en", "/en/about", "/en/hire", "/en/contact"]) {
+  for (const route of [
+    "/en",
+    "/en/about",
+    "/en/hire",
+    "/en/contact",
+    "/en/talent",
+    "/fr/talent/illustrative-public-profile",
+  ]) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     await page.addScriptTag({ content: axe.source });
     const violations = await page.evaluate(async () => {

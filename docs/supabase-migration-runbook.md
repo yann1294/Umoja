@@ -97,6 +97,30 @@ UMOJA_EMAIL_FROM_NAME=Umoja
 BREVO_API_KEY=
 ```
 
+### Public talent profile enrichment
+
+The public talent pages use the `public_profiles` and `public_profile_availability` projections plus
+RLS-protected public skill, language, and portfolio rows. Contributors may enter headline, avatar or
+logo URL, website URL, professional links, skills, language consent, availability, and portfolio
+metadata in the workspace, but publication remains consent-led and moderation-gated. Profile approval
+publishes only the allow-listed profile projection; portfolio examples require their own
+`public_consent_at` and approved `publication_state`; availability requires a fresh snapshot with
+`public_consent_at` before the public summary view returns it. Never read `private_profile_details`,
+encrypted intake rows, private contact fields, hidden attachment paths, or internal notes from public
+routes.
+
+The homepage talent preview uses a compact excerpt of the same allow-listed projection: public name,
+avatar/logo or initials fallback, headline or short biography excerpt, public country/region code,
+approved skills, consented languages, fresh consented availability and a link to the detail page. It
+must not render full private profile data, contact channels, rates, hidden files, or unapproved
+portfolio content.
+
+Public website editing now uses the surface-oriented CMS workflow documented in
+[`cms-public-content-runbook.md`](cms-public-content-runbook.md). The CMS dashboard groups Homepage,
+About Model/Governance/Manifesto, Work index/case studies, Services, Contact, and Talent public
+copy by bilingual surface, while the underlying Supabase CMS tables, revisions, previews, rollback,
+RLS and publication restrictions remain the authority.
+
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
 
 Shared application configuration is provider-neutral. `APP_URL`, `NEXT_REVALIDATION_SECRET`, and

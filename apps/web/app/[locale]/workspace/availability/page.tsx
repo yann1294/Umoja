@@ -51,6 +51,15 @@ export default async function AvailabilityPage({
                   ? "Inconnue"
                   : "Unknown"}
           </p>
+          <p className="workspace-muted">
+            {bundle.availability?.public_consent_at
+              ? french
+                ? "Vous avez accepté de proposer ce statut de disponibilité pour votre profil public après modération."
+                : "You consented to propose this availability status for your public profile after moderation."
+              : french
+                ? "Votre disponibilité reste privée sauf si vous consentez explicitement à la proposer pour votre profil public."
+                : "Your availability stays private unless you explicitly consent to propose it for your public profile."}
+          </p>
           <label>
             {french ? "Heures hebdomadaires" : "Weekly available hours"}
             <input
@@ -78,6 +87,16 @@ export default async function AvailabilityPage({
               <option value="onsite">{french ? "Sur site" : "On-site"}</option>
               <option value="flexible">{french ? "Flexible" : "Flexible"}</option>
             </select>
+          </label>
+          <label>
+            <input
+              name="publicConsent"
+              type="checkbox"
+              defaultChecked={Boolean(bundle.availability?.public_consent_at)}
+            />
+            {french
+              ? "Proposer ce statut de disponibilité pour mon profil public approuvé."
+              : "Propose this availability status for my approved public profile."}
           </label>
           <button className="workspace-primary-action" type="submit">
             {french ? "Confirmer ma disponibilité" : "Confirm availability"}

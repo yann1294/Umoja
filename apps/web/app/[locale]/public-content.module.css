@@ -330,6 +330,162 @@
   overflow-wrap: anywhere;
 }
 
+.talentGrid,
+.portfolioGrid {
+  display: grid;
+  gap: var(--u-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.talentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+}
+
+.portfolioGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.talentCard {
+  display: flex;
+  min-width: 0;
+  max-width: 48rem;
+  flex-direction: column;
+  gap: var(--u-space-2);
+  padding: clamp(var(--u-space-3), 3vw, var(--u-space-4));
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-card);
+  background: var(--u-color-white);
+}
+
+.talentCardHeader,
+.talentIdentity {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--u-space-2);
+  align-items: start;
+}
+
+.talentCard h2,
+.talentIdentity h2,
+.portfolioGrid h3 {
+  margin: 0;
+  font-family: var(--u-font-heading);
+  font-size: var(--u-font-h3);
+  line-height: var(--u-leading-h3);
+  overflow-wrap: anywhere;
+}
+
+.talentCard p,
+.talentIdentity p {
+  margin: var(--u-space-1) 0 0;
+  color: var(--u-color-slate);
+  line-height: var(--u-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.talentCard p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.talentAvatar,
+.talentAvatarLarge {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--u-color-mist);
+  border-radius: 50%;
+  background: var(--u-color-sand);
+  color: var(--u-color-canopy);
+  font-family: var(--u-font-heading);
+  font-weight: 800;
+}
+
+.talentAvatar {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.talentAvatarLarge {
+  width: clamp(5rem, 16vw, 8rem);
+  height: clamp(5rem, 16vw, 8rem);
+  font-size: var(--u-font-h3);
+}
+
+.talentAvatar img,
+.talentAvatarLarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.talentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-1);
+  margin: 0;
+}
+
+.talentMeta div {
+  min-width: 0;
+  padding: var(--u-space-1) var(--u-space-2);
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-round);
+  background: var(--u-color-white);
+}
+
+.talentMeta dt {
+  color: var(--u-color-canopy);
+  font-size: var(--u-font-caption);
+  font-weight: 750;
+}
+
+.talentMeta dd {
+  margin: 0;
+  color: var(--u-color-slate);
+  font-size: var(--u-font-caption);
+  overflow-wrap: anywhere;
+}
+
+.talentLanguageList,
+.publicLinkList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.talentLanguageList li,
+.publicLinkList a {
+  display: inline-flex;
+  min-height: var(--u-control-min-size);
+  align-items: center;
+  padding-inline: var(--u-space-2);
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-round);
+  overflow-wrap: anywhere;
+}
+
+.talentDetail {
+  display: grid;
+  gap: var(--u-space-4);
+}
+
+.talentIdentity {
+  padding: clamp(var(--u-space-3), 5vw, var(--u-space-6));
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-panel);
+  background: var(--u-color-white);
+}
+
 .actionRow {
   display: flex;
   flex-wrap: wrap;
@@ -371,7 +527,8 @@
 }
 
 @media (max-width: 64rem) {
-  .cardGrid {
+  .cardGrid,
+  .portfolioGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -398,7 +555,10 @@
 }
 
 @media (max-width: 34rem) {
-  .cardGrid {
+  .cardGrid,
+  .talentGrid,
+  .portfolioGrid,
+  .talentIdentity {
     grid-template-columns: 1fr;
   }
 

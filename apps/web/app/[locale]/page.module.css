@@ -509,17 +509,48 @@
   min-width: 0;
   flex-direction: column;
   align-items: flex-start;
-  padding: var(--u-space-4);
+  gap: var(--u-space-3);
+  padding: clamp(var(--u-space-3), 3vw, var(--u-space-4));
   border: 1px solid var(--u-color-mist);
   border-radius: var(--u-radius-card);
+  background: var(--u-color-white);
+}
+
+.profileCardHeader {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: var(--u-space-2);
+}
+
+.profileAvatar {
+  display: grid;
+  width: 3.75rem;
+  height: 3.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--u-color-mist);
+  border-radius: 50%;
   background: var(--u-color-sand);
+  color: var(--u-color-canopy);
+  font-family: var(--u-font-heading);
+  font-weight: 800;
+}
+
+.profileAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .profileCard h3 {
-  margin: var(--u-space-2) 0 0;
+  margin: var(--u-space-1) 0 0;
   font-family: var(--u-font-heading);
   font-size: var(--u-font-h3);
   line-height: var(--u-leading-h3);
+  overflow-wrap: anywhere;
 }
 
 .profileCard p,
@@ -528,12 +559,66 @@
   line-height: var(--u-leading-body);
 }
 
-.profileCard p {
-  margin: var(--u-space-2) 0;
+.profileSummary {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
-.profileCard small {
-  margin-bottom: var(--u-space-3);
+.profileFacts {
+  display: grid;
+  width: 100%;
+  gap: var(--u-space-1);
+  margin: 0;
+}
+
+.profileFacts div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(5rem, 0.35fr) minmax(0, 1fr);
+  gap: var(--u-space-2);
+  align-items: baseline;
+  padding-top: var(--u-space-1);
+  border-top: 1px solid var(--u-color-mist);
+}
+
+.profileFacts dt {
+  color: var(--u-color-canopy);
+  font-size: var(--u-font-caption);
+  font-weight: 750;
+}
+
+.profileFacts dd {
+  margin: 0;
+  color: var(--u-color-slate);
+  font-size: var(--u-font-caption);
+  line-height: var(--u-leading-caption);
+  overflow-wrap: anywhere;
+}
+
+.profileTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profileTags li {
+  padding: var(--u-space-1) var(--u-space-2);
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-round);
+  color: var(--u-color-slate);
+  font-size: var(--u-font-caption);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.profileCard :global(.u-button) {
+  margin-top: var(--u-space-1);
 }
 
 .profileModules {
@@ -767,6 +852,11 @@
     width: auto;
     margin: var(--u-space-3) auto 0;
     transform: none;
+  }
+
+  .profileFacts div {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .africitGraphic {

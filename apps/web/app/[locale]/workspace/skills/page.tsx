@@ -83,7 +83,14 @@ export default async function SkillsPage({ params }: { params: Promise<{ locale:
             {bundle.languages.map((item) => (
               <li key={item.language_code}>
                 {french ? item.languages?.display_label_fr : item.languages?.display_label_en} ·{" "}
-                {item.proficiency}{" "}
+                {item.proficiency} ·{" "}
+                {item.public_consent_at
+                  ? french
+                    ? "public proposé"
+                    : "public proposed"
+                  : french
+                    ? "privé"
+                    : "private"}{" "}
                 <form action={removeLanguage.bind(null, locale as "en" | "fr")}>
                   <input type="hidden" name="code" value={item.language_code} />
                   <button type="submit">{french ? "Retirer" : "Remove"}</button>
@@ -123,6 +130,12 @@ export default async function SkillsPage({ params }: { params: Promise<{ locale:
               <option value="fluent">{french ? "Courant" : "Fluent"}</option>
               <option value="native">{french ? "Langue maternelle" : "Native"}</option>
             </select>
+          </label>
+          <label>
+            <input type="checkbox" name="publicConsent" />{" "}
+            {french
+              ? "Je consens à proposer cette langue pour mon profil public."
+              : "I consent to propose this language for my public profile."}
           </label>
           <button className="workspace-primary-action" type="submit">
             {french ? "Ajouter" : "Add language"}

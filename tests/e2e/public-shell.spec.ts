@@ -22,7 +22,10 @@ test("switches the current page between complete English and French shells", asy
       name: "A qualified path from need to engagement.",
     }),
   ).toBeVisible();
-  await expect(page.locator('[data-content-state="empty"]')).toHaveCount(2);
+  await expect(page.locator('[data-content-state="empty"]')).toHaveCount(1);
+  await expect(
+    page.getByRole("link", { name: /Explore approved talent|View profile/ }).first(),
+  ).toBeVisible();
   await expectNoTranslationKeys(page);
   await expectNoPageHorizontalOverflow(page);
   await expectMinimumTouchTargets(page, "a:visible, button:visible");

@@ -34,7 +34,20 @@ export default async function PortfolioPage({ params }: { params: Promise<{ loca
               <li key={item.id}>
                 <strong>{item.title}</strong>
                 <p>{item.role_summary}</p>
+                {item.category ? <small>{item.category}</small> : null}
+                {item.technologies.length ? <p>{item.technologies.join(" · ")}</p> : null}
                 <span>{item.publication_state}</span>
+                <span>
+                  {" "}
+                  ·{" "}
+                  {item.public_consent_at
+                    ? french
+                      ? "Publication consentie"
+                      : "Publication consented"
+                    : french
+                      ? "Privé"
+                      : "Private"}
+                </span>
                 <form action={archivePortfolio.bind(null, locale as "en" | "fr")}>
                   <input type="hidden" name="id" value={item.id} />
                   <button type="submit">{french ? "Archiver" : "Archive"}</button>
@@ -67,9 +80,42 @@ export default async function PortfolioPage({ params }: { params: Promise<{ loca
             <textarea name="roleSummary" required maxLength={2000} rows={4} />
           </label>
           <label>
+            {french ? "Domaine ou type de projet" : "Domain or project type"}
+            <input
+              name="category"
+              maxLength={80}
+              placeholder={french ? "Produit, data…" : "Product, data…"}
+            />
+          </label>
+          <label>
+            {french ? "Technologies (séparées par des virgules)" : "Technologies (comma-separated)"}
+            <input
+              name="technologies"
+              maxLength={240}
+              placeholder={french ? "React, Supabase, PostgreSQL" : "React, Supabase, PostgreSQL"}
+            />
+          </label>
+          <label>
             {french ? "Lien externe sûr" : "Safe external link"}
             <input name="externalUrl" type="url" placeholder="https://" />
           </label>
+          <label>
+            <input type="checkbox" name="publicConsent" />{" "}
+            {french
+              ? "Je consens à proposer cet exemple pour publication."
+              : "I consent to propose this example for publication."}
+          </label>
+          <label>
+            <input type="checkbox" name="requestReview" />{" "}
+            {french
+              ? "Soumettre cet exemple à la revue Umoja"
+              : "Submit this example for Umoja review"}
+          </label>
+          <p className="workspace-help">
+            {french
+              ? "Umoja ne publie que les exemples approuvés avec consentement. N’incluez pas de données client confidentielles."
+              : "Umoja publishes only approved examples with consent. Do not include confidential client data."}
+          </p>
           <button className="workspace-primary-action" type="submit">
             {french ? "Enregistrer" : "Save project"}
           </button>

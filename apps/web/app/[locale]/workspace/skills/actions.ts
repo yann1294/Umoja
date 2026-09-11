@@ -34,6 +34,7 @@ export async function addLanguage(locale: "en" | "fr", form: FormData) {
     user.id,
     String(form.get("code")),
     String(form.get("proficiency")),
+    form.get("publicConsent") === "on",
   );
   revalidatePath(`/${locale}/workspace/skills`);
 }

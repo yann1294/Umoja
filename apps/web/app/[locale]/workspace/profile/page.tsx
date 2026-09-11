@@ -9,12 +9,28 @@ import { saveProfileAction } from "./actions";
 import { ProfileSaveButton } from "./save-status";
 
 export const dynamic = "force-dynamic";
+
+function publicLinkValue(links: unknown, matcher: (url: string, label: string) => boolean): string {
+  if (!Array.isArray(links)) return "";
+  const match = links.find((item) => {
+    if (!item || typeof item !== "object") return false;
+    const value = item as Record<string, unknown>;
+    const url = typeof value.url === "string" ? value.url : "";
+    const label = typeof value.label === "string" ? value.label : "";
+    return matcher(url, label);
+  });
+  return match && typeof match === "object" && "url" in match && typeof match.url === "string"
+    ? match.url
+    : "";
+}
+
 export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const user = await requireSupabaseApplicant(locale);
   const bundle = await getProfileBundle(await createSupabaseServerClient(), user.id);
   const french = locale === "fr";
+  const links = bundle.profile?.public_professional_links;
   return (
     <WorkspaceShell current="profile" locale={locale} user={user}>
       <header className="workspace-page-header">
@@ -57,6 +73,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
             </small>
           </label>
           <label>
+            {french ? "Titre court public" : "Public headline"}
+            <input
+              name="publicHeadline"
+              maxLength={180}
+              defaultValue={bundle.profile?.public_headline ?? ""}
+              placeholder={
+                french
+                  ? "Ingénieur produit · React · plateformes de croissance"
+                  : "Product engineer · React · growth platforms"
+              }
+            />
+          </label>
+          <label>
             {french ? "Pays ou région" : "Country or region"}
             <input
               name="countryCode"
@@ -73,6 +102,67 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               defaultValue={bundle.profile?.public_bio ?? ""}
             />
           </label>
+          <label>
+            {french ? "URL d’avatar ou logo public" : "Public avatar or logo URL"}
+            <input
+              name="publicAvatarUrl"
+              type="url"
+              placeholder="https://"
+              defaultValue={bundle.profile?.public_avatar_url ?? ""}
+            />
+            <small>
+              {french
+                ? "Optionnel. Utilisez seulement une image que vous acceptez de publier."
+                : "Optional. Use only an image you consent to publish."}
+            </small>
+          </label>
+          <label>
+            {french ? "Site web public" : "Public website"}
+            <input
+              name="publicWebsiteUrl"
+              type="url"
+              placeholder="https://"
+              defaultValue={bundle.profile?.public_website_url ?? ""}
+            />
+          </label>
+          <fieldset>
+            <legend>{french ? "Liens professionnels publics" : "Public professional links"}</legend>
+            <label>
+              LinkedIn
+              <input
+                name="professionalLink_linkedin"
+                type="url"
+                placeholder="https://"
+                defaultValue={publicLinkValue(links, (url) => url.includes("linkedin."))}
+              />
+            </label>
+            <label>
+              GitHub
+              <input
+                name="professionalLink_github"
+                type="url"
+                placeholder="https://"
+                defaultValue={publicLinkValue(links, (url) => url.includes("github."))}
+              />
+            </label>
+            <label>
+              {french ? "Autre lien professionnel" : "Other professional link"}
+              <input
+                name="professionalLink_other"
+                type="url"
+                placeholder="https://"
+                defaultValue={publicLinkValue(
+                  links,
+                  (url) => !url.includes("linkedin.") && !url.includes("github."),
+                )}
+              />
+            </label>
+          </fieldset>
+          <p className="workspace-help">
+            {french
+              ? "Ces champs ne deviennent publics qu’après consentement et modération. N’ajoutez pas d’adresse courriel, téléphone ou canal privé."
+              : "These fields become public only after consent and moderation. Do not add email, phone, or private contact channels."}
+          </p>
         </section>
         <section className="workspace-panel">
           <h2>{french ? "Détails opérationnels privés" : "Private operational details"}</h2>

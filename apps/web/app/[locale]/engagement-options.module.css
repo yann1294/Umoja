@@ -11,14 +11,24 @@
 .card {
   display: flex;
   min-width: 0;
-  min-height: 22rem;
+  min-height: 0;
   flex-direction: column;
   align-items: flex-start;
-  padding: clamp(var(--u-space-3), 4vw, var(--u-space-5));
+  gap: var(--u-space-3);
+  padding: clamp(var(--u-space-3), 3vw, var(--u-space-4));
   border: 1px solid var(--u-color-mist);
-  border-radius: var(--u-radius-panel);
+  border-radius: var(--u-radius-card);
   background: var(--u-color-white);
   scroll-margin-top: var(--u-space-4);
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--u-space-3);
 }
 
 .card h3 {
@@ -30,21 +40,51 @@
 }
 
 .card p {
-  margin: var(--u-space-2) 0 var(--u-space-4);
+  margin: 0;
   color: var(--u-color-slate);
   line-height: var(--u-leading-body);
 }
 
+.detailList {
+  display: grid;
+  width: 100%;
+  gap: var(--u-space-2);
+  margin: 0;
+}
+
+.detailList div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(7rem, 0.42fr) minmax(0, 1fr);
+  gap: var(--u-space-2);
+  padding-top: var(--u-space-2);
+  border-top: 1px solid var(--u-color-mist);
+}
+
+.detailList dt {
+  color: var(--u-color-canopy);
+  font-size: var(--u-font-caption);
+  font-weight: 750;
+}
+
+.detailList dd {
+  margin: 0;
+  color: var(--u-color-slate);
+  font-size: var(--u-font-caption);
+  line-height: var(--u-leading-caption);
+  overflow-wrap: anywhere;
+}
+
 .card :global(.u-button) {
-  margin-top: auto;
+  margin-top: var(--u-space-1);
 }
 
 .mark {
   display: grid;
   width: var(--u-control-min-size);
   aspect-ratio: 1;
+  flex: 0 0 auto;
   place-items: center;
-  margin-bottom: var(--u-space-5);
   border: 1px solid var(--u-color-canopy);
   border-radius: 50%;
   color: var(--u-color-canopy);
@@ -68,5 +108,10 @@
 @media (max-width: 48rem) {
   .compactGrid {
     grid-template-columns: 1fr;
+  }
+
+  .detailList div {
+    grid-template-columns: 1fr;
+    gap: var(--u-space-1);
   }
 }

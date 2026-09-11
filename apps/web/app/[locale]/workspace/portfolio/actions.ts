@@ -9,6 +9,13 @@ export async function addPortfolio(locale: "en" | "fr", form: FormData) {
     title: String(form.get("title")),
     roleSummary: String(form.get("roleSummary")),
     externalUrl: String(form.get("externalUrl") ?? ""),
+    category: String(form.get("category") ?? ""),
+    technologies: String(form.get("technologies") ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+    publicConsent: form.get("publicConsent") === "on",
+    requestReview: form.get("requestReview") === "on",
   });
   revalidatePath(`/${locale}/workspace/portfolio`);
 }

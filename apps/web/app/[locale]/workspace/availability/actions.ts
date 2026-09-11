@@ -12,6 +12,7 @@ export async function saveAvailabilityAction(locale: "en" | "fr", form: FormData
     nextAvailableOn: String(form.get("nextAvailableOn") ?? ""),
     workMode: String(form.get("workMode") ?? "remote") as
       "remote" | "hybrid" | "onsite" | "flexible",
+    publicConsent: form.get("publicConsent") === "on",
   });
   revalidatePath(`/${locale}/workspace`);
   revalidatePath(`/${locale}/workspace/availability`);

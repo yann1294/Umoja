@@ -10,6 +10,12 @@ import {
 } from "@/lib/cms/domain";
 import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
 import { createSupabaseCmsEditorRepository } from "@/lib/cms/service";
+import {
+  PUBLIC_CONTENT_SURFACES,
+  blockWithoutStructuredFields,
+  caseStudySurface,
+  publicSurfaceForPage,
+} from "@/lib/cms/public-surfaces";
 
 export type CmsActionState = Readonly<{
   ok: boolean;
@@ -23,14 +29,22 @@ function text(form: FormData, name: string) {
 
 function parseBlocks(form: FormData): CmsBlock[] {
   const preserved = text(form, "preservedBlocks");
-  const blocks: CmsBlock[] = preserved ? cmsBlocksSchema.parse(JSON.parse(preserved)) : [];
-  for (const key of [
+  const blocks: CmsBlock[] = preserved
+    ? blockWithoutStructuredFields(cmsBlocksSchema.parse(JSON.parse(preserved)))
+    : [];
+  const stableKey = text(form, "stableKey");
+  const slug = text(form, "slug").replace(/^\/+|\/+$/g, "") || "home";
+  const surface =
+    PUBLIC_CONTENT_SURFACES.find((candidate) => candidate.stableKey === stableKey) ??
+    (stableKey.startsWith("case-study:") ? caseStudySurface(slug.replace(/^work\//, "")) : null);
+  const fieldKeys = surface?.fields.map((field) => field.key) ?? [
     "hero.eyebrow",
     "hero.title",
     "hero.introduction",
     "hero.primaryAction",
     "hero.secondaryAction",
-  ] as const) {
+  ];
+  for (const key of fieldKeys) {
     const value = text(form, key);
     if (value) blocks.push({ type: "field", key, label: key.split(".").at(-1) ?? key, value });
   }
@@ -57,7 +71,7 @@ function parseBlocks(form: FormData): CmsBlock[] {
 }
 
 function inputFrom(form: FormData): CmsPageInput {
-  return cmsPageInputSchema.parse({
+  const input = cmsPageInputSchema.parse({
     stableKey: text(form, "stableKey"),
     translationGroupId: text(form, "translationGroupId"),
     locale: text(form, "contentLocale"),
@@ -67,6 +81,12 @@ function inputFrom(form: FormData): CmsPageInput {
     seoDescription: text(form, "seoDescription") || undefined,
     blocks: parseBlocks(form),
   });
+  const surface = publicSurfaceForPage(input);
+  if (surface && input.slug !== surface.slug)
+    throw new Error("Public surface path does not match the selected website surface.");
+  if (surface && input.stableKey !== surface.stableKey)
+    throw new Error("Public surface stable key does not match the selected website surface.");
+  return input;
 }
 
 async function editor(locale: string) {
