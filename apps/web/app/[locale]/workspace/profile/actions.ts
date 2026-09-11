@@ -5,6 +5,22 @@ import { requireSupabaseApplicant } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { saveProfileWithPrivateDetails } from "@/lib/profile/service";
 
+function professionalLinksFromForm(form: FormData) {
+  return ["linkedin", "github", "other"]
+    .map((key) => String(form.get(`professionalLink_${key}`) ?? "").trim())
+    .filter(Boolean)
+    .map((url) => ({
+      label: (() => {
+        try {
+          return new URL(url).hostname.replace(/^www\./, "");
+        } catch {
+          return "Professional link";
+        }
+      })(),
+      url,
+    }));
+}
+
 export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
   const user = await requireSupabaseApplicant(locale);
   const client = await createSupabaseServerClient();
@@ -21,11 +37,15 @@ export async function saveProfileAction(locale: "en" | "fr", form: FormData) {
     user.id,
     {
       professionalName: String(form.get("professionalName") ?? ""),
+      publicHeadline: String(form.get("publicHeadline") ?? ""),
       locale,
       countryCode: String(form.get("countryCode") ?? ""),
       publicBio: String(form.get("publicBio") ?? ""),
       publicSlug: String(form.get("publicSlug") ?? ""),
       visibility: form.get("visibility") === "public" ? "public" : "private",
+      publicAvatarUrl: String(form.get("publicAvatarUrl") ?? ""),
+      publicWebsiteUrl: String(form.get("publicWebsiteUrl") ?? ""),
+      professionalLinks: professionalLinksFromForm(form),
       requestReview: form.get("requestReview") === "on",
       expectedUpdatedAt: String(form.get("expectedUpdatedAt") ?? "") || undefined,
     },

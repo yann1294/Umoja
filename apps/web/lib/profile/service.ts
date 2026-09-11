@@ -9,8 +9,28 @@ import {
 } from "@/lib/intake/encryption";
 
 type Client = SupabaseClient<Database>;
+
+const publicUrlSchema = z
+  .string()
+  .trim()
+  .url()
+  .transform((value) => new URL(value).toString())
+  .refine((url) => ["https:", "http:"].includes(new URL(url).protocol));
+
+const optionalPublicUrlSchema = publicUrlSchema.optional().or(z.literal(""));
+
+const professionalLinksSchema = z
+  .array(
+    z.object({
+      label: z.string().trim().min(1).max(60),
+      url: publicUrlSchema,
+    }),
+  )
+  .max(6);
+
 export const profileInputSchema = z.object({
   professionalName: z.string().trim().min(1).max(120),
+  publicHeadline: z.string().trim().max(180).optional().or(z.literal("")),
   locale: z.enum(["en", "fr"]),
   countryCode: z
     .string()
@@ -29,6 +49,9 @@ export const profileInputSchema = z.object({
     .optional()
     .or(z.literal("")),
   visibility: z.enum(["private", "public"]),
+  publicAvatarUrl: optionalPublicUrlSchema,
+  publicWebsiteUrl: optionalPublicUrlSchema,
+  professionalLinks: professionalLinksSchema.default([]),
   requestReview: z.boolean().default(false),
   expectedUpdatedAt: z.iso.datetime({ offset: true }).optional(),
 });
@@ -36,6 +59,7 @@ export const availabilityInputSchema = z.object({
   weeklyHours: z.coerce.number().int().min(0).max(80),
   nextAvailableOn: z.string().date().optional().or(z.literal("")),
   workMode: z.enum(["remote", "hybrid", "onsite", "flexible"]),
+  publicConsent: z.boolean().default(false),
 });
 
 export async function getProfileBundle(client: Client, userId: string) {
@@ -121,6 +145,10 @@ export async function saveProfile(
     profile_bio: input.publicBio,
     profile_slug: input.publicSlug || "",
     profile_visibility: input.visibility,
+    profile_headline: input.publicHeadline || "",
+    profile_avatar_url: input.publicAvatarUrl || undefined,
+    profile_website_url: input.publicWebsiteUrl || undefined,
+    profile_professional_links: input.professionalLinks,
     requested_state: review,
     consent_given: input.visibility === "public",
     expected_updated_at: input.expectedUpdatedAt ?? undefined,
@@ -156,6 +184,10 @@ export async function saveProfileWithPrivateDetails(
     profile_bio: input.publicBio,
     profile_slug: input.publicSlug || "",
     profile_visibility: input.visibility,
+    profile_headline: input.publicHeadline || "",
+    profile_avatar_url: input.publicAvatarUrl || undefined,
+    profile_website_url: input.publicWebsiteUrl || undefined,
+    profile_professional_links: input.professionalLinks,
     requested_state: requestedState,
     consent_given: input.visibility === "public",
     expected_updated_at: input.expectedUpdatedAt ?? undefined,
@@ -177,6 +209,7 @@ export async function saveAvailability(
     weekly_hours: input.weeklyHours,
     next_available_on: input.nextAvailableOn || null,
     work_mode: input.workMode,
+    public_consent_at: input.publicConsent ? now.toISOString() : null,
     confirmed_at: now.toISOString(),
     expires_at: new Date(now.getTime() + 30 * 86400000).toISOString(),
   });
@@ -218,18 +251,21 @@ export async function addProfileLanguage(
   userId: string,
   code: string,
   proficiency: string,
+  publicConsent = false,
 ) {
   const parsed = z
     .object({
       code: z.string().regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/),
       proficiency: z.enum(["basic", "conversational", "professional", "fluent", "native"]),
+      publicConsent: z.boolean(),
     })
-    .parse({ code, proficiency });
+    .parse({ code, proficiency, publicConsent });
   const { error } = await client.from("profile_languages").upsert(
     {
       profile_id: userId,
       language_code: parsed.code,
       proficiency: parsed.proficiency,
+      public_consent_at: parsed.publicConsent ? new Date().toISOString() : null,
       verification: "self_reported",
     },
     { onConflict: "profile_id,language_code" },
@@ -270,18 +306,25 @@ export async function savePrivateDetails(client: Client, userId: string, timezon
 export async function createPortfolioItem(
   client: Client,
   userId: string,
-  value: { title: string; roleSummary: string; externalUrl?: string },
+  value: {
+    title: string;
+    roleSummary: string;
+    externalUrl?: string;
+    category?: string;
+    technologies?: readonly string[];
+    publicConsent?: boolean;
+    requestReview?: boolean;
+  },
 ) {
   const parsed = z
     .object({
       title: z.string().trim().min(1).max(200),
       roleSummary: z.string().trim().min(1).max(2000),
-      externalUrl: z
-        .string()
-        .url()
-        .refine((url) => ["https:", "http:"].includes(new URL(url).protocol))
-        .optional()
-        .or(z.literal("")),
+      externalUrl: optionalPublicUrlSchema,
+      category: z.string().trim().max(80).optional().or(z.literal("")),
+      technologies: z.array(z.string().trim().min(1).max(40)).max(12).default([]),
+      publicConsent: z.boolean().default(false),
+      requestReview: z.boolean().default(false),
     })
     .parse(value);
   const { error } = await client.from("portfolio_items").insert({
@@ -289,7 +332,15 @@ export async function createPortfolioItem(
     title: parsed.title,
     role_summary: parsed.roleSummary,
     external_url: parsed.externalUrl || null,
-    publication_state: "private",
+    category: parsed.category || null,
+    technologies: parsed.technologies,
+    public_consent_at: parsed.publicConsent ? new Date().toISOString() : null,
+    publication_state:
+      parsed.publicConsent && parsed.requestReview
+        ? "submitted"
+        : parsed.publicConsent
+          ? "private"
+          : "private",
   });
   if (error) throw error;
 }
@@ -340,6 +391,7 @@ export function publicProfileSerializer(bundle: Awaited<ReturnType<typeof getPro
         category: item.category,
       })),
     availability:
+      bundle.availability?.public_consent_at &&
       availabilityState(bundle.availability?.expires_at) === "fresh"
         ? {
             workMode: bundle.availability?.work_mode,

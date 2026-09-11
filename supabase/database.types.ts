@@ -153,6 +153,7 @@ export type Database = {
           id: string;
           next_available_on: string | null;
           profile_id: string;
+          public_consent_at: string | null;
           updated_at: string;
           weekly_hours: number;
           work_mode: string | null;
@@ -165,6 +166,7 @@ export type Database = {
           id?: string;
           next_available_on?: string | null;
           profile_id: string;
+          public_consent_at?: string | null;
           updated_at?: string;
           weekly_hours: number;
           work_mode?: string | null;
@@ -177,6 +179,7 @@ export type Database = {
           id?: string;
           next_available_on?: string | null;
           profile_id?: string;
+          public_consent_at?: string | null;
           updated_at?: string;
           weekly_hours?: number;
           work_mode?: string | null;
@@ -548,6 +551,7 @@ export type Database = {
           publication_state: Database["public"]["Enums"]["portfolio_publication_state"];
           role_summary: string;
           started_on: string | null;
+          technologies: string[];
           title: string;
           updated_at: string;
         };
@@ -565,6 +569,7 @@ export type Database = {
           publication_state?: Database["public"]["Enums"]["portfolio_publication_state"];
           role_summary: string;
           started_on?: string | null;
+          technologies?: string[];
           title: string;
           updated_at?: string;
         };
@@ -582,6 +587,7 @@ export type Database = {
           publication_state?: Database["public"]["Enums"]["portfolio_publication_state"];
           role_summary?: string;
           started_on?: string | null;
+          technologies?: string[];
           title?: string;
           updated_at?: string;
         };
@@ -769,9 +775,13 @@ export type Database = {
           created_at: string;
           locale: string;
           professional_name: string;
+          public_avatar_url: string | null;
           public_bio: string | null;
           public_consent_at: string | null;
+          public_headline: string | null;
+          public_professional_links: Json;
           public_slug: string | null;
+          public_website_url: string | null;
           publication_state: Database["public"]["Enums"]["profile_publication_state"];
           timezone: string | null;
           updated_at: string;
@@ -785,9 +795,13 @@ export type Database = {
           created_at?: string;
           locale: string;
           professional_name: string;
+          public_avatar_url?: string | null;
           public_bio?: string | null;
           public_consent_at?: string | null;
+          public_headline?: string | null;
+          public_professional_links?: Json;
           public_slug?: string | null;
+          public_website_url?: string | null;
           publication_state?: Database["public"]["Enums"]["profile_publication_state"];
           timezone?: string | null;
           updated_at?: string;
@@ -801,9 +815,13 @@ export type Database = {
           created_at?: string;
           locale?: string;
           professional_name?: string;
+          public_avatar_url?: string | null;
           public_bio?: string | null;
           public_consent_at?: string | null;
+          public_headline?: string | null;
+          public_professional_links?: Json;
           public_slug?: string | null;
+          public_website_url?: string | null;
           publication_state?: Database["public"]["Enums"]["profile_publication_state"];
           timezone?: string | null;
           updated_at?: string;
@@ -1020,22 +1038,58 @@ export type Database = {
           country_code: string | null;
           locale: string | null;
           professional_name: string | null;
+          public_avatar_url: string | null;
           public_bio: string | null;
+          public_headline: string | null;
+          public_professional_links: Json;
           public_slug: string | null;
+          public_website_url: string | null;
+          user_id: string | null;
         };
         Insert: {
           country_code?: string | null;
           locale?: string | null;
           professional_name?: string | null;
+          public_avatar_url?: string | null;
           public_bio?: string | null;
+          public_headline?: string | null;
+          public_professional_links?: Json;
           public_slug?: string | null;
+          public_website_url?: string | null;
+          user_id?: string | null;
         };
         Update: {
           country_code?: string | null;
           locale?: string | null;
           professional_name?: string | null;
+          public_avatar_url?: string | null;
           public_bio?: string | null;
+          public_headline?: string | null;
+          public_professional_links?: Json;
           public_slug?: string | null;
+          public_website_url?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      public_profile_availability: {
+        Row: {
+          expires_at: string | null;
+          next_available_on: string | null;
+          profile_id: string | null;
+          work_mode: string | null;
+        };
+        Insert: {
+          expires_at?: string | null;
+          next_available_on?: string | null;
+          profile_id?: string | null;
+          work_mode?: string | null;
+        };
+        Update: {
+          expires_at?: string | null;
+          next_available_on?: string | null;
+          profile_id?: string | null;
+          work_mode?: string | null;
         };
         Relationships: [];
       };
@@ -1602,11 +1656,15 @@ export type Database = {
           private_envelope?: string;
           private_key_version?: string;
           professional_name: string;
+          profile_avatar_url?: string;
           profile_bio: string;
           profile_country: string;
+          profile_headline?: string;
           profile_locale: string;
+          profile_professional_links?: Json;
           profile_slug: string;
           profile_user_id: string;
+          profile_website_url?: string;
           profile_visibility: Database["public"]["Enums"]["profile_visibility"];
           requested_state: Database["public"]["Enums"]["profile_publication_state"];
         };
@@ -1617,9 +1675,13 @@ export type Database = {
           created_at: string;
           locale: string;
           professional_name: string;
+          public_avatar_url: string | null;
           public_bio: string | null;
           public_consent_at: string | null;
+          public_headline: string | null;
+          public_professional_links: Json;
           public_slug: string | null;
+          public_website_url: string | null;
           publication_state: Database["public"]["Enums"]["profile_publication_state"];
           timezone: string | null;
           updated_at: string;

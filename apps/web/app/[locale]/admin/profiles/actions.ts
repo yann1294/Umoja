@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
 export async function moderateProfile(locale: "en" | "fr", form: FormData) {
   const admin = await requireSupabaseWorkspaceCapability("admin.operations", locale);
   const state = String(form.get("state"));
@@ -26,4 +27,30 @@ export async function moderateProfile(locale: "en" | "fr", form: FormData) {
   const slug = data?.public_slug;
   if (slug) revalidatePath(`/${locale}/talent/${slug}`);
   void admin;
+}
+
+export async function moderatePortfolio(locale: "en" | "fr", form: FormData) {
+  await requireSupabaseWorkspaceCapability("admin.operations", locale);
+  const state = String(form.get("state"));
+  if (!["approved", "changes_requested", "revoked"].includes(state))
+    throw new Error("Invalid portfolio moderation state");
+  const profileId = String(form.get("profileId"));
+  const itemId = String(form.get("itemId"));
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client
+    .from("portfolio_items")
+    .update({ publication_state: state as "approved" | "changes_requested" | "revoked" })
+    .eq("id", itemId)
+    .eq("profile_id", profileId)
+    .is("archived_at", null)
+    .not("public_consent_at", "is", null)
+    .select("profile_id")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("Portfolio review is stale or unavailable");
+  revalidatePath(`/${locale}/admin/profiles`);
+  for (const publicLocale of ["en", "fr"] as const) {
+    revalidatePath(`/${publicLocale}/talent`);
+    revalidatePath(`/${publicLocale}/talent/[profile]`, "page");
+  }
 }
