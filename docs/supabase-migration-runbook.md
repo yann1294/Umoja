@@ -57,13 +57,15 @@ Use synthetic development data. If any real user or applicant data exists, stop 
 Create one Supabase development project in an appropriate available region. Record the region and project reference without committing secrets. In the Supabase dashboard:
 
 - Keep public signup disabled or enforce invitation-only onboarding in the server flow.
-- Set Site URL to the exact `APP_URL` origin. Add these four canonical Redirect URLs, substituting the
+- Set Site URL to the exact `APP_URL` origin. Add these canonical Redirect URLs, substituting the
   same origin and changing nothing after it:
   - `APP_URL/api/supabase-auth/confirm?locale=en&flow=verification`
   - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=verification`
-  - `APP_URL/api/supabase-auth/confirm?locale=en&flow=recovery`
-  - `APP_URL/api/supabase-auth/confirm?locale=fr&flow=recovery`
-  Keep `APP_URL/api/supabase-auth/callback` allow-listed only for genuine PKCE code exchange.
+  - `APP_URL/api/supabase-auth/callback?locale=en&flow=recovery`
+  - `APP_URL/api/supabase-auth/callback?locale=fr&flow=recovery`
+  Keep `APP_URL/api/supabase-auth/callback` allow-listed for genuine PKCE code exchange.
+  The token-hash confirmation handler remains supported for custom verification templates, but
+  Umoja password recovery requests use the callback route.
   Umoja-owned invitations do not require a Supabase invite redirect. Dashboard invites are
   deprecated for normal onboarding; retain their legacy destinations only during a controlled
   transition if an existing unexpired Dashboard invitation must be honored.
@@ -224,7 +226,12 @@ For the hosted development project, the owner must make these Dashboard changes 
 acceptance testing:
 
 1. Set **Authentication → URL Configuration → Site URL** to the exact development `APP_URL` origin.
-2. Add the four exact `APP_URL/api/supabase-auth/confirm?locale={en|fr}&flow={verification|recovery}` destinations. Do not add wildcards or a different host spelling. Retain the two legacy invite destinations only while honoring an already-issued Dashboard invitation.
+   For the current Vercel preview, use `https://umoja-appwrite-preview.vercel.app`.
+2. Add the exact verification destinations
+   `APP_URL/api/supabase-auth/confirm?locale={en|fr}&flow=verification` and recovery destinations
+   `APP_URL/api/supabase-auth/callback?locale={en|fr}&flow=recovery`. Do not add wildcards or a
+   different host spelling. Retain the two legacy invite destinations only while honoring an
+   already-issued Dashboard invitation.
 3. Install the bilingual recovery template versioned in `supabase/templates/`; it must use the application-supplied `RedirectTo`. Configure the Brevo API adapter for Umoja invitations and Brevo custom SMTP for Supabase recovery as documented in the Auth email runbook.
 4. Disable email-provider click tracking for these one-time links and verify whether mailbox scanners consume them before changing token handling.
 
