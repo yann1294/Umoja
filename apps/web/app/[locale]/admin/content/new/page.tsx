@@ -4,16 +4,26 @@ import { ContentEditorForm } from "@/components/cms/content-editor-form";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { routing } from "@/i18n/routing";
 import { requireSupabaseWorkspaceCapability } from "@/lib/supabase/auth";
+import { PUBLIC_CONTENT_SURFACES, caseStudySurface } from "@/lib/cms/public-surfaces";
 import { createContent } from "../actions";
 
 export const dynamic = "force-dynamic";
 export default async function NewContent({
   params,
-}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  searchParams,
+}: Readonly<{
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ surface?: string; contentLocale?: string }>;
+}>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
+  const query = await searchParams;
   const user = await requireSupabaseWorkspaceCapability("cms.manage", locale);
   const french = locale === "fr";
+  const initialSurface =
+    query.surface === "case-study"
+      ? caseStudySurface("new-case-study")
+      : PUBLIC_CONTENT_SURFACES.find((surface) => surface.key === query.surface);
   return (
     <WorkspaceShell current="content" locale={locale} user={user}>
       <header className="workspace-page-header">
@@ -27,7 +37,15 @@ export default async function NewContent({
           </p>
         </div>
       </header>
-      <ContentEditorForm locale={locale} action={createContent.bind(null, locale)} />
+      <ContentEditorForm
+        locale={
+          query.contentLocale === "en" || query.contentLocale === "fr"
+            ? query.contentLocale
+            : locale
+        }
+        initialSurface={initialSurface}
+        action={createContent.bind(null, locale)}
+      />
     </WorkspaceShell>
   );
 }

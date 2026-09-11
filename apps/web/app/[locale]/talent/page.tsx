@@ -5,6 +5,7 @@ import { hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { publicMetadata } from "@/content/public-metadata";
 import { routing } from "@/i18n/routing";
+import { cmsField, getSupabasePublishedCmsPage } from "@/lib/cms/service";
 import { listPublicTalentProfiles, publicTalentInitials } from "@/lib/profile/public";
 import {
   Breadcrumbs,
@@ -19,12 +20,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "PublicContent" });
-  return publicMetadata(locale, "talent", t("talentTitle"), t("talentSummary"));
+  const cms = await getSupabasePublishedCmsPage(locale, "talent");
+  return publicMetadata(
+    locale,
+    "talent",
+    cmsField(cms, "hero.title", cms?.title ?? t("talentTitle")),
+    cmsField(cms, "hero.summary", cms?.seoDescription ?? t("talentSummary")),
+  );
 }
 export default async function TalentPage({ params }: Props) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "PublicContent" });
+  const cms = await getSupabasePublishedCmsPage(locale, "talent");
   const profiles = await listPublicTalentProfiles();
   const french = locale === "fr";
   return (
@@ -34,9 +42,9 @@ export default async function TalentPage({ params }: Props) {
         items={[{ label: t("home"), href: `/${locale}` }, { label: t("talentTitle") }]}
       />
       <ContentHero
-        eyebrow={t("talentEyebrow")}
-        title={t("talentTitle")}
-        summary={t("talentSummary")}
+        eyebrow={cmsField(cms, "hero.eyebrow", t("talentEyebrow"))}
+        title={cmsField(cms, "hero.title", cms?.title ?? t("talentTitle"))}
+        summary={cmsField(cms, "hero.summary", t("talentSummary"))}
       />
       <Section aria-label={profiles?.length ? t("talentTitle") : t("talentEmptyTitle")}>
         <Container>

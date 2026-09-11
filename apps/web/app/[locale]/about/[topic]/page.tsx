@@ -7,6 +7,7 @@ import { publicMetadata } from "@/content/public-metadata";
 import { routing } from "@/i18n/routing";
 import { Breadcrumbs, EditorialPageView } from "../../public-content";
 import { getSupabasePublishedCmsPage } from "@/lib/cms/service";
+import { editorialPageFromCms } from "@/lib/cms/public-rendering";
 type Props = Readonly<{ params: Promise<{ locale: string; topic: string }> }>;
 
 // This route is pre-rendered for the editorial fallback at build time.  It is
@@ -23,11 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!hasLocale(routing.locales, locale)) notFound();
   const page = getEditorialPage(topic);
   if (!page) notFound();
+  const cms = await getSupabasePublishedCmsPage(locale, `about/${topic}`);
+  const published = editorialPageFromCms(page, cms, locale);
   return publicMetadata(
     locale,
     `about/${topic}`,
-    localize(page.title, locale),
-    localize(page.summary, locale),
+    localize(published.title, locale),
+    localize(published.summary, locale),
   );
 }
 export default async function AboutTopic({ params }: Props) {
@@ -37,21 +40,7 @@ export default async function AboutTopic({ params }: Props) {
   if (!page) notFound();
   const t = await getTranslations({ locale, namespace: "PublicContent" });
   const cms = await getSupabasePublishedCmsPage(locale, `about/${topic}`);
-  const paragraphs = cms?.blocks
-    .filter((block) => block.type === "paragraph")
-    .map((block) => block.text);
-  const published =
-    cms && paragraphs?.length
-      ? {
-          ...page,
-          title: { ...page.title, [locale]: cms.title },
-          summary: { ...page.summary, [locale]: paragraphs[0] ?? page.summary[locale] },
-          sections: page.sections.map((section, index) => ({
-            ...section,
-            body: { ...section.body, [locale]: paragraphs[index] ?? section.body[locale] },
-          })),
-        }
-      : page;
+  const published = editorialPageFromCms(page, cms, locale);
   return (
     <>
       <Breadcrumbs
