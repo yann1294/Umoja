@@ -55,9 +55,9 @@ export default async function TalentPage({ params }: Props) {
                     </span>
                     <div>
                       <h2>{profile.name}</h2>
-                      <p>{profile.headline || profile.biography}</p>
                     </div>
                   </div>
+                  <p>{profile.headline || profile.biography}</p>
                   <dl className={styles.talentMeta}>
                     {profile.countryCode ? (
                       <div>

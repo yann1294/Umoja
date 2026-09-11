@@ -333,19 +333,27 @@
 .talentGrid,
 .portfolioGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--u-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.talentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+}
+
+.portfolioGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .talentCard {
   display: flex;
   min-width: 0;
+  max-width: 48rem;
   flex-direction: column;
-  gap: var(--u-space-3);
-  padding: clamp(var(--u-space-3), 4vw, var(--u-space-5));
+  gap: var(--u-space-2);
+  padding: clamp(var(--u-space-3), 3vw, var(--u-space-4));
   border: 1px solid var(--u-color-mist);
   border-radius: var(--u-radius-card);
   background: var(--u-color-white);
@@ -356,7 +364,7 @@
   display: grid;
   min-width: 0;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--u-space-3);
+  gap: var(--u-space-2);
   align-items: start;
 }
 
@@ -382,7 +390,7 @@
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
 }
 
 .talentAvatar,
@@ -400,8 +408,8 @@
 }
 
 .talentAvatar {
-  width: 4rem;
-  height: 4rem;
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
 .talentAvatarLarge {
@@ -420,15 +428,16 @@
 .talentMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--u-space-2);
+  gap: var(--u-space-1);
   margin: 0;
 }
 
 .talentMeta div {
-  min-width: min(100%, 9rem);
-  padding: var(--u-space-2);
-  border-radius: var(--u-radius-control);
-  background: var(--u-color-sand);
+  min-width: 0;
+  padding: var(--u-space-1) var(--u-space-2);
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-round);
+  background: var(--u-color-white);
 }
 
 .talentMeta dt {
@@ -438,8 +447,9 @@
 }
 
 .talentMeta dd {
-  margin: var(--u-space-1) 0 0;
+  margin: 0;
   color: var(--u-color-slate);
+  font-size: var(--u-font-caption);
   overflow-wrap: anywhere;
 }
 
@@ -518,7 +528,6 @@
 
 @media (max-width: 64rem) {
   .cardGrid,
-  .talentGrid,
   .portfolioGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
