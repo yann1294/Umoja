@@ -1,5 +1,5 @@
 begin;
-select plan(18);
+select plan(20);
 
 select ok(has_table_privilege('anon', 'public.project_intakes', 'select') = false, 'anon has no intake table grant');
 select ok(has_table_privilege('anon', 'public.project_intakes', 'insert') = false, 'anon cannot insert intake rows');
@@ -13,6 +13,8 @@ select ok(has_function_privilege('authenticated', 'public.create_account_invitat
 select ok(has_function_privilege('authenticated', 'public.record_account_invitation_delivery(uuid,public.invitation_delivery_state,text,text)', 'execute') = false, 'authenticated callers cannot forge delivery results');
 select ok(has_function_privilege('service_role', 'public.record_account_invitation_delivery(uuid,public.invitation_delivery_state,text,text)', 'execute'), 'service role can record server delivery results');
 select ok(has_function_privilege('service_role', 'public.accept_account_invitation(uuid,text,uuid,text)', 'execute'), 'service role can run the validated acceptance transaction');
+select ok(has_table_privilege('anon', 'public.public_profiles', 'select'), 'anon can read only the approved public profile projection');
+select ok(has_table_privilege('anon', 'public.public_profile_availability', 'select'), 'anon can read only consented public availability projection');
 
 set local role anon;
 select is((select count(*) from public.profiles), 1::bigint, 'anon sees only consented public profile');
