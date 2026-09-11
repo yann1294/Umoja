@@ -44,29 +44,12 @@ function loadEnvironment() {
   return { ...process.env, ...values };
 }
 
-const environment = runRemote ? loadEnvironment() : process.env;
-const url = environment.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const publishableKey = environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
-const secretKey = environment.SUPABASE_SECRET_KEY ?? "";
-const keyring = runRemote
-  ? createIntakeEncryptionKeyringFromEnvironment(environment)
-  : (null as never);
-const service = createClient<Database>(url || "http://127.0.0.1", secretKey || "test", {
-  auth: {
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    persistSession: false,
-    storageKey: `intake-service-${runRemote ? randomUUID() : "disabled"}`,
-  },
-});
-const anonymous = createClient<Database>(url || "http://127.0.0.1", publishableKey || "test", {
-  auth: {
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    persistSession: false,
-    storageKey: `intake-anon-${runRemote ? randomUUID() : "disabled"}`,
-  },
-});
+let environment: ReturnType<typeof loadEnvironment>;
+let url: string;
+let publishableKey: string;
+let keyring: ReturnType<typeof createIntakeEncryptionKeyringFromEnvironment>;
+let service: SupabaseClient<Database>;
+let anonymous: SupabaseClient<Database>;
 
 const run = randomUUID();
 const password = `Umoja-${randomUUID()}-A9!`;
@@ -86,6 +69,12 @@ let projectId = "";
 let talentId = "";
 let projectSubmissionId = "";
 let talentSubmissionId = "";
+
+function requiredEnv(name: string) {
+  const value = environment[name];
+  if (!value) throw new Error(`${name} is required for RUN_SUPABASE_REMOTE_INTAKE`);
+  return value;
+}
 
 const project: ProjectIntake = {
   contact: {
@@ -239,6 +228,27 @@ async function verifyCleanup() {
 remote("Supabase encrypted intake and applicant-private authorization", () => {
   beforeAll(async () => {
     try {
+      environment = loadEnvironment();
+      url = requiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+      publishableKey = requiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+      const secretKey = requiredEnv("SUPABASE_SECRET_KEY");
+      keyring = createIntakeEncryptionKeyringFromEnvironment(environment);
+      service = createClient<Database>(url, secretKey, {
+        auth: {
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          persistSession: false,
+          storageKey: `intake-service-${randomUUID()}`,
+        },
+      });
+      anonymous = createClient<Database>(url, publishableKey, {
+        auth: {
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          persistSession: false,
+          storageKey: `intake-anon-${randomUUID()}`,
+        },
+      });
       owner = await createUser("extended", "applicant");
       reviewer = await createUser("reviewer");
       admin = await createUser("admin");
