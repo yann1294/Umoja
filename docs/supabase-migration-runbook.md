@@ -109,6 +109,12 @@ publishes only the allow-listed profile projection; portfolio examples require t
 encrypted intake rows, private contact fields, hidden attachment paths, or internal notes from public
 routes.
 
+The homepage talent preview uses a compact excerpt of the same allow-listed projection: public name,
+avatar/logo or initials fallback, headline or short biography excerpt, public country/region code,
+approved skills, consented languages, fresh consented availability and a link to the detail page. It
+must not render full private profile data, contact channels, rates, hidden files, or unapproved
+portfolio content.
+
 If the project exposes legacy `anon` and `service_role` keys instead of the newer publishable/secret keys, use explicit legacy environment names and document the SDK version. Never place a secret/service-role key behind `NEXT_PUBLIC_`.
 
 Shared application configuration is provider-neutral. `APP_URL`, `NEXT_REVALIDATION_SECRET`, and

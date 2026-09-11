@@ -276,6 +276,11 @@ profile and each relevant public item satisfy explicit consent and moderation ga
 must also be fresh and separately consented before a public summary can appear. The public talent pool is
 curated discovery for qualified Umoja intake, not direct private messaging, public bidding, or an
 unrestricted freelancer directory.
+
+Homepage talent previews are a compact excerpt of the same public projection. They may show the
+approved public name, avatar/logo or initials fallback, headline or short biography excerpt, public
+country/region code, consented languages, approved skill badges, and fresh consented availability.
+They must not use the full biography as the primary card content or introduce private/contact data.
 6. Lead records evidence across delivery, communication, documentation, quality, and reliability.
 7. Knowledge Group reviews the promotion packet.
 8. Promotion to Core is approved, deferred with a growth plan, or declined with an appeal path.
