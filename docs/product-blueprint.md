@@ -174,7 +174,7 @@ The homepage should explain how a prospective client can engage Umoja immediatel
 the curated trust model. It must not resemble a public bidding marketplace.
 
 1. **Hero:** “African expertise. One trusted force.” Primary action: “Hire a professional”; secondary action: “Join the network.”
-2. **Talent pool:** explain consent-led, moderated visibility and show only approved public profiles.
+2. **Talent pool:** explain consent-led, moderated visibility with curated preview content and link to the approved public talent directory.
 3. **Capability blocks:** product engineering, data/AI, enterprise modernization, cloud, design, and digital growth.
 4. **Engagement choices:** request an individual professional or ask Umoja to help assemble a team.
 5. **How Umoja works:** qualify the need, confirm expertise and boundaries, then proceed under the approved engagement model.
@@ -277,10 +277,12 @@ must also be fresh and separately consented before a public summary can appear. 
 curated discovery for qualified Umoja intake, not direct private messaging, public bidding, or an
 unrestricted freelancer directory.
 
-Homepage talent previews are a compact excerpt of the same public projection. They may show the
-approved public name, avatar/logo or initials fallback, headline or short biography excerpt, public
-country/region code, consented languages, approved skill badges, and fresh consented availability.
-They must not use the full biography as the primary card content or introduce private/contact data.
+Approved profiles appear in the public talent directory and profile detail pages. Homepage talent
+previews are curated public content, not an automatic excerpt of the first approved profiles. They
+must communicate approved expertise, consent-led visibility, moderated profiles, and the absence of
+public contact details, rates, HR records, public bidding, direct messaging, or automatic ranking.
+If Umoja later needs individual profiles featured on the homepage, that selection must be explicit,
+moderated, and CMS-controlled rather than derived from directory ordering.
 6. Lead records evidence across delivery, communication, documentation, quality, and reliability.
 7. Knowledge Group reviews the promotion packet.
 8. Promotion to Core is approved, deferred with a growth plan, or declined with an appeal path.

@@ -109,11 +109,13 @@ publishes only the allow-listed profile projection; portfolio examples require t
 encrypted intake rows, private contact fields, hidden attachment paths, or internal notes from public
 routes.
 
-The homepage talent preview uses a compact excerpt of the same allow-listed projection: public name,
-avatar/logo or initials fallback, headline or short biography excerpt, public country/region code,
-approved skills, consented languages, fresh consented availability and a link to the detail page. It
-must not render full private profile data, contact channels, rates, hidden files, or unapproved
-portfolio content.
+Approved profiles appear in the public talent directory and detail pages. The homepage talent
+preview is curated public content that describes approved expertise, consent-led visibility, and
+moderated discovery; it must not automatically select the first approved public profile from the
+directory. Future homepage featuring requires an explicit moderated or CMS-controlled
+`featured on homepage` selection rather than directory ordering. The homepage must not render
+private profile data, contact channels, rates, hidden files, unapproved portfolio content, direct
+messaging, public bidding, or automatic ranking.
 
 Public website editing now uses the surface-oriented CMS workflow documented in
 [`cms-public-content-runbook.md`](cms-public-content-runbook.md). The CMS dashboard groups Homepage,

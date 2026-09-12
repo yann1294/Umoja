@@ -100,6 +100,7 @@ export const PUBLIC_CONTENT_SURFACES = [
       field("hero.primaryAction", "Primary action", "Action principale"),
       field("hero.secondaryAction", "Secondary action", "Action secondaire"),
       field("talent.title", "Talent section title", "Titre de la section talents"),
+      field("talent.status", "Talent preview status", "Statut de l’aperçu talents"),
       field(
         "talent.description",
         "Talent section description",
@@ -109,6 +110,50 @@ export const PUBLIC_CONTENT_SURFACES = [
           rows: 3,
         },
       ),
+      field("talent.previewTitle", "Talent preview card title", "Titre de la carte talents", {
+        multiline: true,
+        rows: 2,
+      }),
+      field(
+        "talent.previewDescription",
+        "Talent preview card description",
+        "Description de la carte talents",
+        {
+          multiline: true,
+          rows: 3,
+        },
+      ),
+      field("talent.principles.0.title", "Talent principle 1 title", "Titre du principe talents 1"),
+      field(
+        "talent.principles.0.description",
+        "Talent principle 1 description",
+        "Description du principe talents 1",
+        {
+          multiline: true,
+          rows: 3,
+        },
+      ),
+      field("talent.principles.1.title", "Talent principle 2 title", "Titre du principe talents 2"),
+      field(
+        "talent.principles.1.description",
+        "Talent principle 2 description",
+        "Description du principe talents 2",
+        {
+          multiline: true,
+          rows: 3,
+        },
+      ),
+      field("talent.principles.2.title", "Talent principle 3 title", "Titre du principe talents 3"),
+      field(
+        "talent.principles.2.description",
+        "Talent principle 3 description",
+        "Description du principe talents 3",
+        {
+          multiline: true,
+          rows: 3,
+        },
+      ),
+      field("talent.action", "Talent preview action", "Action de l’aperçu talents"),
     ],
   }),
   surface("about:model", "about", "about/model", "about:model", "about-model", {
