@@ -171,6 +171,22 @@
       "title": "Des expertises approuvées, présentées avec consentement.",
       "description": "Découvrez des profils professionnels modérés, sans coordonnées publiques, tarifs privés, dossiers RH ni classement automatique.",
       "status": "Profils fondés sur le consentement",
+      "previewTitle": "Parcourez les expertises approuvées dans l’annuaire public.",
+      "previewDescription": "La prévisualisation de l’accueil résume les garde-fous de visibilité publique. Les profils individuels apparaissent dans l’annuaire talents uniquement après consentement et modération.",
+      "principles": [
+        {
+          "title": "Expertise approuvée",
+          "description": "Les profils publics sont validés avant publication et restent liés aux parcours d’engagement qualifiés d’Umoja."
+        },
+        {
+          "title": "Visibilité consentie",
+          "description": "Chaque personne ou organisation choisit ce qui peut être public ; coordonnées, tarifs et dossiers RH restent privés."
+        },
+        {
+          "title": "Découverte modérée",
+          "description": "L’annuaire n’est ni un classement automatique, ni un fil d’appel d’offres public, ni une messagerie directe."
+        }
+      ],
       "emptyTitle": "Les profils paraîtront après validation volontaire.",
       "emptyDescription": "Umoja ne créera pas de faux spécialistes et n’exposera pas de données personnelles pour remplir cet espace.",
       "action": "Explorer les talents approuvés"

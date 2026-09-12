@@ -171,6 +171,22 @@
       "title": "Approved expertise, presented with consent.",
       "description": "Explore moderated professional profiles without public contact details, private rates, HR records, or automatic ranking.",
       "status": "Consent-led profiles",
+      "previewTitle": "Browse approved expertise through the public directory.",
+      "previewDescription": "Homepage previews summarize the guardrails behind public visibility. Individual profiles appear in the talent directory only after consent and moderation.",
+      "principles": [
+        {
+          "title": "Approved expertise",
+          "description": "Public profiles are reviewed before publication and remain tied to qualified Umoja engagement paths."
+        },
+        {
+          "title": "Consent-led visibility",
+          "description": "People and organizations choose what can be public; contact details, rates, and HR records stay private."
+        },
+        {
+          "title": "Moderated discovery",
+          "description": "The directory is not an automatic ranking, public bidding feed, or direct messaging channel."
+        }
+      ],
       "emptyTitle": "Profiles will appear after opt-in review.",
       "emptyDescription": "Umoja will not create fictional specialists or expose contributor data to fill this space.",
       "action": "Explore approved talent"

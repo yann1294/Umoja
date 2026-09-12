@@ -23,9 +23,10 @@ test("switches the current page between complete English and French shells", asy
     }),
   ).toBeVisible();
   await expect(page.locator('[data-content-state="empty"]')).toHaveCount(1);
-  await expect(
-    page.getByRole("link", { name: /Explore approved talent|View profile/ }).first(),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Explore approved talent" })).toHaveAttribute(
+    "href",
+    "/en/talent",
+  );
   await expectNoTranslationKeys(page);
   await expectNoPageHorizontalOverflow(page);
   await expectMinimumTouchTargets(page, "a:visible, button:visible");
@@ -132,6 +133,40 @@ test("keeps the reviewed homepage section order and curated engagement boundarie
     "/en/hire",
   );
   await expect(page.getByText("public bidding", { exact: false }).first()).toBeVisible();
+});
+
+test("does not auto-feature approved talent profiles on the homepage", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "width-1280", "One project verifies profile boundaries.");
+
+  await page.goto("/en/talent", { waitUntil: "domcontentloaded" });
+  const directoryProfileLinks = await page
+    .locator('main a[href^="/en/talent/"]')
+    .evaluateAll((links) =>
+      links.map((link) => ({
+        href: (link as HTMLAnchorElement).getAttribute("href"),
+        label: link.textContent?.trim() ?? "",
+      })),
+    );
+
+  await page.goto("/en", { waitUntil: "networkidle" });
+
+  await expect(page.getByRole("link", { name: "Explore approved talent" })).toHaveAttribute(
+    "href",
+    "/en/talent",
+  );
+  await expect(page.locator('main a[href^="/en/talent/"]')).toHaveCount(0);
+  for (const profile of directoryProfileLinks) {
+    if (!profile.href) continue;
+    await expect(page.locator(`main a[href="${profile.href}"]`)).toHaveCount(0);
+  }
+  await expect(
+    page.getByRole("heading", {
+      level: 3,
+      name: "Browse approved expertise through the public directory.",
+    }),
+  ).toBeVisible();
 });
 
 test("contains long translated and loading-state fixtures without clipping", async ({
