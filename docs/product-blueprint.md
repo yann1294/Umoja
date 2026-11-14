@@ -173,13 +173,16 @@ Finance screens must remain feature-flagged until jurisdiction, contracting part
 The homepage should explain how a prospective client can engage Umoja immediately while retaining
 the curated trust model. It must not resemble a public bidding marketplace.
 
-1. **Hero:** “African expertise. One trusted force.” Primary action: “Hire a professional”; secondary action: “Join the network.”
-2. **Talent pool:** explain consent-led, moderated visibility with curated preview content and link to the approved public talent directory.
+1. **Hero:** “African expertise. One trusted force.” Lead with hiring. Primary action: “Hire a professional”; secondary action: “Hire a team” (to the team engagement path). Use an expressive visual of a brief becoming a reviewed team until an approved, consented documentary video exists.
+2. **Services:** request an individual professional or ask Umoja to help assemble a team.
 3. **Capability blocks:** product engineering, data/AI, enterprise modernization, cloud, design, and digital growth.
-4. **Engagement choices:** request an individual professional or ask Umoja to help assemble a team.
+4. **Benefits:** reviewed public profiles, one specialist or a full team, private by default, and English/French parity—never unsupported outcomes, response times, or guarantees.
 5. **How Umoja works:** qualify the need, confirm expertise and boundaries, then proceed under the approved engagement model.
-6. **Verified proof:** selected work and testimonials only when evidence, consent, and publication approval exist.
-7. **Final actions:** a clear client path and a visually secondary contributor path.
+6. **Talent pool:** explain consent-led, moderated visibility with curated preview content and link to the approved public talent directory.
+7. **Verified proof:** selected work and testimonials only when evidence, consent, and publication approval exist.
+8. **Final paths:** a primary client path, then two contributor paths—experienced professionals apply through Join; people building skills first learn about AfricIT without implying enrolment, coaching, or named instructors before those exist.
+
+Human qualification remains a product rule even though the hero no longer states it.
 
 The detailed Core/Extended/partner network model, manifesto extract, AfricIT narrative, and long
 capability-building explanation belong under About. AfricIT remains accessible contextually and in
