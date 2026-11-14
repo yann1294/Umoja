@@ -49,6 +49,8 @@ export default async function HomePage({ params }: HomePageProps) {
   const field = (key: string, fallback: string) => cmsField(cms, key, fallback);
   const operatingSteps = t.raw("operating.steps") as OperatingStep[];
   const capabilities = t.raw("capabilities.items") as Capability[];
+  const benefits = t.raw("benefits.items") as Capability[];
+  const heroRoles = t.raw("heroVisual.roles") as string[];
   const talentPreviewPrinciples = t.raw("talent.principles") as TalentPreviewPrinciple[];
   const engagementOptions = [
     {
@@ -88,43 +90,31 @@ export default async function HomePage({ params }: HomePageProps) {
                 <LinkButton href={`/${locale}/hire`} variant="highlight" size="large">
                   {field("hero.primaryAction", t("primaryAction"))}
                 </LinkButton>
-                <LinkButton href={`/${locale}/join`} variant="inverse" size="large">
+                <LinkButton href={`/${locale}/hire#team`} variant="inverse" size="large">
                   {field("hero.secondaryAction", t("secondaryAction"))}
                 </LinkButton>
               </div>
             </div>
-            <div className={styles.heroGraphic} aria-hidden="true">
-              <span className={styles.heroModule} />
-              <span className={styles.heroModule} />
-              <span className={styles.heroModule} />
-              <Logo className={styles.heroMark} variant="mark" size="large" decorative />
-            </div>
+            <HeroAssembly
+              brief={field("heroVisual.brief", t("heroVisual.brief"))}
+              review={field("heroVisual.review", t("heroVisual.review"))}
+              roles={heroRoles.map((role, index) => field(`heroVisual.roles.${index}`, role))}
+              team={field("heroVisual.team", t("heroVisual.team"))}
+            />
           </div>
         </Container>
       </Section>
 
-      <Section aria-labelledby="talent-title">
+      <Section aria-labelledby="engagement-title">
         <Container>
-          <div className={styles.talentGrid}>
-            <SectionHeading
-              index="01"
-              eyebrow={field("talent.eyebrow", t("talent.eyebrow"))}
-              title={field("talent.title", t("talent.title"))}
-              description={field("talent.description", t("talent.description"))}
-              id="talent-title"
-            />
-            <HomeTalentPreview
-              action={field("talent.action", t("talent.action"))}
-              locale={locale}
-              principles={talentPreviewPrinciples.map((principle, index) => ({
-                title: field(`talent.principles.${index}.title`, principle.title),
-                description: field(`talent.principles.${index}.description`, principle.description),
-              }))}
-              status={field("talent.status", t("talent.status"))}
-              summary={field("talent.previewDescription", t("talent.previewDescription"))}
-              title={field("talent.previewTitle", t("talent.previewTitle"))}
-            />
-          </div>
+          <SectionHeading
+            index="01"
+            eyebrow={field("engagement.eyebrow", t("engagement.eyebrow"))}
+            title={field("engagement.title", t("engagement.title"))}
+            description={field("engagement.description", t("engagement.description"))}
+            id="engagement-title"
+          />
+          <EngagementOptions compact options={engagementOptions} />
         </Container>
       </Section>
 
@@ -156,16 +146,24 @@ export default async function HomePage({ params }: HomePageProps) {
         </Container>
       </Section>
 
-      <Section aria-labelledby="engagement-title">
+      <Section aria-labelledby="benefits-title">
         <Container>
           <SectionHeading
             index="03"
-            eyebrow={field("engagement.eyebrow", t("engagement.eyebrow"))}
-            title={field("engagement.title", t("engagement.title"))}
-            description={field("engagement.description", t("engagement.description"))}
-            id="engagement-title"
+            eyebrow={field("benefits.eyebrow", t("benefits.eyebrow"))}
+            title={field("benefits.title", t("benefits.title"))}
+            description={field("benefits.description", t("benefits.description"))}
+            id="benefits-title"
           />
-          <EngagementOptions compact options={engagementOptions} />
+          <ul className={styles.benefitGrid}>
+            {benefits.map((benefit, index) => (
+              <li key={benefit.title}>
+                <span className={styles.benefitMark} data-accent={index % 4} aria-hidden="true" />
+                <h3>{field(`benefits.${index}.title`, benefit.title)}</h3>
+                <p>{field(`benefits.${index}.description`, benefit.description)}</p>
+              </li>
+            ))}
+          </ul>
         </Container>
       </Section>
 
@@ -192,11 +190,36 @@ export default async function HomePage({ params }: HomePageProps) {
         </Container>
       </Section>
 
+      <Section aria-labelledby="talent-title">
+        <Container>
+          <div className={styles.talentGrid}>
+            <SectionHeading
+              index="05"
+              eyebrow={field("talent.eyebrow", t("talent.eyebrow"))}
+              title={field("talent.title", t("talent.title"))}
+              description={field("talent.description", t("talent.description"))}
+              id="talent-title"
+            />
+            <HomeTalentPreview
+              action={field("talent.action", t("talent.action"))}
+              locale={locale}
+              principles={talentPreviewPrinciples.map((principle, index) => ({
+                title: field(`talent.principles.${index}.title`, principle.title),
+                description: field(`talent.principles.${index}.description`, principle.description),
+              }))}
+              status={field("talent.status", t("talent.status"))}
+              summary={field("talent.previewDescription", t("talent.previewDescription"))}
+              title={field("talent.previewTitle", t("talent.previewTitle"))}
+            />
+          </div>
+        </Container>
+      </Section>
+
       <Section className={styles.workSection} tone="ink" aria-labelledby="work-title">
         <Container>
           <div className={styles.workGrid}>
             <SectionHeading
-              index="05"
+              index="06"
               eyebrow={field("work.eyebrow", t("work.eyebrow"))}
               title={field("work.title", t("work.title"))}
               description={field("work.description", t("work.description"))}
@@ -227,7 +250,7 @@ export default async function HomePage({ params }: HomePageProps) {
             {field("final.title", t("final.title"))}
           </h2>
           <div className={styles.finalGrid}>
-            <article className={styles.finalCard}>
+            <article className={`${styles.finalCard} ${styles.finalCardPrimary}`}>
               <span className={styles.finalCardMark} aria-hidden="true">
                 ↗
               </span>
@@ -243,14 +266,60 @@ export default async function HomePage({ params }: HomePageProps) {
               </span>
               <h3>{field("final.growTitle", t("final.growTitle"))}</h3>
               <p>{field("final.growDescription", t("final.growDescription"))}</p>
-              <LinkButton href={`/${locale}/join`} variant="inverse" size="large">
+              <LinkButton href={`/${locale}/join`} variant="inverse">
                 {field("final.growAction", t("final.growAction"))}
+              </LinkButton>
+            </article>
+            <article className={styles.finalCard}>
+              <span className={styles.finalCardMark} aria-hidden="true">
+                ◇
+              </span>
+              <h3>{field("final.learnTitle", t("final.learnTitle"))}</h3>
+              <p>{field("final.learnDescription", t("final.learnDescription"))}</p>
+              <LinkButton href={`/${locale}/africit`} variant="secondary">
+                {field("final.learnAction", t("final.learnAction"))}
               </LinkButton>
             </article>
           </div>
         </Container>
       </Section>
     </>
+  );
+}
+
+/**
+ * Code-native hero visual: a brief becomes a reviewed, assembled team. It is decorative because the
+ * hero copy carries the same meaning; motion is disabled for reduced-motion users in CSS.
+ * TODO: replace or accompany with an approved, consented documentary video when one exists.
+ */
+function HeroAssembly({
+  brief,
+  review,
+  roles,
+  team,
+}: Readonly<{ brief: string; review: string; roles: readonly string[]; team: string }>) {
+  return (
+    <div className={styles.heroAssembly} aria-hidden="true">
+      <div className={styles.assemblyBrief}>
+        <span className={styles.assemblyDot} />
+        {brief}
+      </div>
+      <div className={styles.assemblyReview}>
+        <span className={styles.assemblyCheck}>✓</span>
+        {review}
+      </div>
+      <ul className={styles.assemblyRoles}>
+        {roles.map((role, index) => (
+          <li key={role} data-accent={index % 4}>
+            {role}
+          </li>
+        ))}
+      </ul>
+      <div className={styles.assemblyTeam}>
+        <Logo className={styles.assemblyMark} variant="mark" size="small" decorative />
+        {team}
+      </div>
+    </div>
   );
 }
 

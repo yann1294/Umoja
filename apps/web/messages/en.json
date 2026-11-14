@@ -31,9 +31,15 @@
     "eyebrow": "Umoja Platform",
     "title": "African expertise. One trusted force.",
     "metadataDescription": "Request an approved African technology professional or ask Umoja to help assemble a qualified expert team.",
-    "introduction": "Hire an approved African technology professional or ask Umoja to help assemble the expert team your work needs. Every request is qualified by people, not opened to public bidding.",
+    "introduction": "Hire an approved African technology professional for a focused role, or ask Umoja to assemble the expert team your project needs across product, data, cloud, and design.",
     "primaryAction": "Hire a professional",
-    "secondaryAction": "Join the network",
+    "secondaryAction": "Hire a team",
+    "heroVisual": {
+      "brief": "Your project brief",
+      "review": "Reviewed by Umoja",
+      "roles": ["Product engineering", "Data and AI", "Cloud and operations", "Design and brand"],
+      "team": "Your Umoja team"
+    },
     "trust": {
       "eyebrow": "Trust before scale",
       "title": "One accountable team, assembled around the work.",
@@ -63,7 +69,7 @@
       ]
     },
     "engagement": {
-      "eyebrow": "Two curated engagement paths",
+      "eyebrow": "Our services",
       "title": "Choose the shape of support you need.",
       "description": "Both routes begin with a qualified request and keep professional contact details private.",
       "individualTitle": "Hire a professional",
@@ -130,6 +136,29 @@
         {
           "title": "Digital growth",
           "description": "Useful content, audience strategy, experimentation, and sustainable paths from attention to adoption."
+        }
+      ]
+    },
+    "benefits": {
+      "eyebrow": "Why work with Umoja",
+      "title": "Trusted expertise without the open-marketplace noise.",
+      "description": "Umoja shapes each engagement around your outcome, then brings in the right approved people with clear boundaries.",
+      "items": [
+        {
+          "title": "Reviewed public profiles",
+          "description": "Public profiles, skills, and portfolio examples appear only after the professional consents and Umoja approves them."
+        },
+        {
+          "title": "One specialist or a full team",
+          "description": "Request a single professional or a coordinated multidisciplinary team through the same qualified path."
+        },
+        {
+          "title": "Private by default",
+          "description": "Contact details, rates, and HR records stay out of public discovery."
+        },
+        {
+          "title": "English and French",
+          "description": "Francophone and anglophone Africa work as one network, with both languages treated equally."
         }
       ]
     },
@@ -207,14 +236,17 @@
       "action": "Read about the model"
     },
     "final": {
-      "eyebrow": "Start with the right path",
-      "title": "Request expertise or contribute yours.",
-      "buildTitle": "Find the right engagement",
-      "buildDescription": "Choose an individual professional, a complete team, or the existing structured project journey.",
+      "eyebrow": "Find your path",
+      "title": "Request expertise, contribute yours, or grow it first.",
+      "buildTitle": "Need expertise?",
+      "buildDescription": "Choose an individual professional, a complete team, or the structured project journey.",
       "buildAction": "See client options",
-      "growTitle": "Join the network",
-      "growDescription": "Apply through a private, consent-led path toward reviewed opportunities and trusted contribution.",
-      "growAction": "Join the network"
+      "growTitle": "Are you a seasoned professional?",
+      "growDescription": "Apply to join the network through a private, consent-led review toward approved opportunities.",
+      "growAction": "Join the network",
+      "learnTitle": "Want to strengthen your skills first?",
+      "learnDescription": "Explore AfricIT, Umoja’s learning and research program connecting practical skills to the needs of real projects.",
+      "learnAction": "Explore AfricIT"
     }
   },
   "Engagement": {
