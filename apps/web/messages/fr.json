@@ -31,9 +31,15 @@
     "eyebrow": "Plateforme Umoja",
     "title": "L’expertise africaine. Une force unie.",
     "metadataDescription": "Demandez un professionnel africain de la technologie approuvé ou confiez à Umoja la constitution d’une équipe d’experts qualifiée.",
-    "introduction": "Recrutez un professionnel africain de la technologie approuvé ou demandez à Umoja de constituer l’équipe d’experts adaptée à votre besoin. Chaque demande est qualifiée humainement, sans appel d’offres public.",
+    "introduction": "Recrutez un professionnel africain de la technologie approuvé pour un rôle ciblé, ou confiez à Umoja la constitution de l’équipe d’experts dont votre projet a besoin : produit, données, cloud et design.",
     "primaryAction": "Recruter un professionnel",
-    "secondaryAction": "Rejoindre le réseau",
+    "secondaryAction": "Recruter une équipe",
+    "heroVisual": {
+      "brief": "Votre brief de projet",
+      "review": "Examiné par Umoja",
+      "roles": ["Ingénierie produit", "Données et IA", "Cloud et opérations", "Design et marque"],
+      "team": "Votre équipe Umoja"
+    },
     "trust": {
       "eyebrow": "La confiance avant l’échelle",
       "title": "Une seule équipe responsable, réunie autour du travail.",
@@ -63,7 +69,7 @@
       ]
     },
     "engagement": {
-      "eyebrow": "Deux parcours d’engagement sélectionnés",
+      "eyebrow": "Nos services",
       "title": "Choisissez la forme d’accompagnement adaptée.",
       "description": "Les deux parcours commencent par une demande qualifiée et gardent les coordonnées professionnelles confidentielles.",
       "individualTitle": "Recruter un professionnel",
@@ -130,6 +136,29 @@
         {
           "title": "Croissance numérique",
           "description": "Contenus utiles, stratégie d’audience, expérimentation et parcours durables de l’attention à l’adoption."
+        }
+      ]
+    },
+    "benefits": {
+      "eyebrow": "Pourquoi travailler avec Umoja",
+      "title": "Une expertise de confiance, sans le bruit d’une place de marché ouverte.",
+      "description": "Umoja structure chaque engagement autour de votre objectif, puis mobilise les bonnes personnes approuvées dans un cadre clair.",
+      "items": [
+        {
+          "title": "Profils publics examinés",
+          "description": "Les profils publics, compétences et exemples de réalisations n’apparaissent qu’après le consentement du professionnel et la validation d’Umoja."
+        },
+        {
+          "title": "Un spécialiste ou une équipe complète",
+          "description": "Demandez un professionnel ou une équipe pluridisciplinaire coordonnée par le même parcours qualifié."
+        },
+        {
+          "title": "Privé par défaut",
+          "description": "Coordonnées, tarifs et dossiers RH restent hors de la découverte publique."
+        },
+        {
+          "title": "Français et anglais",
+          "description": "L’Afrique francophone et anglophone forment un seul réseau, avec les deux langues traitées à égalité."
         }
       ]
     },
@@ -207,14 +236,17 @@
       "action": "Découvrir le modèle"
     },
     "final": {
-      "eyebrow": "Commencer par le bon parcours",
-      "title": "Demandez une expertise ou proposez la vôtre.",
-      "buildTitle": "Trouver le bon engagement",
-      "buildDescription": "Choisissez un professionnel, une équipe complète ou le parcours structuré de projet existant.",
+      "eyebrow": "Trouvez votre parcours",
+      "title": "Demandez une expertise, proposez la vôtre ou développez-la d’abord.",
+      "buildTitle": "Besoin d’expertise ?",
+      "buildDescription": "Choisissez un professionnel, une équipe complète ou le parcours structuré de projet.",
       "buildAction": "Voir les options client",
-      "growTitle": "Rejoindre le réseau",
-      "growDescription": "Candidatez par un parcours privé et consenti vers des opportunités validées et une contribution de confiance.",
-      "growAction": "Rejoindre le réseau"
+      "growTitle": "Êtes-vous un professionnel expérimenté ?",
+      "growDescription": "Candidatez pour rejoindre le réseau par un examen privé et consenti, vers des opportunités validées.",
+      "growAction": "Rejoindre le réseau",
+      "learnTitle": "Vous souhaitez d’abord renforcer vos compétences ?",
+      "learnDescription": "Découvrez AfricIT, le programme d’apprentissage et de recherche d’Umoja qui relie les compétences pratiques aux besoins des projets réels.",
+      "learnAction": "Explorer AfricIT"
     }
   },
   "Engagement": {

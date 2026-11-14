@@ -9,6 +9,7 @@ import {
   publicSurfaceForPage,
 } from "./public-surfaces";
 import { caseStudyFromCms, editorialPageFromCms } from "./public-rendering";
+import en from "../../messages/en.json";
 
 const basePage = {
   id: "00000000-0000-0000-0000-000000000001",
@@ -53,6 +54,28 @@ describe("public CMS surfaces", () => {
     expect(
       publicSurfaceForPage(page({ stableKey: "case-study:alpha", slug: "work/alpha" }))?.key,
     ).toBe("case-study:alpha");
+  });
+
+  it("exposes every editable homepage block, including the client and contributor paths", () => {
+    const homepage = PUBLIC_CONTENT_SURFACES.find((surface) => surface.key === "homepage");
+    const keys = homepage?.fields.map((field) => field.key) ?? [];
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        "hero.secondaryAction",
+        "heroVisual.brief",
+        "heroVisual.roles.3",
+        "engagement.eyebrow",
+        "benefits.title",
+        "benefits.3.description",
+        "final.buildAction",
+        "final.growAction",
+        "final.learnTitle",
+        "final.learnAction",
+      ]),
+    );
+    expect(en.Home.heroVisual.roles).toHaveLength(4);
+    expect(en.Home.benefits.items).toHaveLength(4);
   });
 
   it("marks governance-sensitive surfaces as draftable but ordinary-publication blocked", () => {

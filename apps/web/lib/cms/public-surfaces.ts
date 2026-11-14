@@ -82,8 +82,8 @@ export const PUBLIC_CONTENT_SURFACES = [
     group: { en: "Homepage", fr: "Page d’accueil" },
     label: { en: "Homepage", fr: "Page d’accueil" },
     summary: {
-      en: "Hero, engagement choices, talent preview copy, proof states, and final calls to action.",
-      fr: "Héros, choix d’engagement, texte du vivier de talents, preuves et appels à l’action finaux.",
+      en: "Hero, services, benefits, talent preview copy, proof states, and client/contributor paths.",
+      fr: "Héros, services, avantages, texte du vivier de talents, preuves et parcours client/contributeur.",
     },
     fields: [
       field("hero.eyebrow", "Hero eyebrow", "Surtitre du héros"),
@@ -99,6 +99,39 @@ export const PUBLIC_CONTENT_SURFACES = [
       }),
       field("hero.primaryAction", "Primary action", "Action principale"),
       field("hero.secondaryAction", "Secondary action", "Action secondaire"),
+      field("heroVisual.brief", "Hero visual: brief label", "Visuel du héros : brief"),
+      field("heroVisual.review", "Hero visual: review label", "Visuel du héros : examen"),
+      ...[1, 2, 3, 4].map((index) =>
+        field(
+          `heroVisual.roles.${index - 1}`,
+          `Hero visual: role ${index}`,
+          `Visuel du héros : rôle ${index}`,
+        ),
+      ),
+      field("heroVisual.team", "Hero visual: team label", "Visuel du héros : équipe"),
+      field("engagement.eyebrow", "Services eyebrow", "Surtitre des services"),
+      field("benefits.eyebrow", "Benefits eyebrow", "Surtitre des avantages"),
+      field("benefits.title", "Benefits title", "Titre des avantages", {
+        multiline: true,
+        rows: 2,
+      }),
+      field("benefits.description", "Benefits description", "Description des avantages", {
+        multiline: true,
+        rows: 3,
+      }),
+      ...[1, 2, 3, 4].flatMap((index) => [
+        field(
+          `benefits.${index - 1}.title`,
+          `Benefit ${index} title`,
+          `Titre de l’avantage ${index}`,
+        ),
+        field(
+          `benefits.${index - 1}.description`,
+          `Benefit ${index} description`,
+          `Description de l’avantage ${index}`,
+          { multiline: true, rows: 3 },
+        ),
+      ]),
       field("talent.title", "Talent section title", "Titre de la section talents"),
       field("talent.status", "Talent preview status", "Statut de l’aperçu talents"),
       field(
@@ -154,6 +187,25 @@ export const PUBLIC_CONTENT_SURFACES = [
         },
       ),
       field("talent.action", "Talent preview action", "Action de l’aperçu talents"),
+      field("final.eyebrow", "Final paths eyebrow", "Surtitre des parcours finaux"),
+      field("final.title", "Final paths title", "Titre des parcours finaux", {
+        multiline: true,
+        rows: 2,
+      }),
+      ...(
+        [
+          ["build", "Client path", "Parcours client"],
+          ["grow", "Experienced professional path", "Parcours professionnel expérimenté"],
+          ["learn", "AfricIT learning path", "Parcours d’apprentissage AfricIT"],
+        ] as const
+      ).flatMap(([key, en, fr]) => [
+        field(`final.${key}Title`, `${en} title`, `${fr} : titre`),
+        field(`final.${key}Description`, `${en} description`, `${fr} : description`, {
+          multiline: true,
+          rows: 3,
+        }),
+        field(`final.${key}Action`, `${en} action`, `${fr} : action`),
+      ]),
     ],
   }),
   surface("about:model", "about", "about/model", "about:model", "about-model", {

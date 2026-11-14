@@ -60,64 +60,225 @@
   margin-top: var(--u-space-4);
 }
 
-.heroGraphic {
+.heroAssembly {
   position: relative;
   display: grid;
-  width: min(100%, 29rem);
-  aspect-ratio: 1;
-  place-items: center;
+  width: min(100%, 27rem);
+  gap: var(--u-space-1-5);
   justify-self: end;
+  padding: clamp(var(--u-space-2), 3vw, var(--u-space-3));
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: var(--u-radius-panel);
+  background: rgb(255 255 255 / 4%);
 }
 
-.heroGraphic::before,
-.heroGraphic::after {
+/* Connector line that carries the request from brief to team. */
+.heroAssembly::before {
   position: absolute;
-  border: 1px solid rgb(255 255 255 / 32%);
-  border-radius: var(--u-radius-panel);
+  top: 2.5rem;
+  bottom: 2.5rem;
+  left: 50%;
+  border-left: 2px dashed rgb(244 185 66 / 45%);
   content: "";
 }
 
-.heroGraphic::before {
-  inset: 7%;
-  transform: rotate(9deg);
-}
-
-.heroGraphic::after {
-  inset: 19%;
-  border-color: rgb(244 185 66 / 58%);
-  transform: rotate(-7deg);
-}
-
-.heroModule {
+.heroAssembly::after {
   position: absolute;
-  width: 2rem;
+  top: 2.5rem;
+  left: calc(50% - 0.3125rem);
+  width: 0.625rem;
   aspect-ratio: 1;
-  border-radius: 0.5rem;
+  border-radius: 50%;
+  background: var(--u-color-gold);
+  box-shadow: 0 0 0 0.375rem rgb(244 185 66 / 18%);
+  content: "";
+  animation: assembly-travel 4.8s ease-in-out 2s infinite;
+}
+
+.assemblyBrief,
+.assemblyReview,
+.assemblyRoles li,
+.assemblyTeam {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.assemblyBrief {
+  display: flex;
+  gap: var(--u-space-1);
+  align-items: center;
+  padding: var(--u-space-2);
+  border-radius: var(--u-radius-card);
+  color: var(--u-color-ink);
+  background: var(--u-color-canvas);
+  font-family: var(--u-font-heading);
+  font-weight: 700;
+  animation: assembly-drop 0.6s ease-out both;
+}
+
+.assemblyDot {
+  flex: none;
+  width: 0.75rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
   background: var(--u-color-gold);
 }
 
-.heroModule:nth-child(1) {
-  top: 4%;
-  right: 24%;
+.assemblyReview {
+  display: inline-flex;
+  gap: var(--u-space-1);
+  align-items: center;
+  justify-self: center;
+  padding: var(--u-space-0-5) var(--u-space-2);
+  border: 1px solid rgb(244 185 66 / 70%);
+  border-radius: var(--u-radius-round);
+  color: var(--u-color-gold);
+  background: var(--u-color-canopy);
+  font-size: var(--u-font-label);
+  font-weight: 650;
+  animation: assembly-fade 0.5s ease-out 0.45s both;
 }
 
-.heroModule:nth-child(2) {
-  right: 3%;
-  bottom: 28%;
-  background: var(--u-color-terracotta);
+.assemblyCheck {
+  font-weight: 800;
 }
 
-.heroModule:nth-child(3) {
-  bottom: 3%;
-  left: 27%;
-  background: var(--u-color-kijani);
+.assemblyRoles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--u-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.heroMark {
-  position: relative;
-  z-index: 1;
-  width: 48% !important;
-  opacity: 0.88;
+.assemblyRoles li {
+  padding: var(--u-space-1-5);
+  border-left: 0.25rem solid var(--u-color-kijani);
+  border-radius: var(--u-radius-control);
+  color: var(--u-color-white);
+  background: rgb(11 31 26 / 72%);
+  font-size: var(--u-font-label);
+  font-weight: 650;
+  line-height: 1.35;
+  animation: assembly-join-left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.assemblyRoles li:nth-child(even) {
+  animation-name: assembly-join-right;
+}
+
+.assemblyRoles li:nth-child(1) {
+  animation-delay: 0.8s;
+}
+
+.assemblyRoles li:nth-child(2) {
+  animation-delay: 0.95s;
+}
+
+.assemblyRoles li:nth-child(3) {
+  animation-delay: 1.1s;
+}
+
+.assemblyRoles li:nth-child(4) {
+  animation-delay: 1.25s;
+}
+
+.assemblyRoles li[data-accent="1"] {
+  border-left-color: var(--u-color-gold);
+}
+
+.assemblyRoles li[data-accent="2"] {
+  border-left-color: var(--u-color-terracotta);
+}
+
+.assemblyRoles li[data-accent="3"] {
+  border-left-color: color-mix(in srgb, var(--u-color-indigo) 55%, var(--u-color-white));
+}
+
+.assemblyTeam {
+  display: flex;
+  gap: var(--u-space-1-5);
+  align-items: center;
+  padding: var(--u-space-2);
+  border-radius: var(--u-radius-card);
+  color: var(--u-color-ink);
+  background: var(--u-color-gold);
+  font-family: var(--u-font-heading);
+  font-weight: 750;
+  animation: assembly-rise 0.6s ease-out 1.6s both;
+}
+
+.assemblyMark {
+  flex: none;
+  width: 2.25rem !important;
+  padding: 0.3rem;
+  border-radius: 50%;
+  background: var(--u-color-canvas);
+}
+
+@keyframes assembly-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-0.75rem);
+  }
+}
+
+@keyframes assembly-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes assembly-join-left {
+  from {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@keyframes assembly-join-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+}
+
+@keyframes assembly-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.97);
+  }
+}
+
+@keyframes assembly-travel {
+  0% {
+    top: 2.5rem;
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 2.5rem);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroAssembly::after {
+    display: none;
+  }
+
+  .assemblyBrief,
+  .assemblyReview,
+  .assemblyRoles li,
+  .assemblyTeam {
+    animation: none;
+  }
 }
 
 .trustSection {
@@ -285,6 +446,58 @@
 
 .capabilityMark[data-accent="2"] {
   background: var(--u-color-terracotta);
+}
+
+.benefitGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--u-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.benefitGrid li {
+  min-width: 0;
+  padding: clamp(var(--u-space-3), 3vw, var(--u-space-4));
+  border: 1px solid var(--u-color-mist);
+  border-radius: var(--u-radius-card);
+  background: var(--u-color-white);
+}
+
+.benefitGrid h3 {
+  margin: 0;
+  font-family: var(--u-font-heading);
+  font-size: var(--u-font-body-large);
+  line-height: var(--u-leading-h3);
+  overflow-wrap: anywhere;
+}
+
+.benefitGrid p {
+  margin: var(--u-space-1) 0 0;
+  color: var(--u-color-slate);
+  line-height: var(--u-leading-body);
+}
+
+.benefitMark {
+  display: block;
+  width: 1.25rem;
+  aspect-ratio: 1;
+  margin-bottom: var(--u-space-3);
+  border-radius: 0.375rem;
+  background: var(--u-color-kijani);
+}
+
+.benefitMark[data-accent="1"] {
+  background: var(--u-color-gold);
+}
+
+.benefitMark[data-accent="2"] {
+  background: var(--u-color-terracotta);
+}
+
+.benefitMark[data-accent="3"] {
+  background: var(--u-color-indigo);
 }
 
 .workGrid,
@@ -772,11 +985,14 @@
 
 .finalGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--u-space-2);
 }
 
 .finalCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   min-width: 0;
   padding: clamp(var(--u-space-4), 6vw, var(--u-space-8));
   border: 1px solid var(--u-color-mist);
@@ -785,8 +1001,14 @@
 }
 
 .finalCard p {
+  flex: 1;
   max-width: 35rem;
   margin-bottom: var(--u-space-4);
+}
+
+.finalCardPrimary {
+  border-color: var(--u-color-gold);
+  box-shadow: inset 0 0.375rem 0 var(--u-color-gold);
 }
 
 .finalCardDark {
@@ -839,6 +1061,15 @@
   .steps li:nth-child(-n + 2) {
     border-bottom: 1px solid var(--u-color-slate);
   }
+
+  .benefitGrid,
+  .finalGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .finalCardPrimary {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 48rem) {
@@ -847,12 +1078,9 @@
     grid-template-columns: 1fr;
   }
 
-  .heroGraphic {
-    position: absolute;
-    right: -5rem;
-    bottom: -5rem;
-    width: 18rem;
-    opacity: 0.5;
+  .heroAssembly {
+    justify-self: start;
+    width: min(100%, 26rem);
   }
 
   .trustPrinciples,
@@ -937,6 +1165,7 @@
 
   .steps,
   .capabilityGrid,
+  .benefitGrid,
   .networkParts {
     grid-template-columns: 1fr;
   }

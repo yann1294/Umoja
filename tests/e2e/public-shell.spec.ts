@@ -101,7 +101,15 @@ test("uses a coherent landmark and heading hierarchy with resolving calls to act
       ...new Set(links.map((link) => (link as HTMLAnchorElement).getAttribute("href"))),
     ]);
   expect(mainLinks).toEqual(
-    expect.arrayContaining(["/en/hire", "/en/join", "/en/services", "/en/work", "/en/talent"]),
+    expect.arrayContaining([
+      "/en/hire",
+      "/en/hire#team",
+      "/en/join",
+      "/en/africit",
+      "/en/services",
+      "/en/work",
+      "/en/talent",
+    ]),
   );
   for (const href of mainLinks) {
     expect(href).not.toBeNull();
@@ -121,16 +129,33 @@ test("keeps the reviewed homepage section order and curated engagement boundarie
   const headings = await page
     .locator("main h2")
     .evaluateAll((elements) => elements.map((element) => element.textContent?.trim()));
-  expect(headings.slice(0, 5)).toEqual([
-    "Approved expertise, presented with consent.",
-    "Disciplines connected around the product, not sold in isolation.",
+  expect(headings.slice(0, 7)).toEqual([
     "Choose the shape of support you need.",
+    "Disciplines connected around the product, not sold in isolation.",
+    "Trusted expertise without the open-marketplace noise.",
     "A qualified path from need to engagement.",
+    "Approved expertise, presented with consent.",
     "Evidence deserves consent and context.",
+    "Request expertise, contribute yours, or grow it first.",
   ]);
-  await expect(page.getByRole("link", { name: "Hire a professional" })).toHaveAttribute(
+  const hero = page.locator("main section").first();
+  await expect(hero.getByRole("link", { name: "Hire a professional" })).toHaveAttribute(
     "href",
     "/en/hire",
+  );
+  await expect(hero.getByRole("link", { name: "Hire a team" })).toHaveAttribute(
+    "href",
+    "/en/hire#team",
+  );
+  await expect(hero.getByRole("link", { name: "Join the network" })).toHaveCount(0);
+  await expect(page.getByText("Every request is qualified by people")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Join the network" })).toHaveAttribute(
+    "href",
+    "/en/join",
+  );
+  await expect(page.getByRole("link", { name: "Explore AfricIT" })).toHaveAttribute(
+    "href",
+    "/en/africit",
   );
   await expect(page.getByText("public bidding", { exact: false }).first()).toBeVisible();
 });
